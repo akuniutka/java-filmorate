@@ -24,25 +24,16 @@ public class FilmController {
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
-        log.info("Received POST at /films: {}", film);
-        final Film savedFilm = filmService.create(film);
-        log.info("Responded to POST at /films: {}", savedFilm);
-        return savedFilm;
+        return filmService.create(film);
     }
 
     @GetMapping
     public Collection<Film> finaAll() {
-        log.info("Received GET at /films");
-        final Collection<Film> films = filmService.findAll();
-        log.info("Responded to GET at /films: {}", films);
-        return films;
+        return filmService.findAll();
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
-        log.info("Received PUT at /films: {}", film);
-        final Film savedFilm = filmService.update(film);
-        log.info("Responded to PUT at /films: {}", savedFilm);
-        return savedFilm;
+        return filmService.update(film);
     }
 }
