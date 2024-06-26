@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.constraint;
+package ru.yandex.practicum.filmorate.validator;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -6,7 +6,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class DateValidator implements ConstraintValidator<IsAfter, LocalDate> {
+public class IsAfterValidator implements ConstraintValidator<IsAfter, LocalDate> {
 
     private LocalDate date;
 
