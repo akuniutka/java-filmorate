@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.constraint.IsAfter;
+import ru.yandex.practicum.filmorate.validator.IsAfter;
 
 import java.time.LocalDate;
 
