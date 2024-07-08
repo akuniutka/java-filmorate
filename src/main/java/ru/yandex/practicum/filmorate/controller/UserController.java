@@ -24,25 +24,16 @@ public class UserController {
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        log.info("Received POST at /users: {}", user);
-        final User savedUser = userService.create(user);
-        log.info("Responded to POST at /users: {}", savedUser);
-        return savedUser;
+        return userService.create(user);
     }
 
     @GetMapping
     public Collection<User> findAll() {
-        log.info("Received GET at /users");
-        final Collection<User> users = userService.findAll();
-        log.info("Responded to GET at /users: {}", users);
-        return users;
+        return userService.findAll();
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
-        log.info("Received PUT at /users: {}", user);
-        final User savedUser = userService.update(user);
-        log.info("Responded to PUT at /users: {}", savedUser);
-        return savedUser;
+        return userService.update(user);
     }
 }
