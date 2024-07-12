@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -15,12 +16,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomFilm;
 
-class InMemoryFilmServiceImplTest {
+class FilmServiceImplTest {
 
     private final FilmService filmService;
 
-    public InMemoryFilmServiceImplTest() {
-        this.filmService = new InMemoryFilmServiceImpl();
+    public FilmServiceImplTest() {
+        this.filmService = new FilmServiceImpl(new InMemoryFilmStorage());
     }
 
     @Test

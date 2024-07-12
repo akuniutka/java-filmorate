@@ -5,6 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -17,12 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomUser;
 
-class InMemoryUserServiceImplTest {
+class UserServiceImplTest {
 
     private final UserService userService;
 
-    public InMemoryUserServiceImplTest() {
-        this.userService = new InMemoryUserServiceImpl();
+    public UserServiceImplTest() {
+        this.userService = new UserServiceImpl(new InMemoryUserStorage());
     }
 
     @Test
