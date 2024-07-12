@@ -6,11 +6,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import ru.yandex.practicum.filmorate.validator.IsAfter;
 
 import java.time.LocalDate;
 
 @Data
+@EqualsAndHashCode(of = {"id"})
 public class Film {
 
     private Long id;
