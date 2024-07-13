@@ -25,7 +25,8 @@ public class UserServiceImpl implements UserService {
     public User create(final User user) {
         Objects.requireNonNull(user, "Cannot create user: is null");
         user.setId(++lastUsedId);
-        save(user);
+        resetNameToLoginIfBlank(user);
+        userStorage.save(user);
         log.info("Created new user: {}", user);
         return user;
     }
@@ -40,15 +41,15 @@ public class UserServiceImpl implements UserService {
         Objects.requireNonNull(newUser, "Cannot update user: is null");
         final Long userId = newUser.getId();
         userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
-        save(newUser);
+        resetNameToLoginIfBlank(newUser);
+        userStorage.save(newUser);
         log.info("Updated user with id = {}: {}", userId, newUser);
         return newUser;
     }
 
-    private void save(final User user) {
+    private void resetNameToLoginIfBlank(final User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-        userStorage.save(user);
     }
 }
