@@ -1,0 +1,6 @@
+spring:
+  main:
+    banner-mode: off
+logging:
+  level:
+    ru.yandex.practicum.filmorate.controller: DEBUG

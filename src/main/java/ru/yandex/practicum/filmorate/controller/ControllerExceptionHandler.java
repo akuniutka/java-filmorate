@@ -22,6 +22,8 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler
     protected ProblemDetail handleNotFoundException(NotFoundException exception) {
+        log.warn(exception.getMessage());
+        log.debug(exception.getMessage(), exception);
         String detail = "Check that id of %s is correct (you sent %s)".formatted(exception.getModelName(),
                 exception.getModelId());
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, detail);
@@ -30,6 +32,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exception,
             @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+        log.warn(exception.getMessage());
         HttpStatus statusCode = HttpStatus.BAD_REQUEST;
         String detail = exception.getBindingResult().getFieldErrors().stream()
                 .map(e -> "'%s' %s".formatted(e.getField(), e.getDefaultMessage()))
@@ -37,5 +40,11 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
         return handleExceptionInternal(exception, ProblemDetail.forStatusAndDetail(statusCode, detail), headers,
                 statusCode, request);
+    }
+
+    @ExceptionHandler
+    protected ProblemDetail handleThrowable(Throwable throwable) {
+        log.error(throwable.getMessage(), throwable);
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Please contact site admin");
     }
 }

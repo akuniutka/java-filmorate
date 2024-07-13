@@ -2,13 +2,12 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NullIdException;
-import ru.yandex.practicum.filmorate.exception.NullModelException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -33,13 +32,8 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void save(final User user) {
-        if (user == null) {
-            log.warn("Cannot save user: is null");
-            throw new NullModelException("User is null");
-        } else if (user.getId() == null) {
-            log.warn("Cannot save user: user id is null");
-            throw new NullIdException("User id is null");
-        }
+        Objects.requireNonNull(user, "Cannot save user: is null");
+        Objects.requireNonNull(user.getId(), "Cannot save user: user id is null");
         users.put(user.getId(), user);
     }
 

@@ -3,11 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.NullModelException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.Collection;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -23,10 +23,7 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Film create(final Film film) {
-        if (film == null) {
-            log.warn("Cannot create film: is null");
-            throw new NullModelException("Film is null");
-        }
+        Objects.requireNonNull(film, "Cannot create film: is null");
         film.setId(++lastUsedId);
         filmStorage.save(film);
         log.info("Created new film: {}", film);
@@ -40,10 +37,7 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Film update(final Film newFilm) {
-        if (newFilm == null) {
-            log.warn("Cannot update film: is null");
-            throw new NullModelException("Film is null");
-        }
+        Objects.requireNonNull(newFilm, "Cannot update film: is null");
         final Long filmId = newFilm.getId();
         filmStorage.findById(filmId).orElseThrow(() -> new NotFoundException("film", filmId));
         filmStorage.save(newFilm);

@@ -3,11 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.NullModelException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -23,10 +23,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User create(final User user) {
-        if (user == null) {
-            log.warn("Cannot create user: is null");
-            throw new NullModelException("User is null");
-        }
+        Objects.requireNonNull(user, "Cannot create user: is null");
         user.setId(++lastUsedId);
         save(user);
         log.info("Created new user: {}", user);
@@ -40,10 +37,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User update(final User newUser) {
-        if (newUser == null) {
-            log.warn("Cannot update user: is null");
-            throw new NullModelException("User is null");
-        }
+        Objects.requireNonNull(newUser, "Cannot update user: is null");
         final Long userId = newUser.getId();
         userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
         save(newUser);
