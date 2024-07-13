@@ -35,7 +35,7 @@ import static ru.yandex.practicum.filmorate.TestModels.faker;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomFilm;
 
 @WebMvcTest(FilmController.class)
-public class FilmControllerTest {
+class FilmControllerTest {
 
     private static final String URL = "/films";
     private static final LocalDate cinemaBirthday = LocalDate.of(1895, 12, 28);
@@ -76,6 +76,7 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
+    @ValueSource(strings = {" "})
     public void shouldRespondOkAndReturnFilmWhenPostAndDescriptionNullOrBlank(String description) throws Exception {
         final Film filmToSend = getRandomFilm();
         filmToSend.setDescription(description);
@@ -151,6 +152,7 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
+    @ValueSource(strings = " ")
     public void shouldRespondBadRequestWhenPostAndNameNullOrBlank(String name) throws Exception {
         final Film film = getRandomFilm();
         film.setName(name);
@@ -280,6 +282,7 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
+    @ValueSource(strings = {" "})
     public void shouldRespondOkAndReturnFilmWhenPutAndDescriptionNullOrBlank(String description) throws Exception {
         final Film filmToSend = getRandomFilm();
         filmToSend.setId(faker.number().randomNumber());
@@ -375,6 +378,7 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
+    @ValueSource(strings = {" "})
     public void shouldRespondBadRequestWhenPutAndNameNullOrBlank(String name) throws Exception {
         final Film film = getRandomFilm();
         film.setId(faker.number().randomNumber());

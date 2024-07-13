@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -85,7 +86,8 @@ class UserControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondBadRequestWhenPostAndEmailNullOrBlank(String email) throws Exception {
+    @ValueSource(strings = {" ", "text"})
+    public void shouldRespondBadRequestWhenPostAndEmailNullOrBlankOrMalformed(String email) throws Exception {
         final User user = getRandomUser();
         user.setEmail(email);
         final String jsonToSend = objectMapper.writeValueAsString(user);
@@ -98,39 +100,12 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    public void shouldRespondBadRequestWhenPostAndEmailMalformed() throws Exception {
-        final User user = getRandomUser();
-        user.setEmail("text");
-        final String jsonToSend = objectMapper.writeValueAsString(user);
-
-        mvc.perform(post(URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonToSend)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondBadRequestWhenPostAndLoginNullOrBlank(String login) throws Exception {
+    @ValueSource(strings = {" ", "super admin"})
+    public void shouldRespondBadRequestWhenPostAndLoginNullOrBlankOrContainsWhitespace(String login) throws Exception {
         final User user = getRandomUser();
         user.setLogin(login);
-        final String jsonToSend = objectMapper.writeValueAsString(user);
-
-        mvc.perform(post(URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonToSend)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void shouldRespondBadRequestWhenPostAndLoginContainsWhitespace() throws Exception {
-        final User user = getRandomUser();
-        user.setLogin("super admin");
         final String jsonToSend = objectMapper.writeValueAsString(user);
 
         mvc.perform(post(URL)
@@ -255,7 +230,8 @@ class UserControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondBadRequestWhenPutAndEmailNullOrBlank(String email) throws Exception {
+    @ValueSource(strings = {" ", "text"})
+    public void shouldRespondBadRequestWhenPutAndEmailNullOrBlankOrMalformed(String email) throws Exception {
         final User user = getRandomUser();
         user.setId(faker.number().randomNumber());
         user.setEmail(email);
@@ -269,42 +245,13 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    public void shouldRespondBadRequestWhenPutAndEmailMalformed() throws Exception {
-        final User user = getRandomUser();
-        user.setId(faker.number().randomNumber());
-        user.setEmail("text");
-        final String jsonToSend = objectMapper.writeValueAsString(user);
-
-        mvc.perform(put(URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonToSend)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondBadRequestWhenPutAndLoginNullOrBlank(String login) throws Exception {
+    @ValueSource(strings = {" ", "super admin"})
+    public void shouldRespondBadRequestWhenPutAndLoginNullOrBlankOrContainsWhitespace(String login) throws Exception {
         final User user = getRandomUser();
         user.setId(faker.number().randomNumber());
         user.setLogin(login);
-        final String jsonToSend = objectMapper.writeValueAsString(user);
-
-        mvc.perform(put(URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonToSend)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void shouldRespondBadRequestWhenPutAndLoginContainsWhitespace() throws Exception {
-        final User user = getRandomUser();
-        user.setId(faker.number().randomNumber());
-        user.setLogin("super admin");
         final String jsonToSend = objectMapper.writeValueAsString(user);
 
         mvc.perform(put(URL)
