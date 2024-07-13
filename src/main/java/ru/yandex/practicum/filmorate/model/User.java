@@ -22,7 +22,7 @@ public class User {
     private String email;
 
     @NotNull
-    @Pattern(regexp = "\\S+")
+    @Pattern(regexp = "\\S+", message = "should contain no whitespaces")
     private String login;
 
     private String name;
