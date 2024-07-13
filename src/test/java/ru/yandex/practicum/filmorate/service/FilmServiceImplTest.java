@@ -76,6 +76,7 @@ class FilmServiceImplTest {
         newFilm.setId(filmId + 1);
 
         Exception exception = assertThrows(NotFoundException.class, () -> filmService.update(newFilm));
-        assertEquals("Film not found", exception.getMessage(), "Wrong exception message");
+        assertEquals("Cannot find model 'film' with id = " + (filmId + 1), exception.getMessage(),
+                "Wrong exception message");
     }
 }

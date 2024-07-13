@@ -239,8 +239,9 @@ class UserControllerTest {
     @Test
     public void shouldRespondNotFoundWhenPutAndUserNotFound() throws Exception {
         final User user = getRandomUser();
-        user.setId(faker.number().randomNumber());
-        when(userService.update(user)).thenThrow(new NotFoundException("User not found"));
+        final Long userId = faker.number().randomNumber();
+        user.setId(userId);
+        when(userService.update(user)).thenThrow(new NotFoundException("user", userId));
         final String jsonToSend = objectMapper.writeValueAsString(user);
 
         mvc.perform(put(URL)

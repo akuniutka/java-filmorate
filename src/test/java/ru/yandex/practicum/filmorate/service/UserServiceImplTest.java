@@ -112,6 +112,7 @@ class UserServiceImplTest {
         newUser.setId(userId + 1);
 
         Exception exception = assertThrows(NotFoundException.class, () -> userService.update(newUser));
-        assertEquals("User not found", exception.getMessage(), "Wrong exception message");
+        assertEquals("Cannot find model 'user' with id = " + (userId + 1), exception.getMessage(),
+                "Wrong exception message");
     }
 }

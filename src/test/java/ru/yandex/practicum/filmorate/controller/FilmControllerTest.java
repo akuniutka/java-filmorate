@@ -359,8 +359,9 @@ public class FilmControllerTest {
     @Test
     public void shouldRespondNotFoundWhenPutAndFilmNotFound() throws Exception {
         final Film film = getRandomFilm();
-        film.setId(faker.number().randomNumber());
-        when(filmService.update(film)).thenThrow(new NotFoundException("Film not found"));
+        final Long filmId = faker.number().randomNumber();
+        film.setId(filmId);
+        when(filmService.update(film)).thenThrow(new NotFoundException("film", filmId));
         final String jsonToSend = objectMapper.writeValueAsString(film);
 
         mvc.perform(put(URL)

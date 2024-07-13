@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -45,13 +44,10 @@ public class UserServiceImpl implements UserService {
             log.warn("Cannot update user: is null");
             throw new NullModelException("User is null");
         }
-        Optional<User> oldUserOpt = userStorage.findById(newUser.getId());
-        if (oldUserOpt.isEmpty()) {
-            log.warn("Cannot update user with id={}: user not found", newUser.getId());
-            throw new NotFoundException("User not found");
-        }
+        final Long userId = newUser.getId();
+        userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
         save(newUser);
-        log.info("Updated user with id = {}: {}", newUser.getId(), newUser);
+        log.info("Updated user with id = {}: {}", userId, newUser);
         return newUser;
     }
 

@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.Collection;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -45,11 +44,8 @@ public class FilmServiceImpl implements FilmService {
             log.warn("Cannot update film: is null");
             throw new NullModelException("Film is null");
         }
-        Optional<Film> oldFilmOpt = filmStorage.findById(newFilm.getId());
-        if (oldFilmOpt.isEmpty()) {
-            log.warn("Cannot update film with id = {}: film not found", newFilm.getId());
-            throw new NotFoundException("Film not found");
-        }
+        final Long filmId = newFilm.getId();
+        filmStorage.findById(filmId).orElseThrow(() -> new NotFoundException("film", filmId));
         filmStorage.save(newFilm);
         log.info("Updated film with id={}: {}", newFilm.getId(), newFilm);
         return newFilm;
