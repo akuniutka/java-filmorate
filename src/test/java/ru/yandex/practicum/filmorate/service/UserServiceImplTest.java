@@ -130,8 +130,10 @@ class UserServiceImplTest {
         final User oldUser = getRandomUser();
         final Long userId = faker.number().randomNumber();
         final Set<Long> friends = Set.of(faker.number().randomNumber());
+        final Set<Long> likedFilms = Set.of(faker.number().randomNumber());
         oldUser.setId(userId);
         oldUser.setFriends(friends);
+        oldUser.setLikedFilms(likedFilms);
         userStorage.save(oldUser);
         final User newUser = getRandomUser();
         newUser.setId(userId);
@@ -151,13 +153,17 @@ class UserServiceImplTest {
                 () -> assertEquals(birthday, updatedUser.getBirthday(), "Wrong birthday"),
                 () -> assertEquals(friends.size(), updatedUser.getFriends().size(), "Wrong list of friends"),
                 () -> assertTrue(updatedUser.getFriends().containsAll(friends), "Wrong list of friends"),
+                () -> assertEquals(likedFilms.size(), updatedUser.getLikedFilms().size(), "Wrong list of liked films"),
+                () -> assertTrue(updatedUser.getLikedFilms().containsAll(likedFilms), "Wrong list of liked films"),
                 () -> assertEquals(userId, savedUser.getId(), "Wrong user ID"),
                 () -> assertEquals(email, savedUser.getEmail(), "Wrong email"),
                 () -> assertEquals(login, savedUser.getLogin(), "Wrong login"),
                 () -> assertEquals(name, savedUser.getName(), "Wrong name"),
                 () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday"),
                 () -> assertEquals(friends.size(), savedUser.getFriends().size(), "Wrong list of friends"),
-                () -> assertTrue(savedUser.getFriends().containsAll(friends), "Wrong list of friends")
+                () -> assertTrue(savedUser.getFriends().containsAll(friends), "Wrong list of friends"),
+                () -> assertEquals(likedFilms.size(), savedUser.getLikedFilms().size(), "Wrong list of liked films"),
+                () -> assertTrue(savedUser.getLikedFilms().containsAll(likedFilms), "Wrong list of liked films")
         );
     }
 
@@ -168,8 +174,10 @@ class UserServiceImplTest {
         final User oldUser = getRandomUser();
         final Long userId = faker.number().randomNumber();
         final Set<Long> friends = Set.of(faker.number().randomNumber());
+        final Set<Long> likedFilms = Set.of(faker.number().randomNumber());
         oldUser.setId(userId);
         oldUser.setFriends(friends);
+        oldUser.setLikedFilms(likedFilms);
         userStorage.save(oldUser);
         final User newUser = getRandomUser();
         newUser.setId(userId);
@@ -189,13 +197,17 @@ class UserServiceImplTest {
                 () -> assertEquals(birthday, updatedUser.getBirthday(), "Wrong birthday"),
                 () -> assertEquals(friends.size(), updatedUser.getFriends().size(), "Wrong list of friends"),
                 () -> assertTrue(updatedUser.getFriends().containsAll(friends), "Wrong list of friends"),
+                () -> assertEquals(likedFilms.size(), updatedUser.getLikedFilms().size(), "Wrong list of liked films"),
+                () -> assertTrue(updatedUser.getLikedFilms().containsAll(likedFilms), "Wrong list of liked films"),
                 () -> assertEquals(userId, savedUser.getId(), "Wrong user ID"),
                 () -> assertEquals(email, savedUser.getEmail(), "Wrong email"),
                 () -> assertEquals(login, savedUser.getLogin(), "Wrong login"),
                 () -> assertEquals(login, savedUser.getName(), "Wrong name"),
                 () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday"),
                 () -> assertEquals(friends.size(), savedUser.getFriends().size(), "Wrong list of friends"),
-                () -> assertTrue(savedUser.getFriends().containsAll(friends), "Wrong list of friends")
+                () -> assertTrue(savedUser.getFriends().containsAll(friends), "Wrong list of friends"),
+                () -> assertEquals(likedFilms.size(), savedUser.getLikedFilms().size(), "Wrong list of liked films"),
+                () -> assertTrue(savedUser.getLikedFilms().containsAll(likedFilms), "Wrong list of liked films")
         );
     }
 

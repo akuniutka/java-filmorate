@@ -36,4 +36,7 @@ public class User {
 
     @JsonIgnore
     private Set<Long> friends;
+
+    @JsonIgnore
+    private Set<Long> likedFilms;
 }

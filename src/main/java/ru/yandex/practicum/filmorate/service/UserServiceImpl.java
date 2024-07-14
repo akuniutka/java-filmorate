@@ -29,6 +29,7 @@ public class UserServiceImpl implements UserService {
         user.setId(++lastUsedId);
         resetNameToLoginIfBlank(user);
         user.setFriends(new HashSet<>());
+        user.setLikedFilms(new HashSet<>());
         userStorage.save(user);
         log.info("Created new user: {}", user);
         return user;
@@ -46,6 +47,7 @@ public class UserServiceImpl implements UserService {
         final User oldUser = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
         resetNameToLoginIfBlank(newUser);
         newUser.setFriends(oldUser.getFriends());
+        newUser.setLikedFilms(oldUser.getLikedFilms());
         userStorage.save(newUser);
         log.info("Updated user with id = {}: {}", userId, newUser);
         return newUser;
