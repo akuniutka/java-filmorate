@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -10,6 +11,7 @@ import lombok.EqualsAndHashCode;
 import ru.yandex.practicum.filmorate.validator.IsAfter;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(of = {"id"})
@@ -31,4 +33,7 @@ public class Film {
     @NotNull
     @Positive
     private Integer duration;
+
+    @JsonIgnore
+    private Set<Long> likes;
 }

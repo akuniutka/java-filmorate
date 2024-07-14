@@ -58,12 +58,14 @@ class UserServiceImplTest {
                 () -> assertEquals(name, createdUser.getName(), "Wrong name"),
                 () -> assertEquals(birthday, createdUser.getBirthday(), "Wrong birthday"),
                 () -> assertTrue(createdUser.getFriends().isEmpty(), "Wrong list of friends"),
+                () -> assertTrue(createdUser.getLikedFilms().isEmpty(), "Wrong list of liked films"),
                 () -> assertEquals(createdUser.getId(), savedUser.getId(), "Wrong user ID"),
                 () -> assertEquals(email, savedUser.getEmail(), "Wrong email"),
                 () -> assertEquals(login, savedUser.getLogin(), "Wrong login"),
                 () -> assertEquals(name, savedUser.getName(), "Wrong name"),
                 () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday"),
-                () -> assertTrue(savedUser.getFriends().isEmpty(), "Wrong list of friends")
+                () -> assertTrue(savedUser.getFriends().isEmpty(), "Wrong list of friends"),
+                () -> assertTrue(savedUser.getLikedFilms().isEmpty(), "Wrong list of liked films")
         );
     }
 
@@ -87,12 +89,14 @@ class UserServiceImplTest {
                 () -> assertEquals(login, createdUser.getName(), "Wrong name"),
                 () -> assertEquals(birthday, createdUser.getBirthday(), "Wrong birthday"),
                 () -> assertTrue(createdUser.getFriends().isEmpty(), "Wrong list of friends"),
+                () -> assertTrue(createdUser.getLikedFilms().isEmpty(), "Wrong list of liked films"),
                 () -> assertEquals(createdUser.getId(), savedUser.getId(), "Wrong user ID"),
                 () -> assertEquals(email, savedUser.getEmail(), "Wrong email"),
                 () -> assertEquals(login, savedUser.getLogin(), "Wrong login"),
                 () -> assertEquals(login, savedUser.getName(), "Wrong name"),
                 () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday"),
-                () -> assertTrue(savedUser.getFriends().isEmpty(), "Wrong list of friends")
+                () -> assertTrue(savedUser.getFriends().isEmpty(), "Wrong list of friends"),
+                () -> assertTrue(savedUser.getLikedFilms().isEmpty(), "Wrong list of liked films")
         );
     }
 
