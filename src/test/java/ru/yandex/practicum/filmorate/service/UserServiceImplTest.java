@@ -200,6 +200,34 @@ class UserServiceImplTest {
     }
 
     @Test
+    void shouldThrowWhenFindUserByIdAndUserNotExist() {
+        final Long wrongId = faker.number().randomNumber();
+
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.findUserById(wrongId));
+        assertEquals("Cannot find model 'user' with id = " + wrongId, exception.getMessage(), WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldFindUserById() {
+        final User user = getRandomUser();
+        final String email = user.getEmail();
+        final String login = user.getLogin();
+        final String name = user.getName();
+        final LocalDate birthday = user.getBirthday();
+        final Long userId = userService.create(user).getId();
+
+        final User foundUser = userService.findUserById(userId);
+
+        assertAll("User retrieved with errors",
+                () -> assertEquals(userId, foundUser.getId(), "Wrong user ID"),
+                () -> assertEquals(email, foundUser.getEmail(), "Wrong email"),
+                () -> assertEquals(login, foundUser.getLogin(), "Wrong login"),
+                () -> assertEquals(name, foundUser.getName(), "Wrong name"),
+                () -> assertEquals(birthday, foundUser.getBirthday(), "Wrong birthday")
+        );
+    }
+
+    @Test
     void shouldThrowWhenAddFriendAndUserNotExist() {
         final User alice = getRandomUser();
         userService.create(alice);

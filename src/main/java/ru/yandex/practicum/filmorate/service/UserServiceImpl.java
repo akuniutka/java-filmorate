@@ -52,6 +52,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User findUserById(final Long userId) {
+        return userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
+    }
+
+    @Override
     public void addFriend(final Long userId, final Long friendId) {
         final User user = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
         final User friend = userStorage.findById(friendId).orElseThrow(() -> new NotFoundException("user", friendId));
