@@ -44,6 +44,11 @@ public class UserController {
         return userService.findFriendsByUserId(id);
     }
 
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable final Long id) {
+        return userService.findUserById(id);
+    }
+
     @PostMapping
     public User create(@Valid @RequestBody final User user) {
         return userService.create(user);
@@ -57,10 +62,5 @@ public class UserController {
     @PutMapping
     public User update(@Valid @RequestBody final User user) {
         return userService.update(user);
-    }
-
-    @GetMapping("/{id}")
-    public User getUserById(@PathVariable final Long id) {
-        return userService.findUserById(id);
     }
 }

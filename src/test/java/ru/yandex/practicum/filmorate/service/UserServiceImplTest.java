@@ -290,14 +290,10 @@ class UserServiceImplTest {
         final User savedAlice = userStorage.findById(aliceId).orElseThrow();
         final User savedBob = userStorage.findById(bobId).orElseThrow();
         assertAll("Error while making users friends",
-                () -> assertEquals(1, savedAlice.getFriends().size(),
-                        "Wrong number of friends"),
-                () -> assertTrue(savedAlice.getFriends().contains(bobId),
-                        "Friends list does not contain id = " + bobId),
-                () -> assertEquals(1, savedBob.getFriends().size(),
-                        "Wrong number of friends"),
-                () -> assertTrue(savedBob.getFriends().contains(aliceId),
-                        "Friend list does not contain id = " + aliceId)
+                () -> assertEquals(1, savedAlice.getFriends().size(), "Wrong number of friends"),
+                () -> assertTrue(savedAlice.getFriends().contains(bobId), "Friends list should contain id = " + bobId),
+                () -> assertEquals(1, savedBob.getFriends().size(), "Wrong number of friends"),
+                () -> assertTrue(savedBob.getFriends().contains(aliceId), "Friend list should contain id = " + aliceId)
         );
     }
 
@@ -314,14 +310,10 @@ class UserServiceImplTest {
         final User savedAlice = userStorage.findById(aliceId).orElseThrow();
         final User savedBob = userStorage.findById(bobId).orElseThrow();
         assertAll("Error while making users friends",
-                () -> assertEquals(1, savedAlice.getFriends().size(),
-                        "Wrong number of friends"),
-                () -> assertTrue(savedAlice.getFriends().contains(bobId),
-                        "Friends list does not contain id = " + bobId),
-                () -> assertEquals(1, savedBob.getFriends().size(),
-                        "Wrong number of friends"),
-                () -> assertTrue(savedBob.getFriends().contains(aliceId),
-                        "Friend list does not contain id = " + aliceId)
+                () -> assertEquals(1, savedAlice.getFriends().size(), "Wrong number of friends"),
+                () -> assertTrue(savedAlice.getFriends().contains(bobId), "Friends list should contain id = " + bobId),
+                () -> assertEquals(1, savedBob.getFriends().size(), "Wrong number of friends"),
+                () -> assertTrue(savedBob.getFriends().contains(aliceId), "Friend list should contain id = " + aliceId)
         );
     }
 
@@ -366,14 +358,12 @@ class UserServiceImplTest {
         final User savedAlice = userStorage.findById(aliceId).orElseThrow();
         final User savedBob = userStorage.findById(bobId).orElseThrow();
         assertAll("Error while removing friend",
-                () -> assertEquals(1, savedAlice.getFriends().size(),
-                        "Wrong number of friends"),
+                () -> assertEquals(1, savedAlice.getFriends().size(), "Wrong number of friends"),
                 () -> assertTrue(savedAlice.getFriends().contains(charlieId),
-                        "Friends list does not contain id = " + charlieId),
-                () -> assertEquals(1, savedBob.getFriends().size(),
-                        "Wrong number of friends"),
+                        "Friends list should contain id = " + charlieId),
+                () -> assertEquals(1, savedBob.getFriends().size(), "Wrong number of friends"),
                 () -> assertTrue(savedBob.getFriends().contains(charlieId),
-                        "Friend list does not contain id = " + charlieId)
+                        "Friend list should contain id = " + charlieId)
         );
     }
 
@@ -393,14 +383,12 @@ class UserServiceImplTest {
         final User savedAlice = userStorage.findById(aliceId).orElseThrow();
         final User savedBob = userStorage.findById(bobId).orElseThrow();
         assertAll("Error while removing friend",
-                () -> assertEquals(1, savedAlice.getFriends().size(),
-                        "Wrong number of friends"),
+                () -> assertEquals(1, savedAlice.getFriends().size(), "Wrong number of friends"),
                 () -> assertTrue(savedAlice.getFriends().contains(charlieId),
-                        "Friends list does not contain id = " + charlieId),
-                () -> assertEquals(1, savedBob.getFriends().size(),
-                        "Wrong number of friends"),
+                        "Friends list should contain id = " + charlieId),
+                () -> assertEquals(1, savedBob.getFriends().size(), "Wrong number of friends"),
                 () -> assertTrue(savedBob.getFriends().contains(charlieId),
-                        "Friend list does not contain id = " + charlieId)
+                        "Friend list should contain id = " + charlieId)
         );
     }
 
@@ -428,10 +416,8 @@ class UserServiceImplTest {
 
         assertAll("Wrong list of friends",
                 () -> assertEquals(2, friends.size(), "Wrong number of friends"),
-                () -> assertTrue(friends.contains(bob),
-                        "Friends list does not contain " + bob),
-                () -> assertTrue(friends.contains(charlie),
-                        "Friend list does not contain id = " + charlie)
+                () -> assertTrue(friends.contains(bob), "Friends list does not contain " + bob),
+                () -> assertTrue(friends.contains(charlie), "Friend list does not contain id = " + charlie)
         );
     }
 
@@ -483,8 +469,7 @@ class UserServiceImplTest {
 
         assertAll("Wrong list of friends",
                 () -> assertEquals(1, friends.size(), "Wrong number of friends"),
-                () -> assertTrue(friends.contains(charlie),
-                        "Friend list does not contain id = " + charlie)
+                () -> assertTrue(friends.contains(charlie), "Friend list does not contain id = " + charlie)
         );
     }
 
