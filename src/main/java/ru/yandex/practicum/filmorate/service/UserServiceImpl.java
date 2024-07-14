@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void removeFriend(final Long userId, final Long friendId) {
+    public void deleteFriend(final Long userId, final Long friendId) {
         final User user = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
         final User friend = userStorage.findById(friendId).orElseThrow(() -> new NotFoundException("user", friendId));
         if (!user.getFriends().contains(friendId) && !friend.getFriends().contains(userId)) {

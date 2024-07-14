@@ -310,31 +310,31 @@ class UserServiceImplTest {
     }
 
     @Test
-    void shouldThrowWhenRemoveFriendAndUserNotExist() {
+    void shouldThrowWhenDeleteFriendAndUserNotExist() {
         final User alice = getRandomUser();
         userService.create(alice);
         final User bob = getRandomUser();
         final Long bobId = userService.create(bob).getId();
         final Long wrongId = bobId + 1;
 
-        Exception exception = assertThrows(NotFoundException.class, () -> userService.removeFriend(wrongId, bobId));
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.deleteFriend(wrongId, bobId));
         assertEquals("Cannot find model 'user' with id = " + wrongId, exception.getMessage(), WRONG_MESSAGE);
     }
 
     @Test
-    void shouldThrowWhenRemoveFriendAndFriendNotExist() {
+    void shouldThrowWhenDeleteFriendAndFriendNotExist() {
         final User alice = getRandomUser();
         final Long aliceId = userService.create(alice).getId();
         final User bob = getRandomUser();
         final Long bobId = userService.create(bob).getId();
         final Long wrongId = bobId + 1;
 
-        Exception exception = assertThrows(NotFoundException.class, () -> userService.removeFriend(aliceId, wrongId));
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.deleteFriend(aliceId, wrongId));
         assertEquals("Cannot find model 'user' with id = " + wrongId, exception.getMessage(), WRONG_MESSAGE);
     }
 
     @Test
-    void shouldRemoveFriend() {
+    void shouldDeleteFriend() {
         final User alice = getRandomUser();
         final Long aliceId = userService.create(alice).getId();
         final User bob = getRandomUser();
@@ -345,7 +345,7 @@ class UserServiceImplTest {
         userService.addFriend(aliceId, charlieId);
         userService.addFriend(bobId, charlieId);
 
-        userService.removeFriend(aliceId, bobId);
+        userService.deleteFriend(aliceId, bobId);
 
         final User savedAlice = userStorage.findById(aliceId).orElseThrow();
         final User savedBob = userStorage.findById(bobId).orElseThrow();
@@ -362,7 +362,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void shouldRemoveFriendWhenNotFriendsAlready() {
+    void shouldDeleteFriendWhenNotFriendsAlready() {
         final User alice = getRandomUser();
         final Long aliceId = userService.create(alice).getId();
         final User bob = getRandomUser();
@@ -372,7 +372,7 @@ class UserServiceImplTest {
         userService.addFriend(aliceId, charlieId);
         userService.addFriend(bobId, charlieId);
 
-        userService.removeFriend(aliceId, bobId);
+        userService.deleteFriend(aliceId, bobId);
 
         final User savedAlice = userStorage.findById(aliceId).orElseThrow();
         final User savedBob = userStorage.findById(bobId).orElseThrow();
