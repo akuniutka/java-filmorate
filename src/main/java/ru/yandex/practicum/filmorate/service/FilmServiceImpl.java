@@ -16,7 +16,7 @@ public class FilmServiceImpl implements FilmService {
     private final FilmStorage filmStorage;
     private long lastUsedId;
 
-    public FilmServiceImpl(FilmStorage filmStorage) {
+    public FilmServiceImpl(final FilmStorage filmStorage) {
         this.filmStorage = filmStorage;
         this.lastUsedId = 0L;
     }

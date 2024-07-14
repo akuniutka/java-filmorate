@@ -3,10 +3,12 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.UserFriendToThemselfException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 @Service
@@ -26,6 +28,7 @@ public class UserServiceImpl implements UserService {
         Objects.requireNonNull(user, "Cannot create user: is null");
         user.setId(++lastUsedId);
         resetNameToLoginIfBlank(user);
+        user.setFriends(new HashSet<>());
         userStorage.save(user);
         log.info("Created new user: {}", user);
         return user;
@@ -40,11 +43,67 @@ public class UserServiceImpl implements UserService {
     public User update(final User newUser) {
         Objects.requireNonNull(newUser, "Cannot update user: is null");
         final Long userId = newUser.getId();
-        userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
+        final User oldUser = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
         resetNameToLoginIfBlank(newUser);
+        newUser.setFriends(oldUser.getFriends());
         userStorage.save(newUser);
         log.info("Updated user with id = {}: {}", userId, newUser);
         return newUser;
+    }
+
+    @Override
+    public void addFriend(final Long userId, final Long friendId) {
+        final User user = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
+        final User friend = userStorage.findById(friendId).orElseThrow(() -> new NotFoundException("user", friendId));
+        if (user.equals(friend)) {
+            throw new UserFriendToThemselfException("User cannot be friend to themself (id = %d)".formatted(userId));
+        }
+        if (user.getFriends().contains(friendId) && friend.getFriends().contains(userId)) {
+            log.info("Users with id = {} and id = {} are friends already", userId, friendId);
+            return;
+        }
+        user.getFriends().add(friendId);
+        friend.getFriends().add(userId);
+        userStorage.save(user);
+        userStorage.save(friend);
+        log.info("Users with id = {} and id = {} are friends now", userId, friendId);
+    }
+
+    @Override
+    public void removeFriend(final Long userId, final Long friendId) {
+        final User user = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
+        final User friend = userStorage.findById(friendId).orElseThrow(() -> new NotFoundException("user", friendId));
+        if (!user.getFriends().contains(friendId) && !friend.getFriends().contains(userId)) {
+            log.info("Users with id = {} and id = {} are not friends already", userId, friendId);
+            return;
+        }
+        user.getFriends().remove(friendId);
+        friend.getFriends().remove(userId);
+        userStorage.save(user);
+        userStorage.save(friend);
+        log.info("Users with id = {} and id = {} are not friends now", userId, friendId);
+    }
+
+    @Override
+    public Collection<User> findFriendsByUserId(final Long userId) {
+        final User user = userStorage.findById(userId).orElseThrow(() -> new NotFoundException("user", userId));
+        return user.getFriends().stream()
+                .map(id -> userStorage.findById(id).orElseThrow(
+                        () -> new AssertionError("Cannot retrieve friend with id = " + id))
+                )
+                .toList();
+    }
+
+    @Override
+    public Collection<User> findCommonFriendsByUserIds(final Long userId1, final Long userId2) {
+        final User user1 = userStorage.findById(userId1).orElseThrow(() -> new NotFoundException("user", userId1));
+        final User user2 = userStorage.findById(userId2).orElseThrow(() -> new NotFoundException("user", userId2));
+        return user1.getFriends().stream()
+                .filter(id -> user2.getFriends().contains(id))
+                .map(id -> userStorage.findById(id).orElseThrow(
+                        () -> new AssertionError("Cannot retrieve friend with id = " + id))
+                )
+                .toList();
     }
 
     private void resetNameToLoginIfBlank(final User user) {

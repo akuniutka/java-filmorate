@@ -23,7 +23,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User create(@Valid @RequestBody User user) {
+    public User create(@Valid @RequestBody final User user) {
         return userService.create(user);
     }
 
@@ -33,7 +33,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User user) {
+    public User update(@Valid @RequestBody final User user) {
         return userService.update(user);
     }
 }

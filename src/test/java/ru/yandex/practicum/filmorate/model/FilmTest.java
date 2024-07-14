@@ -30,8 +30,8 @@ class FilmTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {" "})
-    void shouldViolateConstraintWhenNameNullOrBlank(String name) {
+    @ValueSource(strings = " ")
+    void shouldViolateConstraintWhenNameNullOrBlank(final String name) {
         final Film film = getRandomFilm();
         film.setName(name);
 
@@ -52,7 +52,7 @@ class FilmTest {
 
     @ParameterizedTest
     @NullSource
-    void shouldViolateConstraintWhenReleaseDateNull(LocalDate releaseDate) {
+    void shouldViolateConstraintWhenReleaseDateNull(final LocalDate releaseDate) {
         final Film film = getRandomFilm();
         film.setReleaseDate(releaseDate);
 
@@ -74,7 +74,7 @@ class FilmTest {
     @ParameterizedTest
     @NullSource
     @ValueSource(ints = {-1, 0})
-    void shouldViolateConstraintWhenDurationNullOrZeroOrNegative(Integer duration) {
+    void shouldViolateConstraintWhenDurationNullOrZeroOrNegative(final Integer duration) {
         final Film film = getRandomFilm();
         film.setDuration(duration);
 
@@ -94,8 +94,8 @@ class FilmTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {" "})
-    void shouldViolateNoConstraintWhenDescriptionNullOrBlank(String description) {
+    @ValueSource(strings = " ")
+    void shouldViolateNoConstraintWhenDescriptionNullOrBlank(final String description) {
         final Film film = getRandomFilm();
         film.setDescription(description);
 

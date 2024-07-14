@@ -3,116 +3,457 @@ package ru.yandex.practicum.filmorate.service;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.UserFriendToThemselfException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static ru.yandex.practicum.filmorate.TestModels.faker;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomUser;
 
 class UserServiceImplTest {
 
+    private static final String WRONG_MESSAGE = "Wrong exception message";
+    private final UserStorage userStorage;
     private final UserService userService;
 
-    public UserServiceImplTest() {
-        this.userService = new UserServiceImpl(new InMemoryUserStorage());
+    UserServiceImplTest() {
+        this.userStorage = new InMemoryUserStorage();
+        this.userService = new UserServiceImpl(userStorage);
     }
 
     @Test
-    public void shouldReturnUserWithIdAssignedWhenCreate() {
+    void shouldThrowsWhenCreateAndUserNull() {
+        Exception exception = assertThrows(NullPointerException.class, () -> userService.create(null));
+        assertEquals("Cannot create user: is null", exception.getMessage(), WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldReturnUserWithIdAssignedWhenCreate() {
         final User user = getRandomUser();
         final String email = user.getEmail();
         final String login = user.getLogin();
         final String name = user.getName();
         final LocalDate birthday = user.getBirthday();
 
-        final User savedUser = userService.create(user);
+        final User createdUser = userService.create(user);
 
+        final User savedUser = userStorage.findById(createdUser.getId()).orElseThrow();
         assertAll("User created with errors",
-                () -> assertNotNull(savedUser.getId(), "User ID should be not null"),
+                () -> assertNotNull(createdUser.getId(), "User ID should be not null"),
+                () -> assertEquals(email, createdUser.getEmail(), "Wrong email"),
+                () -> assertEquals(login, createdUser.getLogin(), "Wrong login"),
+                () -> assertEquals(name, createdUser.getName(), "Wrong name"),
+                () -> assertEquals(birthday, createdUser.getBirthday(), "Wrong birthday"),
+                () -> assertTrue(createdUser.getFriends().isEmpty(), "Wrong list of friends"),
+                () -> assertEquals(createdUser.getId(), savedUser.getId(), "Wrong user ID"),
                 () -> assertEquals(email, savedUser.getEmail(), "Wrong email"),
                 () -> assertEquals(login, savedUser.getLogin(), "Wrong login"),
                 () -> assertEquals(name, savedUser.getName(), "Wrong name"),
-                () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday")
+                () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday"),
+                () -> assertTrue(savedUser.getFriends().isEmpty(), "Wrong list of friends")
         );
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldSetNameEqualToLoginWhenCreateAndNameNullOrBlank(String name) {
+    @ValueSource(strings = " ")
+    void shouldSetNameEqualToLoginWhenCreateAndNameNullOrBlank(final String name) {
         final User user = getRandomUser();
         user.setName(name);
         final String email = user.getEmail();
         final String login = user.getLogin();
         final LocalDate birthday = user.getBirthday();
 
-        final User savedUser = userService.create(user);
+        final User createdUser = userService.create(user);
 
+        final User savedUser = userStorage.findById(createdUser.getId()).orElseThrow();
         assertAll("User created with errors",
-                () -> assertNotNull(savedUser.getId(), "User ID should be not null"),
+                () -> assertNotNull(createdUser.getId(), "User ID should be not null"),
+                () -> assertEquals(email, createdUser.getEmail(), "Wrong email"),
+                () -> assertEquals(login, createdUser.getLogin(), "Wrong login"),
+                () -> assertEquals(login, createdUser.getName(), "Wrong name"),
+                () -> assertEquals(birthday, createdUser.getBirthday(), "Wrong birthday"),
+                () -> assertTrue(createdUser.getFriends().isEmpty(), "Wrong list of friends"),
+                () -> assertEquals(createdUser.getId(), savedUser.getId(), "Wrong user ID"),
                 () -> assertEquals(email, savedUser.getEmail(), "Wrong email"),
                 () -> assertEquals(login, savedUser.getLogin(), "Wrong login"),
                 () -> assertEquals(login, savedUser.getName(), "Wrong name"),
-                () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday")
+                () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday"),
+                () -> assertTrue(savedUser.getFriends().isEmpty(), "Wrong list of friends")
         );
     }
 
     @Test
-    public void shouldReturnUsersWhenFindAll() {
+    void shouldReturnUsersWhenFindAll() {
         final User user = getRandomUser();
+        user.setId(faker.number().randomNumber());
+        userStorage.save(user);
         final Collection<User> expectedUsers = List.of(user);
 
-        final Long userId = userService.create(user).getId();
         final Collection<User> users = userService.findAll();
 
-        user.setId(userId);
         assertEquals(expectedUsers.size(), users.size(), "Wrong users list");
         assertTrue(users.containsAll(expectedUsers), "Wrong users list");
     }
 
     @Test
-    public void shouldReturnUpdatedUserWhenUpdate() {
-        final User oldUser = getRandomUser();
-        final Long userId = userService.create(oldUser).getId();
+    void shouldThrowWhenUpdateAndUserNull() {
+        Exception exception = assertThrows(NullPointerException.class, () -> userService.update(null));
+        assertEquals("Cannot update user: is null", exception.getMessage(), WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldThrowWhenUpdateAndUserNotExist() {
         final User newUser = getRandomUser();
+        final Long userId = faker.number().randomNumber();
         newUser.setId(userId);
 
-        final User savedUser = userService.update(newUser);
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.update(newUser));
+        assertEquals("Cannot find model 'user' with id = " + userId, exception.getMessage(), WRONG_MESSAGE);
+    }
 
-        assertEquals(newUser, savedUser, "User updated with errors");
+    @Test
+    void shouldReturnUpdatedUserWhenUpdate() {
+        final User oldUser = getRandomUser();
+        final Long userId = faker.number().randomNumber();
+        final Set<Long> friends = Set.of(faker.number().randomNumber());
+        oldUser.setId(userId);
+        oldUser.setFriends(friends);
+        userStorage.save(oldUser);
+        final User newUser = getRandomUser();
+        newUser.setId(userId);
+        final String email = newUser.getEmail();
+        final String login = newUser.getLogin();
+        final String name = newUser.getName();
+        final LocalDate birthday = newUser.getBirthday();
+
+        final User updatedUser = userService.update(newUser);
+
+        final User savedUser = userStorage.findById(userId).orElseThrow();
+        assertAll("User updated with errors",
+                () -> assertEquals(userId, updatedUser.getId(), "Wrong user ID"),
+                () -> assertEquals(email, updatedUser.getEmail(), "Wrong email"),
+                () -> assertEquals(login, updatedUser.getLogin(), "Wrong login"),
+                () -> assertEquals(name, updatedUser.getName(), "Wrong name"),
+                () -> assertEquals(birthday, updatedUser.getBirthday(), "Wrong birthday"),
+                () -> assertEquals(friends.size(), updatedUser.getFriends().size(), "Wrong list of friends"),
+                () -> assertTrue(updatedUser.getFriends().containsAll(friends), "Wrong list of friends"),
+                () -> assertEquals(userId, savedUser.getId(), "Wrong user ID"),
+                () -> assertEquals(email, savedUser.getEmail(), "Wrong email"),
+                () -> assertEquals(login, savedUser.getLogin(), "Wrong login"),
+                () -> assertEquals(name, savedUser.getName(), "Wrong name"),
+                () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday"),
+                () -> assertEquals(friends.size(), savedUser.getFriends().size(), "Wrong list of friends"),
+                () -> assertTrue(savedUser.getFriends().containsAll(friends), "Wrong list of friends")
+        );
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldSetNameEqualTLoginWhenUpdateAndNameNullOrBlank(String name) {
+    @ValueSource(strings = " ")
+    void shouldSetNameEqualTLoginWhenUpdateAndNameNullOrBlank(final String name) {
         final User oldUser = getRandomUser();
-        final Long userId = userService.create(oldUser).getId();
+        final Long userId = faker.number().randomNumber();
+        final Set<Long> friends = Set.of(faker.number().randomNumber());
+        oldUser.setId(userId);
+        oldUser.setFriends(friends);
+        userStorage.save(oldUser);
         final User newUser = getRandomUser();
         newUser.setId(userId);
         newUser.setName(name);
+        final String email = newUser.getEmail();
+        final String login = newUser.getLogin();
+        final LocalDate birthday = newUser.getBirthday();
 
-        final User savedUser = userService.update(newUser);
+        final User updatedUser = userService.update(newUser);
 
-        assertEquals(newUser.getLogin(), savedUser.getName(), "Wrong name");
+        final User savedUser = userStorage.findById(userId).orElseThrow();
+        assertAll("User updated with errors",
+                () -> assertEquals(userId, updatedUser.getId(), "Wrong user ID"),
+                () -> assertEquals(email, updatedUser.getEmail(), "Wrong email"),
+                () -> assertEquals(login, updatedUser.getLogin(), "Wrong login"),
+                () -> assertEquals(login, updatedUser.getName(), "Wrong name"),
+                () -> assertEquals(birthday, updatedUser.getBirthday(), "Wrong birthday"),
+                () -> assertEquals(friends.size(), updatedUser.getFriends().size(), "Wrong list of friends"),
+                () -> assertTrue(updatedUser.getFriends().containsAll(friends), "Wrong list of friends"),
+                () -> assertEquals(userId, savedUser.getId(), "Wrong user ID"),
+                () -> assertEquals(email, savedUser.getEmail(), "Wrong email"),
+                () -> assertEquals(login, savedUser.getLogin(), "Wrong login"),
+                () -> assertEquals(login, savedUser.getName(), "Wrong name"),
+                () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday"),
+                () -> assertEquals(friends.size(), savedUser.getFriends().size(), "Wrong list of friends"),
+                () -> assertTrue(savedUser.getFriends().containsAll(friends), "Wrong list of friends")
+        );
     }
 
     @Test
-    public void shouldThrowWhenUpdateAndUserNotExist() {
-        final User oldUser = getRandomUser();
-        final Long userId = userService.create(oldUser).getId();
-        final User newUser = getRandomUser();
-        newUser.setId(userId + 1);
+    void shouldThrowWhenAddFriendAndUserNotExist() {
+        final User alice = getRandomUser();
+        userService.create(alice);
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+        final Long wrongId = bobId + 1;
 
-        Exception exception = assertThrows(NotFoundException.class, () -> userService.update(newUser));
-        assertEquals("Cannot find model 'user' with id = " + (userId + 1), exception.getMessage(),
-                "Wrong exception message");
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.addFriend(wrongId, bobId));
+        assertEquals("Cannot find model 'user' with id = " + wrongId, exception.getMessage(), WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldThrowWhenAddFriendAndFriendNotExist() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+        final Long wrongId = bobId + 1;
+
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.addFriend(aliceId, wrongId));
+        assertEquals("Cannot find model 'user' with id = " + wrongId, exception.getMessage(), WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldThrowWhenAddFriendAndFriendIsUserThemself() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+
+        Exception exception = assertThrows(UserFriendToThemselfException.class,
+                () -> userService.addFriend(aliceId, aliceId));
+        assertEquals("User cannot be friend to themself (id = %d)".formatted(aliceId), exception.getMessage(),
+                WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldAddFriend() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+
+        userService.addFriend(aliceId, bobId);
+
+        final User savedAlice = userStorage.findById(aliceId).orElseThrow();
+        final User savedBob = userStorage.findById(bobId).orElseThrow();
+        assertAll("Error while making users friends",
+                () -> assertEquals(1, savedAlice.getFriends().size(),
+                        "Wrong number of friends"),
+                () -> assertTrue(savedAlice.getFriends().contains(bobId),
+                        "Friends list does not contain id = " + bobId),
+                () -> assertEquals(1, savedBob.getFriends().size(),
+                        "Wrong number of friends"),
+                () -> assertTrue(savedBob.getFriends().contains(aliceId),
+                        "Friend list does not contain id = " + aliceId)
+        );
+    }
+
+    @Test
+    void shouldAddFriendWhenFriendAlready() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+        userService.addFriend(aliceId, bobId);
+
+        userService.addFriend(aliceId, bobId);
+
+        final User savedAlice = userStorage.findById(aliceId).orElseThrow();
+        final User savedBob = userStorage.findById(bobId).orElseThrow();
+        assertAll("Error while making users friends",
+                () -> assertEquals(1, savedAlice.getFriends().size(),
+                        "Wrong number of friends"),
+                () -> assertTrue(savedAlice.getFriends().contains(bobId),
+                        "Friends list does not contain id = " + bobId),
+                () -> assertEquals(1, savedBob.getFriends().size(),
+                        "Wrong number of friends"),
+                () -> assertTrue(savedBob.getFriends().contains(aliceId),
+                        "Friend list does not contain id = " + aliceId)
+        );
+    }
+
+    @Test
+    void shouldThrowWhenRemoveFriendAndUserNotExist() {
+        final User alice = getRandomUser();
+        userService.create(alice);
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+        final Long wrongId = bobId + 1;
+
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.removeFriend(wrongId, bobId));
+        assertEquals("Cannot find model 'user' with id = " + wrongId, exception.getMessage(), WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldThrowWhenRemoveFriendAndFriendNotExist() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+        final Long wrongId = bobId + 1;
+
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.removeFriend(aliceId, wrongId));
+        assertEquals("Cannot find model 'user' with id = " + wrongId, exception.getMessage(), WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldRemoveFriend() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+        final User charlie = getRandomUser();
+        final Long charlieId = userService.create(charlie).getId();
+        userService.addFriend(aliceId, bobId);
+        userService.addFriend(aliceId, charlieId);
+        userService.addFriend(bobId, charlieId);
+
+        userService.removeFriend(aliceId, bobId);
+
+        final User savedAlice = userStorage.findById(aliceId).orElseThrow();
+        final User savedBob = userStorage.findById(bobId).orElseThrow();
+        assertAll("Error while removing friend",
+                () -> assertEquals(1, savedAlice.getFriends().size(),
+                        "Wrong number of friends"),
+                () -> assertTrue(savedAlice.getFriends().contains(charlieId),
+                        "Friends list does not contain id = " + charlieId),
+                () -> assertEquals(1, savedBob.getFriends().size(),
+                        "Wrong number of friends"),
+                () -> assertTrue(savedBob.getFriends().contains(charlieId),
+                        "Friend list does not contain id = " + charlieId)
+        );
+    }
+
+    @Test
+    void shouldRemoveFriendWhenNotFriendsAlready() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+        final User charlie = getRandomUser();
+        final Long charlieId = userService.create(charlie).getId();
+        userService.addFriend(aliceId, charlieId);
+        userService.addFriend(bobId, charlieId);
+
+        userService.removeFriend(aliceId, bobId);
+
+        final User savedAlice = userStorage.findById(aliceId).orElseThrow();
+        final User savedBob = userStorage.findById(bobId).orElseThrow();
+        assertAll("Error while removing friend",
+                () -> assertEquals(1, savedAlice.getFriends().size(),
+                        "Wrong number of friends"),
+                () -> assertTrue(savedAlice.getFriends().contains(charlieId),
+                        "Friends list does not contain id = " + charlieId),
+                () -> assertEquals(1, savedBob.getFriends().size(),
+                        "Wrong number of friends"),
+                () -> assertTrue(savedBob.getFriends().contains(charlieId),
+                        "Friend list does not contain id = " + charlieId)
+        );
+    }
+
+    @Test
+    void shouldThrowWhenFindFriendsByUserIdAndUserNotExist() {
+        final Long wrongId = faker.number().randomNumber();
+
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.findFriendsByUserId(wrongId));
+        assertEquals("Cannot find model 'user' with id = " + wrongId, exception.getMessage(), WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldFindFriendsByUserId() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+        final User charlie = getRandomUser();
+        final Long charlieId = userService.create(charlie).getId();
+        userService.addFriend(aliceId, bobId);
+        userService.addFriend(aliceId, charlieId);
+        userService.addFriend(bobId, charlieId);
+
+        final Collection<User> friends = userService.findFriendsByUserId(aliceId);
+
+        assertAll("Wrong list of friends",
+                () -> assertEquals(2, friends.size(), "Wrong number of friends"),
+                () -> assertTrue(friends.contains(bob),
+                        "Friends list does not contain " + bob),
+                () -> assertTrue(friends.contains(charlie),
+                        "Friend list does not contain id = " + charlie)
+        );
+    }
+
+    @Test
+    void shouldFindFriendsByUserIdWhenEmpty() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+
+        final Collection<User> friends = userService.findFriendsByUserId(aliceId);
+
+        assertTrue(friends.isEmpty(), "Wrong list of friends");
+    }
+
+    @Test
+    void shouldThrowWhenFindCommonFriendsByUserIdsAndUser1NotExist() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final Long bobId = aliceId + 1;
+
+        Exception exception = assertThrows(NotFoundException.class,
+                () -> userService.findCommonFriendsByUserIds(bobId, aliceId));
+        assertEquals("Cannot find model 'user' with id = " + bobId, exception.getMessage(), WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldThrowWhenFindCommonFriendsByUserIdsAndUser2NotExist() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final Long bobId = aliceId + 1;
+
+        Exception exception = assertThrows(NotFoundException.class,
+                () -> userService.findCommonFriendsByUserIds(aliceId, bobId));
+        assertEquals("Cannot find model 'user' with id = " + bobId, exception.getMessage(), WRONG_MESSAGE);
+    }
+
+    @Test
+    void shouldFindCommonFriendsByUserIds() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+        final User charlie = getRandomUser();
+        final Long charlieId = userService.create(charlie).getId();
+        userService.addFriend(aliceId, bobId);
+        userService.addFriend(aliceId, charlieId);
+        userService.addFriend(bobId, charlieId);
+
+        final Collection<User> friends = userService.findCommonFriendsByUserIds(aliceId, bobId);
+
+        assertAll("Wrong list of friends",
+                () -> assertEquals(1, friends.size(), "Wrong number of friends"),
+                () -> assertTrue(friends.contains(charlie),
+                        "Friend list does not contain id = " + charlie)
+        );
+    }
+
+    @Test
+    void shouldFindCommonFriendsByUserIdsWhenEmpty() {
+        final User alice = getRandomUser();
+        final Long aliceId = userService.create(alice).getId();
+        final User bob = getRandomUser();
+        final Long bobId = userService.create(bob).getId();
+        userService.addFriend(aliceId, bobId);
+
+        final Collection<User> friends = userService.findCommonFriendsByUserIds(aliceId, bobId);
+
+        assertTrue(friends.isEmpty(), "Wrong list of friends");
     }
 }

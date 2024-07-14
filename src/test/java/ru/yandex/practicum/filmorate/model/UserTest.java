@@ -29,7 +29,7 @@ class UserTest {
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {" ", "test"})
-    void shouldViolateConstraintWhenEmailNullOrBlankOrMalformed(String email) {
+    void shouldViolateConstraintWhenEmailNullOrBlankOrMalformed(final String email) {
         final User user = getRandomUser();
         user.setEmail(email);
 
@@ -41,7 +41,7 @@ class UserTest {
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {" ", "super admin"})
-    void shouldViolateConstraintWhenLoginNullOrBlankOrContainsWhitespace(String login) {
+    void shouldViolateConstraintWhenLoginNullOrBlankOrContainsWhitespace(final String login) {
         final User user = getRandomUser();
         user.setLogin(login);
 
@@ -52,7 +52,7 @@ class UserTest {
 
     @ParameterizedTest
     @NullSource
-    void shouldViolateConstraintWhenBirthdayNull(LocalDate birthday) {
+    void shouldViolateConstraintWhenBirthdayNull(final LocalDate birthday) {
         final User user = getRandomUser();
         user.setBirthday(birthday);
 

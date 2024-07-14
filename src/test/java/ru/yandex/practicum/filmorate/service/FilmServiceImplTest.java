@@ -20,12 +20,12 @@ class FilmServiceImplTest {
 
     private final FilmService filmService;
 
-    public FilmServiceImplTest() {
+    FilmServiceImplTest() {
         this.filmService = new FilmServiceImpl(new InMemoryFilmStorage());
     }
 
     @Test
-    public void shouldReturnFilmWithIdAssignedWhenCreate() {
+    void shouldReturnFilmWithIdAssignedWhenCreate() {
         final Film film = getRandomFilm();
         final String name = film.getName();
         final String description = film.getDescription();
@@ -44,7 +44,7 @@ class FilmServiceImplTest {
     }
 
     @Test
-    public void shouldReturnFilmsWhenFindAll() {
+    void shouldReturnFilmsWhenFindAll() {
         final Film film = getRandomFilm();
         final Collection<Film> expectedFilms = List.of(film);
 
@@ -57,7 +57,7 @@ class FilmServiceImplTest {
     }
 
     @Test
-    public void shouldReturnUpdatedFilmWhenUpdate() {
+    void shouldReturnUpdatedFilmWhenUpdate() {
         final Film oldFilm = getRandomFilm();
         final Long filmId = filmService.create(oldFilm).getId();
         final Film newFilm = getRandomFilm();
@@ -69,7 +69,7 @@ class FilmServiceImplTest {
     }
 
     @Test
-    public void shouldThrowWhenUpdateAndFilmNotExist() {
+    void shouldThrowWhenUpdateAndFilmNotExist() {
         final Film oldFilm = getRandomFilm();
         final Long filmId = filmService.create(oldFilm).getId();
         final Film newFilm = getRandomFilm();
