@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -14,23 +15,17 @@ import java.util.HashSet;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class FilmServiceImpl implements FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private long lastUsedId;
-
-    public FilmServiceImpl(final FilmStorage filmStorage, final UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-        this.lastUsedId = 0L;
-    }
 
     @Override
     public Film create(final Film film) {
         Objects.requireNonNull(film, "Cannot create film: is null");
-        film.setId(++lastUsedId);
+        film.setId(null);
         film.setLikes(new HashSet<>());
         filmStorage.save(film);
         log.info("Created new film: {}", film);

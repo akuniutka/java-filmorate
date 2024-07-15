@@ -15,9 +15,11 @@ import java.util.Optional;
 public class InMemoryFilmStorage implements FilmStorage {
 
     private final Map<Long, Film> films;
+    private long lastUsedId;
 
     public InMemoryFilmStorage() {
         this.films = new HashMap<>();
+        this.lastUsedId = 0L;
     }
 
     @Override
@@ -33,7 +35,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public void save(final Film film) {
         Objects.requireNonNull(film, "Cannot save film: is null");
-        Objects.requireNonNull(film.getId(), "Cannot save film: film id is null");
+        if (film.getId() == null) {
+            film.setId(++lastUsedId);
+        } else {
+            lastUsedId = Long.max(lastUsedId, film.getId());
+        }
         films.put(film.getId(), film);
     }
 

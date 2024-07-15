@@ -17,6 +17,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -53,6 +54,38 @@ class UserServiceImplTest {
         final User savedUser = userStorage.findById(createdUser.getId()).orElseThrow();
         assertAll("User created with errors",
                 () -> assertNotNull(createdUser.getId(), "User ID should be not null"),
+                () -> assertEquals(email, createdUser.getEmail(), "Wrong email"),
+                () -> assertEquals(login, createdUser.getLogin(), "Wrong login"),
+                () -> assertEquals(name, createdUser.getName(), "Wrong name"),
+                () -> assertEquals(birthday, createdUser.getBirthday(), "Wrong birthday"),
+                () -> assertTrue(createdUser.getFriends().isEmpty(), "Wrong list of friends"),
+                () -> assertTrue(createdUser.getLikedFilms().isEmpty(), "Wrong list of liked films"),
+                () -> assertEquals(createdUser.getId(), savedUser.getId(), "Wrong user ID"),
+                () -> assertEquals(email, savedUser.getEmail(), "Wrong email"),
+                () -> assertEquals(login, savedUser.getLogin(), "Wrong login"),
+                () -> assertEquals(name, savedUser.getName(), "Wrong name"),
+                () -> assertEquals(birthday, savedUser.getBirthday(), "Wrong birthday"),
+                () -> assertTrue(savedUser.getFriends().isEmpty(), "Wrong list of friends"),
+                () -> assertTrue(savedUser.getLikedFilms().isEmpty(), "Wrong list of liked films")
+        );
+    }
+
+    @Test
+    void shouldReturnUserWithIdAssignedWhenCreateAndIdNotNull() {
+        final User user = getRandomUser();
+        final Long userId = userService.create(user).getId();
+        final User otherUser = getRandomUser();
+        otherUser.setId(userId);
+        final String email = otherUser.getEmail();
+        final String login = otherUser.getLogin();
+        final String name = otherUser.getName();
+        final LocalDate birthday = otherUser.getBirthday();
+
+        final User createdUser = userService.create(otherUser);
+
+        final User savedUser = userStorage.findById(createdUser.getId()).orElseThrow();
+        assertAll("User created with errors",
+                () -> assertNotEquals(userId, createdUser.getId(), "Wrong user ID"),
                 () -> assertEquals(email, createdUser.getEmail(), "Wrong email"),
                 () -> assertEquals(login, createdUser.getLogin(), "Wrong login"),
                 () -> assertEquals(name, createdUser.getName(), "Wrong name"),

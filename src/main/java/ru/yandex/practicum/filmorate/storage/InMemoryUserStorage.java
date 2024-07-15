@@ -15,9 +15,11 @@ import java.util.Optional;
 public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Long, User> users;
+    private long lastUsedId;
 
     public InMemoryUserStorage() {
         this.users = new HashMap<>();
+        this.lastUsedId = 0L;
     }
 
     @Override
@@ -33,7 +35,11 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public void save(final User user) {
         Objects.requireNonNull(user, "Cannot save user: is null");
-        Objects.requireNonNull(user.getId(), "Cannot save user: user id is null");
+        if (user.getId() == null) {
+            user.setId(++lastUsedId);
+        } else {
+            lastUsedId = Long.max(lastUsedId, user.getId());
+        }
         users.put(user.getId(), user);
     }
 

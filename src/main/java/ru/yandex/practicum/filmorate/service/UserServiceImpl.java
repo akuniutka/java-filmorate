@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -12,21 +13,16 @@ import java.util.HashSet;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserStorage userStorage;
-    private long lastUsedId;
-
-    public UserServiceImpl(final UserStorage userStorage) {
-        this.userStorage = userStorage;
-        this.lastUsedId = 0L;
-    }
 
     @Override
     public User create(final User user) {
         Objects.requireNonNull(user, "Cannot create user: is null");
-        user.setId(++lastUsedId);
+        user.setId(null);
         resetNameToLoginIfBlank(user);
         user.setFriends(new HashSet<>());
         user.setLikedFilms(new HashSet<>());

@@ -19,6 +19,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -60,6 +61,36 @@ class FilmServiceImplTest {
         final Film savedFilm = filmStorage.findById(createdFilm.getId()).orElseThrow();
         assertAll("Film created with errors",
                 () -> assertNotNull(createdFilm.getId(), "Film ID should be not null"),
+                () -> assertEquals(name, createdFilm.getName(), "Wrong name"),
+                () -> assertEquals(description, createdFilm.getDescription(), "Wrong description"),
+                () -> assertEquals(releaseDate, createdFilm.getReleaseDate(), "Wrong release date"),
+                () -> assertEquals(duration, createdFilm.getDuration(), "Wrong duration"),
+                () -> assertTrue(createdFilm.getLikes().isEmpty(), "Wrong list of likes"),
+                () -> assertEquals(createdFilm.getId(), savedFilm.getId(), "Wrong film ID"),
+                () -> assertEquals(name, savedFilm.getName(), "Wrong name"),
+                () -> assertEquals(description, savedFilm.getDescription(), "Wrong description"),
+                () -> assertEquals(releaseDate, savedFilm.getReleaseDate(), "Wrong release date"),
+                () -> assertEquals(duration, savedFilm.getDuration(), "Wrong duration"),
+                () -> assertTrue(savedFilm.getLikes().isEmpty(), "Wrong list of likes")
+        );
+    }
+
+    @Test
+    void shouldReturnFilmWithIdAssignedWhenCreateAndIdNotNull() {
+        final Film film = getRandomFilm();
+        final Long filmId = filmService.create(film).getId();
+        final Film otherFilm = getRandomFilm();
+        otherFilm.setId(filmId);
+        final String name = otherFilm.getName();
+        final String description = otherFilm.getDescription();
+        final LocalDate releaseDate = otherFilm.getReleaseDate();
+        final Integer duration = otherFilm.getDuration();
+
+        final Film createdFilm = filmService.create(otherFilm);
+
+        final Film savedFilm = filmStorage.findById(createdFilm.getId()).orElseThrow();
+        assertAll("Film created with errors",
+                () -> assertNotEquals(filmId, createdFilm.getId(), "Wrong film ID"),
                 () -> assertEquals(name, createdFilm.getName(), "Wrong name"),
                 () -> assertEquals(description, createdFilm.getDescription(), "Wrong description"),
                 () -> assertEquals(releaseDate, createdFilm.getReleaseDate(), "Wrong release date"),
