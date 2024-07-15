@@ -26,41 +26,61 @@ public class UserController {
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public Collection<User> getCommonFriends(@PathVariable final Long id, @PathVariable final Long otherId) {
-        return userService.findCommonFriendsByUserIds(id, otherId);
+        log.info("Received GET at /users/{}/friends/common/{}", id, otherId);
+        final Collection<User> friends = userService.findCommonFriendsByUserIds(id, otherId);
+        log.info("Responded to GET /users/{}/friends/common/{}: {}", id, otherId, friends);
+        return friends;
     }
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable final Long id, @PathVariable final Long friendId) {
+        log.info("Received PUT at /users/{}/friends/{}", id, friendId);
         userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(@PathVariable final Long id, @PathVariable final Long friendId) {
+        log.info("Received DELETE at /users/{}/friends/{}", id, friendId);
         userService.deleteFriend(id, friendId);
     }
 
     @GetMapping("/{id}/friends")
     public Collection<User> getFriends(@PathVariable final Long id) {
-        return userService.findFriendsByUserId(id);
+        log.info("Received GET at /users/{}/friends", id);
+        final Collection<User> friends = userService.findFriendsByUserId(id);
+        log.info("Responded to GET /users/{}/friends: {}", id, friends);
+        return friends;
     }
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable final Long id) {
-        return userService.findUserById(id);
+        log.info("Received GET at /users/{}", id);
+        final User user = userService.findUserById(id);
+        log.info("Responded to GET /users/{}: {}", id, user);
+        return user;
     }
 
     @PostMapping
     public User create(@Valid @RequestBody final User user) {
-        return userService.create(user);
+        log.info("Received POST at /users");
+        final User createdUser = userService.create(user);
+        log.info("Responded to POST /users: {}", createdUser);
+        return createdUser;
     }
 
     @GetMapping
     public Collection<User> findAll() {
-        return userService.findAll();
+        log.info("Received GET at /users");
+        Collection<User> users = userService.findAll();
+        log.info("Responded to GET /users: {}", users);
+        return users;
     }
 
     @PutMapping
     public User update(@Valid @RequestBody final User user) {
-        return userService.update(user);
+        log.info("Received PUT at /users");
+        User updatedUser =  userService.update(user);
+        log.info("Responded to PUT at /users: {}", updatedUser);
+        return updatedUser;
     }
 }
