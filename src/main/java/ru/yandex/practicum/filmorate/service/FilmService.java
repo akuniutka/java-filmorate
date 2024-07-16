@@ -11,4 +11,12 @@ public interface FilmService {
     Collection<Film> findAll();
 
     Film update(Film film);
+
+    Film findFilmById(Long id);
+
+    void addLike(Long id, Long userId);
+
+    void deleteLike(Long id, Long userId);
+
+    Collection<Film> getTopLiked(Long count);
 }

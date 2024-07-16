@@ -1,0 +1,8 @@
+spring:
+  main:
+    banner-mode: off
+  mvc:
+    log-resolved-exception: true
+logging:
+  level:
+    ru.yandex.practicum.filmorate.controller: DEBUG

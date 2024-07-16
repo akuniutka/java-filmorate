@@ -1,12 +1,16 @@
 package ru.yandex.practicum.filmorate.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.Getter;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
+@Getter
 public class NotFoundException extends RuntimeException {
 
-    public NotFoundException(String message) {
-        super(message);
+    private final String modelName;
+    private final Long modelId;
+
+    public NotFoundException(String modelName, Long modelId) {
+        super("Cannot find model '%s' with id = %s".formatted(modelName, modelId));
+        this.modelName = modelName;
+        this.modelId = modelId;
     }
 }

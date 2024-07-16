@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -53,7 +54,7 @@ class UserControllerTest {
     }
 
     @Test
-    public void shouldRespondOkAndReturnUserWhenPost() throws Exception {
+    void shouldRespondOkAndReturnUserWhenPost() throws Exception {
         final User userToSend = getRandomUser();
         final User userToReceive = getRandomUser();
         userToReceive.setId(faker.number().randomNumber());
@@ -74,7 +75,7 @@ class UserControllerTest {
 
     @ParameterizedTest
     @EmptySource
-    public void shouldRespondBadRequestWhenPostAndNoBody(String bodyToSend) throws Exception {
+    void shouldRespondBadRequestWhenPostAndNoBody(final String bodyToSend) throws Exception {
         mvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyToSend)
@@ -85,7 +86,8 @@ class UserControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondBadRequestWhenPostAndEmailNullOrBlank(String email) throws Exception {
+    @ValueSource(strings = {" ", "text"})
+    void shouldRespondBadRequestWhenPostAndEmailNullOrBlankOrMalformed(final String email) throws Exception {
         final User user = getRandomUser();
         user.setEmail(email);
         final String jsonToSend = objectMapper.writeValueAsString(user);
@@ -98,23 +100,10 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    public void shouldRespondBadRequestWhenPostAndEmailMalformed() throws Exception {
-        final User user = getRandomUser();
-        user.setEmail("text");
-        final String jsonToSend = objectMapper.writeValueAsString(user);
-
-        mvc.perform(post(URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonToSend)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondBadRequestWhenPostAndLoginNullOrBlank(String login) throws Exception {
+    @ValueSource(strings = {" ", "super admin"})
+    void shouldRespondBadRequestWhenPostAndLoginNullOrBlankOrContainsWhitespace(final String login) throws Exception {
         final User user = getRandomUser();
         user.setLogin(login);
         final String jsonToSend = objectMapper.writeValueAsString(user);
@@ -127,23 +116,9 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    public void shouldRespondBadRequestWhenPostAndLoginContainsWhitespace() throws Exception {
-        final User user = getRandomUser();
-        user.setLogin("super admin");
-        final String jsonToSend = objectMapper.writeValueAsString(user);
-
-        mvc.perform(post(URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonToSend)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
     @ParameterizedTest
     @NullSource
-    public void shouldRespondBadRequestWhenPostAndBirthdayNull(LocalDate birthday) throws Exception {
+    void shouldRespondBadRequestWhenPostAndBirthdayNull(final LocalDate birthday) throws Exception {
         final User user = getRandomUser();
         user.setBirthday(birthday);
         final String jsonToSend = objectMapper.writeValueAsString(user);
@@ -157,7 +132,7 @@ class UserControllerTest {
     }
 
     @Test
-    public void shouldRespondBadRequestWhenPostAndBirthdayFuture() throws Exception {
+    void shouldRespondBadRequestWhenPostAndBirthdayFuture() throws Exception {
         final User user = getRandomUser();
         user.setBirthday(LocalDate.now().plusDays(1));
         final String jsonToSend = objectMapper.writeValueAsString(user);
@@ -171,7 +146,7 @@ class UserControllerTest {
     }
 
     @Test
-    public void shouldRespondOkAndReturnUsersWhenGet() throws Exception {
+    void shouldRespondOkAndReturnUsersWhenGet() throws Exception {
         final User userA = getRandomUser();
         userA.setId(faker.number().randomNumber());
         final User userB = getRandomUser();
@@ -191,7 +166,7 @@ class UserControllerTest {
 
     @ParameterizedTest
     @EmptySource
-    public void shouldRespondOkAndReturnEmptyListWhenGetAndEmptyList(Collection<User> users) throws Exception {
+    void shouldRespondOkAndReturnEmptyListWhenGetAndEmptyList(final Collection<User> users) throws Exception {
         when(userService.findAll()).thenReturn(users);
         final String expectedJson = objectMapper.writeValueAsString(users);
 
@@ -205,7 +180,7 @@ class UserControllerTest {
     }
 
     @Test
-    public void shouldRespondOkAndReturnUserWhenPut() throws Exception {
+    void shouldRespondOkAndReturnUserWhenPut() throws Exception {
         final User userToSend = getRandomUser();
         userToSend.setId(faker.number().randomNumber());
         final User userToReceive = getRandomUser();
@@ -227,7 +202,7 @@ class UserControllerTest {
 
     @ParameterizedTest
     @EmptySource
-    public void shouldRespondBadRequestWhenPutAndNoBody(String bodyToSend) throws Exception {
+    void shouldRespondBadRequestWhenPutAndNoBody(final String bodyToSend) throws Exception {
         mvc.perform(put(URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyToSend)
@@ -237,10 +212,11 @@ class UserControllerTest {
     }
 
     @Test
-    public void shouldRespondNotFoundWhenPutAndUserNotFound() throws Exception {
+    void shouldRespondNotFoundWhenPutAndUserNotFound() throws Exception {
         final User user = getRandomUser();
-        user.setId(faker.number().randomNumber());
-        when(userService.update(user)).thenThrow(new NotFoundException("User not found"));
+        final Long userId = faker.number().randomNumber();
+        user.setId(userId);
+        when(userService.update(user)).thenThrow(new NotFoundException("user", userId));
         final String jsonToSend = objectMapper.writeValueAsString(user);
 
         mvc.perform(put(URL)
@@ -254,7 +230,8 @@ class UserControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondBadRequestWhenPutAndEmailNullOrBlank(String email) throws Exception {
+    @ValueSource(strings = {" ", "text"})
+    void shouldRespondBadRequestWhenPutAndEmailNullOrBlankOrMalformed(final String email) throws Exception {
         final User user = getRandomUser();
         user.setId(faker.number().randomNumber());
         user.setEmail(email);
@@ -268,24 +245,10 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    public void shouldRespondBadRequestWhenPutAndEmailMalformed() throws Exception {
-        final User user = getRandomUser();
-        user.setId(faker.number().randomNumber());
-        user.setEmail("text");
-        final String jsonToSend = objectMapper.writeValueAsString(user);
-
-        mvc.perform(put(URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonToSend)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondBadRequestWhenPutAndLoginNullOrBlank(String login) throws Exception {
+    @ValueSource(strings = {" ", "super admin"})
+    void shouldRespondBadRequestWhenPutAndLoginNullOrBlankOrContainsWhitespace(final String login) throws Exception {
         final User user = getRandomUser();
         user.setId(faker.number().randomNumber());
         user.setLogin(login);
@@ -299,24 +262,9 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    public void shouldRespondBadRequestWhenPutAndLoginContainsWhitespace() throws Exception {
-        final User user = getRandomUser();
-        user.setId(faker.number().randomNumber());
-        user.setLogin("super admin");
-        final String jsonToSend = objectMapper.writeValueAsString(user);
-
-        mvc.perform(put(URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonToSend)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
     @ParameterizedTest
     @NullSource
-    public void shouldRespondBadRequestWhenPutAndBirthdayNull(LocalDate birthday) throws Exception {
+    void shouldRespondBadRequestWhenPutAndBirthdayNull(final LocalDate birthday) throws Exception {
         final User user = getRandomUser();
         user.setId(faker.number().randomNumber());
         user.setBirthday(birthday);
@@ -331,7 +279,7 @@ class UserControllerTest {
     }
 
     @Test
-    public void shouldRespondBadRequestWhenPutAndBirthdayFuture() throws Exception {
+    void shouldRespondBadRequestWhenPutAndBirthdayFuture() throws Exception {
         final User user = getRandomUser();
         user.setId(faker.number().randomNumber());
         user.setBirthday(LocalDate.now().plusDays(1));

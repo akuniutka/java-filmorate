@@ -35,7 +35,7 @@ import static ru.yandex.practicum.filmorate.TestModels.faker;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomFilm;
 
 @WebMvcTest(FilmController.class)
-public class FilmControllerTest {
+class FilmControllerTest {
 
     private static final String URL = "/films";
     private static final LocalDate cinemaBirthday = LocalDate.of(1895, 12, 28);
@@ -55,7 +55,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondOkAndReturnFilmWhenPost() throws Exception {
+    void shouldRespondOkAndReturnFilmWhenPost() throws Exception {
         final Film filmToSend = getRandomFilm();
         final Film filmToReceive = getRandomFilm();
         filmToReceive.setId(faker.number().randomNumber());
@@ -76,7 +76,8 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondOkAndReturnFilmWhenPostAndDescriptionNullOrBlank(String description) throws Exception {
+    @ValueSource(strings = " ")
+    void shouldRespondOkAndReturnFilmWhenPostAndDescriptionNullOrBlank(final String description) throws Exception {
         final Film filmToSend = getRandomFilm();
         filmToSend.setDescription(description);
         final Film filmToReceive = getRandomFilm();
@@ -97,7 +98,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondOkAndReturnFilmWhenPostAndReleaseDateEqualsCinemaBirthday() throws Exception {
+    void shouldRespondOkAndReturnFilmWhenPostAndReleaseDateEqualsCinemaBirthday() throws Exception {
         final Film filmToSend = getRandomFilm();
         filmToSend.setReleaseDate(cinemaBirthday);
         final Film filmToReceive = getRandomFilm();
@@ -118,7 +119,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondOkAndReturnFilmWhenPostAndDuration1Minute() throws Exception {
+    void shouldRespondOkAndReturnFilmWhenPostAndDuration1Minute() throws Exception {
         final Film filmToSend = getRandomFilm();
         filmToSend.setDuration(1);
         final Film filmToReceive = getRandomFilm();
@@ -140,7 +141,7 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @EmptySource
-    public void shouldRespondBadRequestWhenPostAndNoBody(String bodyToSend) throws Exception {
+    void shouldRespondBadRequestWhenPostAndNoBody(final String bodyToSend) throws Exception {
         mvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyToSend)
@@ -151,7 +152,8 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondBadRequestWhenPostAndNameNullOrBlank(String name) throws Exception {
+    @ValueSource(strings = " ")
+    void shouldRespondBadRequestWhenPostAndNameNullOrBlank(final String name) throws Exception {
         final Film film = getRandomFilm();
         film.setName(name);
         final String jsonToSend = objectMapper.writeValueAsString(film);
@@ -165,7 +167,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondBadRequestWhenPostAndDescriptionExceed200Characters() throws Exception {
+    void shouldRespondBadRequestWhenPostAndDescriptionExceed200Characters() throws Exception {
         final Film film = getRandomFilm();
         film.setDescription(faker.lorem().characters(201, true, true));
         final String jsonToSend = objectMapper.writeValueAsString(film);
@@ -180,7 +182,7 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @NullSource
-    public void shouldRespondBadRequestWhenPostAndReleaseDateNull(LocalDate releaseDate) throws Exception {
+    void shouldRespondBadRequestWhenPostAndReleaseDateNull(final LocalDate releaseDate) throws Exception {
         final Film film = getRandomFilm();
         film.setReleaseDate(releaseDate);
         final String jsonToSend = objectMapper.writeValueAsString(film);
@@ -194,7 +196,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondBadRequestWhenPostAndReleaseDateBeforeCinemaBirthday() throws Exception {
+    void shouldRespondBadRequestWhenPostAndReleaseDateBeforeCinemaBirthday() throws Exception {
         final Film film = getRandomFilm();
         film.setReleaseDate(cinemaBirthday.minusDays(1L));
         final String jsonToSend = objectMapper.writeValueAsString(film);
@@ -210,7 +212,7 @@ public class FilmControllerTest {
     @ParameterizedTest
     @NullSource
     @ValueSource(ints = {-1, 0})
-    public void shouldRespondBadRequestWhenPostAndDurationNullOrZeroOrNegative(Integer duration) throws Exception {
+    void shouldRespondBadRequestWhenPostAndDurationNullOrZeroOrNegative(final Integer duration) throws Exception {
         final Film film = getRandomFilm();
         film.setDuration(duration);
         final String jsonToSend = objectMapper.writeValueAsString(film);
@@ -224,7 +226,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondOkAndReturnFilmsWhenGet() throws Exception {
+    void shouldRespondOkAndReturnFilmsWhenGet() throws Exception {
         final Film filmA = getRandomFilm();
         filmA.setId(faker.number().randomNumber());
         final Film filmB = getRandomFilm();
@@ -244,7 +246,7 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @EmptySource
-    public void shouldRespondOkAndReturnEmptyListWhenGetAndEmptyList(Collection<Film> films) throws Exception {
+    void shouldRespondOkAndReturnEmptyListWhenGetAndEmptyList(final Collection<Film> films) throws Exception {
         when(filmService.findAll()).thenReturn(films);
         final String expectedJson = objectMapper.writeValueAsString(films);
 
@@ -258,7 +260,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondOkAndReturnFilmWhenPut() throws Exception {
+    void shouldRespondOkAndReturnFilmWhenPut() throws Exception {
         final Film filmToSend = getRandomFilm();
         filmToSend.setId(faker.number().randomNumber());
         final Film filmToReceive = getRandomFilm();
@@ -280,7 +282,8 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondOkAndReturnFilmWhenPutAndDescriptionNullOrBlank(String description) throws Exception {
+    @ValueSource(strings = " ")
+    void shouldRespondOkAndReturnFilmWhenPutAndDescriptionNullOrBlank(final String description) throws Exception {
         final Film filmToSend = getRandomFilm();
         filmToSend.setId(faker.number().randomNumber());
         filmToSend.setDescription(description);
@@ -302,7 +305,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondOkAndReturnFilmWhenPutAndReleaseDateEqualsCinemaBirthday() throws Exception {
+    void shouldRespondOkAndReturnFilmWhenPutAndReleaseDateEqualsCinemaBirthday() throws Exception {
         final Film filmToSend = getRandomFilm();
         filmToSend.setId(faker.number().randomNumber());
         filmToSend.setReleaseDate(cinemaBirthday);
@@ -324,7 +327,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondOkAndReturnFilmWhenPutAndDuration1Minute() throws Exception {
+    void shouldRespondOkAndReturnFilmWhenPutAndDuration1Minute() throws Exception {
         final Film filmToSend = getRandomFilm();
         filmToSend.setId(faker.number().randomNumber());
         filmToSend.setDuration(1);
@@ -347,7 +350,7 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @EmptySource
-    public void shouldRespondBadRequestWhenPutAndNoBody(String bodyToSend) throws Exception {
+    void shouldRespondBadRequestWhenPutAndNoBody(final String bodyToSend) throws Exception {
         mvc.perform(put(URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .contentType(bodyToSend)
@@ -357,10 +360,11 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondNotFoundWhenPutAndFilmNotFound() throws Exception {
+    void shouldRespondNotFoundWhenPutAndFilmNotFound() throws Exception {
         final Film film = getRandomFilm();
-        film.setId(faker.number().randomNumber());
-        when(filmService.update(film)).thenThrow(new NotFoundException("Film not found"));
+        final Long filmId = faker.number().randomNumber();
+        film.setId(filmId);
+        when(filmService.update(film)).thenThrow(new NotFoundException("film", filmId));
         final String jsonToSend = objectMapper.writeValueAsString(film);
 
         mvc.perform(put(URL)
@@ -374,7 +378,8 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void shouldRespondBadRequestWhenPutAndNameNullOrBlank(String name) throws Exception {
+    @ValueSource(strings = " ")
+    void shouldRespondBadRequestWhenPutAndNameNullOrBlank(final String name) throws Exception {
         final Film film = getRandomFilm();
         film.setId(faker.number().randomNumber());
         film.setName(name);
@@ -389,7 +394,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondBadRequestWhenPutAndDescriptionExceed200Characters() throws Exception {
+    void shouldRespondBadRequestWhenPutAndDescriptionExceed200Characters() throws Exception {
         final Film film = getRandomFilm();
         film.setId(faker.number().randomNumber());
         film.setDescription(faker.lorem().characters(201, true, true));
@@ -405,7 +410,7 @@ public class FilmControllerTest {
 
     @ParameterizedTest
     @NullSource
-    public void shouldRespondBadRequestWhenPutAndReleaseDateNull(LocalDate releaseDate) throws Exception {
+    void shouldRespondBadRequestWhenPutAndReleaseDateNull(final LocalDate releaseDate) throws Exception {
         final Film film = getRandomFilm();
         film.setId(faker.number().randomNumber());
         film.setReleaseDate(releaseDate);
@@ -420,7 +425,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldRespondBadRequestWhenPutAndReleaseDateBeforeCinemaBirthday() throws Exception {
+    void shouldRespondBadRequestWhenPutAndReleaseDateBeforeCinemaBirthday() throws Exception {
         final Film film = getRandomFilm();
         film.setId(faker.number().randomNumber());
         film.setReleaseDate(cinemaBirthday.minusDays(1L));
@@ -437,7 +442,7 @@ public class FilmControllerTest {
     @ParameterizedTest
     @NullSource
     @ValueSource(ints = {-1, 0})
-    public void shouldRespondBadRequestWhenPutAndDurationNullOrZeroOrNegative(Integer duration) throws Exception {
+    void shouldRespondBadRequestWhenPutAndDurationNullOrZeroOrNegative(final Integer duration) throws Exception {
         final Film film = getRandomFilm();
         film.setId(faker.number().randomNumber());
         film.setDuration(duration);
