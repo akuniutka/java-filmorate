@@ -2,6 +2,6 @@
 
 A Filmorate project.
 
-# Database schema
+## Database schema
 
-![Database schema](database_schema.png)
+![Database schema](database_schema.svg)
