@@ -2,9 +2,9 @@ DROP TABLE IF EXISTS film_genres;
 
 DROP TABLE IF EXISTS genres;
 
-DROP TABLE IF EXISTS friend_requests;
-
 DROP TABLE IF EXISTS friends;
+
+DROP TABLE IF EXISTS friend_statuses;
 
 DROP TABLE IF EXISTS likes;
 
@@ -45,22 +45,23 @@ CREATE TABLE likes
   film_id BIGINT NOT NULL REFERENCES films (id)
 );
 
+CREATE TABLE friend_statuses
+(
+  id     BIGSERIAL PRIMARY KEY,
+  status VARCHAR NOT NULL
+);
+
 CREATE TABLE friends
 (
   user_id   BIGINT NOT NULL REFERENCES users (id),
-  friend_id BIGINT NOT NULL REFERENCES users (id)
-);
-
-CREATE TABLE friend_requests
-(
-  sender_id   BIGINT NOT NULL REFERENCES users (id),
-  receiver_id BIGINT NOT NULL REFERENCES users (id)
+  friend_id BIGINT NOT NULL REFERENCES users (id),
+  status_id BIGINT NOT NULL REFERENCES friend_statuses(id)
 );
 
 CREATE TABLE genres
 (
   id   BIGSERIAL PRIMARY KEY,
-  name VARCHAR NOT NULL
+  genre VARCHAR NOT NULL
 );
 
 CREATE TABLE film_genres
