@@ -11,15 +11,19 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.api.FriendService;
+import ru.yandex.practicum.filmorate.service.api.UserService;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.ignoreStubs;
 import static org.mockito.Mockito.verify;
@@ -35,6 +39,7 @@ import static ru.yandex.practicum.filmorate.TestModels.faker;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomUser;
 
 @WebMvcTest(UserController.class)
+@Import(UserMapper.class)
 class UserControllerTest {
 
     private static final String URL = "/users";
@@ -42,8 +47,14 @@ class UserControllerTest {
     @Autowired
     private MockMvc mvc;
 
+    @Autowired
+    private UserMapper mapper;
+
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private FriendService friendService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -58,7 +69,7 @@ class UserControllerTest {
         final User userToSend = getRandomUser();
         final User userToReceive = getRandomUser();
         userToReceive.setId(faker.number().randomNumber());
-        when(userService.create(userToSend)).thenReturn(userToReceive);
+        when(userService.createUser(userToSend)).thenReturn(userToReceive);
         final String jsonToSend = objectMapper.writeValueAsString(userToSend);
         final String expectedJson = objectMapper.writeValueAsString(userToReceive);
 
@@ -70,7 +81,7 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(userService).create(userToSend);
+        verify(userService).createUser(userToSend);
     }
 
     @ParameterizedTest
@@ -152,8 +163,8 @@ class UserControllerTest {
         final User userB = getRandomUser();
         userB.setId(faker.number().randomNumber());
         final Collection<User> users = List.of(userA, userB);
-        when(userService.findAll()).thenReturn(users);
-        final String expectedJson = objectMapper.writeValueAsString(users);
+        when(userService.getUsers()).thenReturn(users);
+        final String expectedJson = objectMapper.writeValueAsString(mapper.mapToDto(users));
 
         mvc.perform(get(URL)
                         .accept(MediaType.APPLICATION_JSON))
@@ -161,13 +172,13 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(userService).findAll();
+        verify(userService).getUsers();
     }
 
     @ParameterizedTest
     @EmptySource
     void shouldRespondOkAndReturnEmptyListWhenGetAndEmptyList(final Collection<User> users) throws Exception {
-        when(userService.findAll()).thenReturn(users);
+        when(userService.getUsers()).thenReturn(users);
         final String expectedJson = objectMapper.writeValueAsString(users);
 
         mvc.perform(get(URL)
@@ -176,7 +187,7 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(userService).findAll();
+        verify(userService).getUsers();
     }
 
     @Test
@@ -185,7 +196,7 @@ class UserControllerTest {
         userToSend.setId(faker.number().randomNumber());
         final User userToReceive = getRandomUser();
         userToReceive.setId(faker.number().randomNumber());
-        when(userService.update(userToSend)).thenReturn(userToReceive);
+        when(userService.updateUser(userToSend)).thenReturn(Optional.of(userToReceive));
         final String jsonToSend = objectMapper.writeValueAsString(userToSend);
         final String expectedJson = objectMapper.writeValueAsString(userToReceive);
 
@@ -197,7 +208,7 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(userService).update(userToSend);
+        verify(userService).updateUser(userToSend);
     }
 
     @ParameterizedTest
@@ -216,7 +227,7 @@ class UserControllerTest {
         final User user = getRandomUser();
         final Long userId = faker.number().randomNumber();
         user.setId(userId);
-        when(userService.update(user)).thenThrow(new NotFoundException("user", userId));
+        when(userService.updateUser(user)).thenThrow(new NotFoundException("user", userId));
         final String jsonToSend = objectMapper.writeValueAsString(user);
 
         mvc.perform(put(URL)
@@ -225,7 +236,22 @@ class UserControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());
-        verify(userService).update(user);
+        verify(userService).updateUser(user);
+    }
+
+    @Test
+    void shouldRespondBadRequestWhenPutAndIdNull() throws Exception {
+        final User user = getRandomUser();
+        user.setId(null);
+        when(userService.updateUser(user)).thenThrow(new NotFoundException("user", null));
+        final String jsonToSend = objectMapper.writeValueAsString(user);
+
+        mvc.perform(put(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonToSend)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
     @ParameterizedTest

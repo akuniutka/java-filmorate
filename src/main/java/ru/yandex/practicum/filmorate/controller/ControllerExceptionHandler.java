@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import java.util.stream.Collectors;
 
@@ -27,6 +28,12 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         String detail = "Check that id of %s is correct (you sent %s)".formatted(exception.getModelName(),
                 exception.getModelId());
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, detail);
+    }
+
+    @ExceptionHandler
+    protected ProblemDetail handleValidationException(ValidationException exception) {
+        log.warn(exception.getMessage());
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
     @Override

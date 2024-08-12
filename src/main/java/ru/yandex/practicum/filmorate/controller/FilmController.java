@@ -13,8 +13,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.NewFilmDto;
+import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.api.FilmService;
+import ru.yandex.practicum.filmorate.service.api.LikeService;
 
 import java.util.Collection;
 
@@ -25,56 +31,64 @@ import java.util.Collection;
 public class FilmController {
 
     private final FilmService filmService;
+    private final LikeService likeService;
+    private final FilmMapper mapper;
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable final Long id, @PathVariable final Long userId) {
-        log.info("Received PUT at /films/{}/like{}", id, userId);
-        filmService.addLike(id, userId);
+        log.info("Received PUT at /films/{}/like/{}", id, userId);
+        likeService.createLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void deleteLike(@PathVariable final Long id, @PathVariable final Long userId) {
         log.info("Received DELETE at /films/{}/like/{}", id, userId);
-        filmService.deleteLike(id, userId);
+        likeService.deleteLike(id, userId);
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getTopLiked(@RequestParam(defaultValue = "10") @Positive final Long count) {
+    public Collection<FilmDto> getTopLiked(@RequestParam(defaultValue = "10") @Valid @Positive final Long count) {
         log.info("Received GET at /films/popular (count = {})", count);
-        final Collection<Film> films = filmService.getTopLiked(count);
-        log.info("Responded to GET /films/popular (count = {}): {}", count, films);
-        return films;
+        final Collection<FilmDto> dtos = mapper.mapToDto(likeService.getTopFilmsByLikes(count));
+        log.info("Responded to GET /films/popular (count = {}): {}", count, dtos);
+        return dtos;
     }
 
     @GetMapping("/{id}")
-    public Film getFilmById(@PathVariable final Long id) {
+    public FilmDto getFilm(@PathVariable final Long id) {
         log.info("Received GET at /films/{}", id);
-        final Film film = filmService.findFilmById(id);
-        log.info("Responded to GET /films{}: {}", id, film);
-        return film;
+        final FilmDto dto = filmService.getFilm(id).map(mapper::mapToDto).orElseThrow(
+                () -> new NotFoundException(Film.class, id)
+        );
+        log.info("Responded to GET /films/{}: {}", id, dto);
+        return dto;
     }
 
     @PostMapping
-    public Film create(@Valid @RequestBody final Film film) {
-        log.info("Received POST at /films: {}", film);
-        final Film createdFilm = filmService.create(film);
-        log.info("Responded to POST /films: {}", createdFilm);
-        return createdFilm;
+    public FilmDto createFilm(@Valid @RequestBody final NewFilmDto newFilmDto) {
+        log.info("Received POST at /films: {}", newFilmDto);
+        final Film film = mapper.mapToFilm(newFilmDto);
+        final FilmDto filmDto = mapper.mapToDto(filmService.createFilm(film));
+        log.info("Responded to POST /films: {}", filmDto);
+        return filmDto;
     }
 
     @GetMapping
-    public Collection<Film> finaAll() {
+    public Collection<FilmDto> getFilms() {
         log.info("Received GET at /films");
-        final Collection<Film> films = filmService.findAll();
-        log.info("Responded to GET /films: {}", films);
-        return films;
+        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getFilms());
+        log.info("Responded to GET /films: {}", dtos);
+        return dtos;
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody final Film film) {
-        log.info("Received PUT at /films: {}", film);
-        final Film updatedFilm = filmService.update(film);
-        log.info("Responded to PUT /films: {}", updatedFilm);
-        return updatedFilm;
+    public FilmDto updateFilm(@Valid @RequestBody final UpdateFilmDto updateFilmDto) {
+        log.info("Received PUT at /films: {}", updateFilmDto);
+        final Film film = mapper.mapToFilm(updateFilmDto);
+        final FilmDto filmDto = filmService.updateFilm(film).map(mapper::mapToDto).orElseThrow(
+                () -> new NotFoundException(Film.class, updateFilmDto.getId())
+        );
+        log.info("Responded to PUT /films: {}", filmDto);
+        return filmDto;
     }
 }
