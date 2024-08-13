@@ -38,12 +38,14 @@ public class FilmController {
     public void addLike(@PathVariable final Long id, @PathVariable final Long userId) {
         log.info("Received PUT at /films/{}/like/{}", id, userId);
         likeService.createLike(id, userId);
+        log.info("Responded to PUT /films/{}/like/{} with no body", id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void deleteLike(@PathVariable final Long id, @PathVariable final Long userId) {
         log.info("Received DELETE at /films/{}/like/{}", id, userId);
         likeService.deleteLike(id, userId);
+        log.info("Responded to DELETE /films/{}/like/{} with no body", id, userId);
     }
 
     @GetMapping("/popular")

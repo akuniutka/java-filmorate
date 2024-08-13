@@ -44,12 +44,14 @@ public class UserController {
     public void addFriend(@PathVariable final Long id, @PathVariable final Long friendId) {
         log.info("Received PUT at /users/{}/friends/{}", id, friendId);
         friendService.createFriend(id, friendId);
+        log.info("Responded to PUT /users/{}/friends/{} with no body", id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(@PathVariable final Long id, @PathVariable final Long friendId) {
         log.info("Received DELETE at /users/{}/friends/{}", id, friendId);
         friendService.deleteFriend(id, friendId);
+        log.info("Responded to DELETE /users/{}/friends/{} with no body", id, friendId);
     }
 
     @GetMapping("/{id}/friends")
