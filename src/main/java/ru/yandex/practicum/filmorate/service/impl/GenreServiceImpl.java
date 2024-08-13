@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.storage.api.GenreStorage;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -25,13 +26,18 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    public Optional<Genre> getGenre(Long id) {
-        return genreStorage.findById(id);
+    public Collection<Genre> getGenresByFilmId(Long filmId) {
+        return genreStorage.findAllByFilmId(filmId);
     }
 
     @Override
-    public Collection<Genre> getGenresByFilmId(Long filmId) {
-        return genreStorage.findAllByFilmId(filmId);
+    public Map<Long, Collection<Genre>> getGenresByFilmId(Set<Long> filmIds) {
+        return genreStorage.findAllByFilmId(filmIds);
+    }
+
+    @Override
+    public Optional<Genre> getGenre(Long id) {
+        return genreStorage.findById(id);
     }
 
     @Override

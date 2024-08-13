@@ -34,15 +34,22 @@ public class GenreInMemoryStorage implements GenreStorage {
     }
 
     @Override
-    public Optional<Genre> findById(final Long id) {
-        return Optional.ofNullable(genres.get(id));
-    }
-
-    @Override
     public Collection<Genre> findAllByFilmId(final Long filmId) {
         return genresByFilmId.getOrDefault(filmId, Collections.emptySet()).stream()
                 .sorted(Comparator.comparing(Genre::getId))
                 .toList();
+    }
+
+    @Override
+    public Map<Long, Collection<Genre>> findAllByFilmId(Set<Long> filmIds) {
+        final Map<Long, Collection<Genre>> result = new HashMap<>();
+        filmIds.forEach(filmId -> result.put(filmId, genresByFilmId.getOrDefault(filmId, Collections.emptySet())));
+        return result;
+    }
+
+    @Override
+    public Optional<Genre> findById(final Long id) {
+        return Optional.ofNullable(genres.get(id));
     }
 
     @Override
