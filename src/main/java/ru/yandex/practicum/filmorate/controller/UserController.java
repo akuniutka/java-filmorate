@@ -11,8 +11,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.dto.NewUserDto;
+import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
+import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.api.FriendService;
+import ru.yandex.practicum.filmorate.service.api.UserService;
 
 import java.util.Collection;
 
@@ -23,64 +29,74 @@ import java.util.Collection;
 public class UserController {
 
     private final UserService userService;
+    private final FriendService friendService;
+    private final UserMapper mapper;
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Collection<User> getCommonFriends(@PathVariable final Long id, @PathVariable final Long otherId) {
+    public Collection<UserDto> getCommonFriends(@PathVariable final Long id, @PathVariable final Long otherId) {
         log.info("Received GET at /users/{}/friends/common/{}", id, otherId);
-        final Collection<User> friends = userService.findCommonFriendsByUserIds(id, otherId);
-        log.info("Responded to GET /users/{}/friends/common/{}: {}", id, otherId, friends);
-        return friends;
+        final Collection<UserDto> dtos = mapper.mapToDto(friendService.getCommonFriends(id, otherId));
+        log.info("Responded to GET /users/{}/friends/common/{}: {}", id, otherId, dtos);
+        return dtos;
     }
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable final Long id, @PathVariable final Long friendId) {
         log.info("Received PUT at /users/{}/friends/{}", id, friendId);
-        userService.addFriend(id, friendId);
+        friendService.createFriend(id, friendId);
+        log.info("Responded to PUT /users/{}/friends/{} with no body", id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(@PathVariable final Long id, @PathVariable final Long friendId) {
         log.info("Received DELETE at /users/{}/friends/{}", id, friendId);
-        userService.deleteFriend(id, friendId);
+        friendService.deleteFriend(id, friendId);
+        log.info("Responded to DELETE /users/{}/friends/{} with no body", id, friendId);
     }
 
     @GetMapping("/{id}/friends")
-    public Collection<User> getFriends(@PathVariable final Long id) {
+    public Collection<UserDto> getFriends(@PathVariable final Long id) {
         log.info("Received GET at /users/{}/friends", id);
-        final Collection<User> friends = userService.findFriendsByUserId(id);
-        log.info("Responded to GET /users/{}/friends: {}", id, friends);
-        return friends;
-    }
-
-    @GetMapping("/{id}")
-    public User getUserById(@PathVariable final Long id) {
-        log.info("Received GET at /users/{}", id);
-        final User user = userService.findUserById(id);
-        log.info("Responded to GET /users/{}: {}", id, user);
-        return user;
-    }
-
-    @PostMapping
-    public User create(@Valid @RequestBody final User user) {
-        log.info("Received POST at /users");
-        final User createdUser = userService.create(user);
-        log.info("Responded to POST /users: {}", createdUser);
-        return createdUser;
+        final Collection<UserDto> dtos = mapper.mapToDto(friendService.getFriendsByUserId(id));
+        log.info("Responded to GET /users/{}/friends: {}", id, dtos);
+        return dtos;
     }
 
     @GetMapping
-    public Collection<User> findAll() {
+    public Collection<UserDto> getUsers() {
         log.info("Received GET at /users");
-        Collection<User> users = userService.findAll();
-        log.info("Responded to GET /users: {}", users);
-        return users;
+        Collection<UserDto> dtos = mapper.mapToDto(userService.getUsers());
+        log.info("Responded to GET /users: {}", dtos);
+        return dtos;
+    }
+
+    @GetMapping("/{id}")
+    public UserDto getUser(@PathVariable final Long id) {
+        log.info("Received GET at /users/{}", id);
+        final UserDto dto = userService.getUser(id).map(mapper::mapToDto).orElseThrow(
+                () -> new NotFoundException(User.class, id)
+        );
+        log.info("Responded to GET /users/{}: {}", id, dto);
+        return dto;
+    }
+
+    @PostMapping
+    public UserDto createUser(@Valid @RequestBody final NewUserDto newUserDto) {
+        log.info("Received POST at /users");
+        final User user = mapper.mapToUser(newUserDto);
+        final UserDto userDto = mapper.mapToDto(userService.createUser(user));
+        log.info("Responded to POST /users: {}", userDto);
+        return userDto;
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody final User user) {
+    public UserDto updateUser(@Valid @RequestBody final UpdateUserDto updateUserDto) {
         log.info("Received PUT at /users");
-        User updatedUser =  userService.update(user);
-        log.info("Responded to PUT at /users: {}", updatedUser);
-        return updatedUser;
+        final User user = mapper.mapToUser(updateUserDto);
+        final UserDto userDto = userService.updateUser(user).map(mapper::mapToDto).orElseThrow(
+                () -> new NotFoundException(User.class, updateUserDto.getId())
+        );
+        log.info("Responded to PUT at /users: {}", userDto);
+        return userDto;
     }
 }

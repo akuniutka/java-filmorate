@@ -11,15 +11,25 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.mapper.GenreMapper;
+import ru.yandex.practicum.filmorate.mapper.MpaMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.api.FilmService;
+import ru.yandex.practicum.filmorate.service.api.LikeService;
+import ru.yandex.practicum.filmorate.service.impl.GenreServiceImpl;
+import ru.yandex.practicum.filmorate.service.impl.MpaServiceImpl;
+import ru.yandex.practicum.filmorate.storage.mem.GenreInMemoryStorage;
+import ru.yandex.practicum.filmorate.storage.mem.MpaInMemoryStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.ignoreStubs;
 import static org.mockito.Mockito.verify;
@@ -35,6 +45,8 @@ import static ru.yandex.practicum.filmorate.TestModels.faker;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomFilm;
 
 @WebMvcTest(FilmController.class)
+@Import({FilmMapper.class, MpaMapper.class, GenreMapper.class, GenreServiceImpl.class, MpaServiceImpl.class,
+        MpaInMemoryStorage.class, GenreInMemoryStorage.class})
 class FilmControllerTest {
 
     private static final String URL = "/films";
@@ -43,8 +55,14 @@ class FilmControllerTest {
     @Autowired
     private MockMvc mvc;
 
+    @Autowired
+    private FilmMapper filmMapper;
+
     @MockBean
     private FilmService filmService;
+
+    @MockBean
+    private LikeService likeService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -59,7 +77,7 @@ class FilmControllerTest {
         final Film filmToSend = getRandomFilm();
         final Film filmToReceive = getRandomFilm();
         filmToReceive.setId(faker.number().randomNumber());
-        when(filmService.create(filmToSend)).thenReturn(filmToReceive);
+        when(filmService.createFilm(filmToSend)).thenReturn(filmToReceive);
         final String jsonToSend = objectMapper.writeValueAsString(filmToSend);
         final String expectedJson = objectMapper.writeValueAsString(filmToReceive);
 
@@ -71,7 +89,7 @@ class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(filmService).create(filmToSend);
+        verify(filmService).createFilm(filmToSend);
     }
 
     @ParameterizedTest
@@ -82,7 +100,7 @@ class FilmControllerTest {
         filmToSend.setDescription(description);
         final Film filmToReceive = getRandomFilm();
         filmToReceive.setId(faker.number().randomNumber());
-        when(filmService.create(filmToSend)).thenReturn(filmToReceive);
+        when(filmService.createFilm(filmToSend)).thenReturn(filmToReceive);
         final String jsonToSend = objectMapper.writeValueAsString(filmToSend);
         final String expectedJson = objectMapper.writeValueAsString(filmToReceive);
 
@@ -94,7 +112,7 @@ class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(filmService).create(filmToSend);
+        verify(filmService).createFilm(filmToSend);
     }
 
     @Test
@@ -103,7 +121,7 @@ class FilmControllerTest {
         filmToSend.setReleaseDate(cinemaBirthday);
         final Film filmToReceive = getRandomFilm();
         filmToReceive.setId(faker.number().randomNumber());
-        when(filmService.create(filmToSend)).thenReturn(filmToReceive);
+        when(filmService.createFilm(filmToSend)).thenReturn(filmToReceive);
         final String jsonToSend = objectMapper.writeValueAsString(filmToSend);
         final String expectedJson = objectMapper.writeValueAsString(filmToReceive);
 
@@ -115,7 +133,7 @@ class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(filmService).create(filmToSend);
+        verify(filmService).createFilm(filmToSend);
     }
 
     @Test
@@ -124,7 +142,7 @@ class FilmControllerTest {
         filmToSend.setDuration(1);
         final Film filmToReceive = getRandomFilm();
         filmToReceive.setId(faker.number().randomNumber());
-        when(filmService.create(filmToSend)).thenReturn(filmToReceive);
+        when(filmService.createFilm(filmToSend)).thenReturn(filmToReceive);
         final String jsonToSend = objectMapper.writeValueAsString(filmToSend);
         final String expectedJson = objectMapper.writeValueAsString(filmToReceive);
 
@@ -136,7 +154,7 @@ class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(filmService).create(filmToSend);
+        verify(filmService).createFilm(filmToSend);
     }
 
     @ParameterizedTest
@@ -232,7 +250,7 @@ class FilmControllerTest {
         final Film filmB = getRandomFilm();
         filmB.setId(faker.number().randomNumber());
         final Collection<Film> films = List.of(filmA, filmB);
-        when(filmService.findAll()).thenReturn(films);
+        when(filmService.getFilms()).thenReturn(films);
         final String expectedJson = objectMapper.writeValueAsString(films);
 
         mvc.perform(get(URL)
@@ -241,13 +259,13 @@ class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(filmService).findAll();
+        verify(filmService).getFilms();
     }
 
     @ParameterizedTest
     @EmptySource
     void shouldRespondOkAndReturnEmptyListWhenGetAndEmptyList(final Collection<Film> films) throws Exception {
-        when(filmService.findAll()).thenReturn(films);
+        when(filmService.getFilms()).thenReturn(films);
         final String expectedJson = objectMapper.writeValueAsString(films);
 
         mvc.perform(get(URL)
@@ -256,7 +274,7 @@ class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(filmService).findAll();
+        verify(filmService).getFilms();
     }
 
     @Test
@@ -265,7 +283,7 @@ class FilmControllerTest {
         filmToSend.setId(faker.number().randomNumber());
         final Film filmToReceive = getRandomFilm();
         filmToReceive.setId(faker.number().randomNumber());
-        when(filmService.update(filmToSend)).thenReturn(filmToReceive);
+        when(filmService.updateFilm(filmToSend)).thenReturn(Optional.of(filmToReceive));
         final String jsonToSend = objectMapper.writeValueAsString(filmToSend);
         final String expectedJson = objectMapper.writeValueAsString(filmToReceive);
 
@@ -277,7 +295,7 @@ class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(filmService).update(filmToSend);
+        verify(filmService).updateFilm(filmToSend);
     }
 
     @ParameterizedTest
@@ -289,7 +307,7 @@ class FilmControllerTest {
         filmToSend.setDescription(description);
         final Film filmToReceive = getRandomFilm();
         filmToReceive.setId(faker.number().randomNumber());
-        when(filmService.update(filmToSend)).thenReturn(filmToReceive);
+        when(filmService.updateFilm(filmToSend)).thenReturn(Optional.of(filmToReceive));
         final String jsonToSend = objectMapper.writeValueAsString(filmToSend);
         final String expectedJson = objectMapper.writeValueAsString(filmToReceive);
 
@@ -301,7 +319,7 @@ class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(filmService).update(filmToSend);
+        verify(filmService).updateFilm(filmToSend);
     }
 
     @Test
@@ -311,7 +329,7 @@ class FilmControllerTest {
         filmToSend.setReleaseDate(cinemaBirthday);
         final Film filmToReceive = getRandomFilm();
         filmToReceive.setId(faker.number().randomNumber());
-        when(filmService.update(filmToSend)).thenReturn(filmToReceive);
+        when(filmService.updateFilm(filmToSend)).thenReturn(Optional.of(filmToReceive));
         final String jsonToSend = objectMapper.writeValueAsString(filmToSend);
         final String expectedJson = objectMapper.writeValueAsString(filmToReceive);
 
@@ -323,7 +341,7 @@ class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(filmService).update(filmToSend);
+        verify(filmService).updateFilm(filmToSend);
     }
 
     @Test
@@ -333,7 +351,7 @@ class FilmControllerTest {
         filmToSend.setDuration(1);
         final Film filmToReceive = getRandomFilm();
         filmToReceive.setId(faker.number().randomNumber());
-        when(filmService.update(filmToSend)).thenReturn(filmToReceive);
+        when(filmService.updateFilm(filmToSend)).thenReturn(Optional.of(filmToReceive));
         final String jsonToSend = objectMapper.writeValueAsString(filmToSend);
         final String expectedJson = objectMapper.writeValueAsString(filmToReceive);
 
@@ -345,7 +363,7 @@ class FilmControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson, true));
-        verify(filmService).update(filmToSend);
+        verify(filmService).updateFilm(filmToSend);
     }
 
     @ParameterizedTest
@@ -364,7 +382,7 @@ class FilmControllerTest {
         final Film film = getRandomFilm();
         final Long filmId = faker.number().randomNumber();
         film.setId(filmId);
-        when(filmService.update(film)).thenThrow(new NotFoundException("film", filmId));
+        when(filmService.updateFilm(film)).thenThrow(new NotFoundException("film", filmId));
         final String jsonToSend = objectMapper.writeValueAsString(film);
 
         mvc.perform(put(URL)
@@ -373,7 +391,7 @@ class FilmControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());
-        verify(filmService).update(film);
+        verify(filmService).updateFilm(film);
     }
 
     @ParameterizedTest
