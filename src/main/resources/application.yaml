@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:fils:./db/filmorate
+  sql.init.mode: always
+  main.log-startup-info: false
+logging.level:
+  org.zalando.logbook: TRACE
+filmorate.storage.mode: database
