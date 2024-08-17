@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.mapper.UserMapperImpl;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.api.FriendService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
@@ -39,7 +40,7 @@ import static ru.yandex.practicum.filmorate.TestModels.faker;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomUser;
 
 @WebMvcTest(UserController.class)
-@Import(UserMapper.class)
+@Import(UserMapperImpl.class)
 class UserControllerTest {
 
     private static final String URL = "/users";

@@ -15,9 +15,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.mapper.FilmMapper;
-import ru.yandex.practicum.filmorate.mapper.GenreMapper;
-import ru.yandex.practicum.filmorate.mapper.MpaMapper;
+import ru.yandex.practicum.filmorate.mapper.FilmMapperImpl;
+import ru.yandex.practicum.filmorate.mapper.GenreMapperImpl;
+import ru.yandex.practicum.filmorate.mapper.MpaMapperImpl;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
 import ru.yandex.practicum.filmorate.service.api.LikeService;
@@ -45,7 +45,7 @@ import static ru.yandex.practicum.filmorate.TestModels.faker;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomFilm;
 
 @WebMvcTest(FilmController.class)
-@Import({FilmMapper.class, MpaMapper.class, GenreMapper.class, GenreServiceImpl.class, MpaServiceImpl.class,
+@Import({FilmMapperImpl.class, MpaMapperImpl.class, GenreServiceImpl.class, GenreMapperImpl.class, MpaServiceImpl.class,
         MpaInMemoryStorage.class, GenreInMemoryStorage.class})
 class FilmControllerTest {
 
@@ -54,9 +54,6 @@ class FilmControllerTest {
 
     @Autowired
     private MockMvc mvc;
-
-    @Autowired
-    private FilmMapper filmMapper;
 
     @MockBean
     private FilmService filmService;
