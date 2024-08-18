@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.TestModels.assertUserEquals;
 import static ru.yandex.practicum.filmorate.TestModels.assertUserListEquals;
@@ -47,7 +49,7 @@ public abstract class AbstractUserStorageTest {
     @Test
     void shouldReturnEmptyOptionalForUnknownId() {
         final List<User> expectedUsers = preloadData();
-        final Long id = expectedUsers.getFirst().getId() - 1;
+        final long id = expectedUsers.getFirst().getId() - 1;
 
         final Optional<User> actual = userStorage.findById(id);
 
@@ -57,12 +59,12 @@ public abstract class AbstractUserStorageTest {
     @Test
     void shouldUpdateUser() {
         final List<User> expectedUsers = preloadData();
-        final Long userId = expectedUsers.get(1).getId();
+        final long id = expectedUsers.get(1).getId();
         final User expectedUser = getRandomUser();
-        expectedUser.setId(userId);
+        expectedUser.setId(id);
 
         final User savedUser = userStorage.update(cloneUser(expectedUser)).orElseThrow();
-        final User actualUser = userStorage.findById(userId).orElseThrow();
+        final User actualUser = userStorage.findById(id).orElseThrow();
 
         assertUserEquals(expectedUser, savedUser);
         assertUserEquals(expectedUser, actualUser);
@@ -80,12 +82,128 @@ public abstract class AbstractUserStorageTest {
     }
 
     @Test
+    void shouldThrowWhenAddFriendAndUserNotExist() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId() - 1;
+        final long friendId = expectedUsers.getLast().getId();
+
+        assertThrows(RuntimeException.class, () -> userStorage.addFriend(id, friendId));
+    }
+
+    @Test
+    void shouldThrowWhenAddFriendAndFriendNotExist() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId();
+        final long friendId = expectedUsers.getLast().getId() + 1;
+
+        assertThrows(RuntimeException.class, () -> userStorage.addFriend(id, friendId));
+    }
+
+    @Test
+    void shouldThrowWhenAddFriendAndFriendIsUserThemself() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId();
+
+        assertThrows(RuntimeException.class, () -> userStorage.addFriend(id, id));
+    }
+
+    @Test
+    void shouldAddFriend() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId();
+        final long friendId = expectedUsers.getLast().getId();
+        final List<User> expectedFriends = List.of(expectedUsers.getLast());
+
+        userStorage.addFriend(id, friendId);
+        final List<User> actualFriends = new ArrayList<>(userStorage.findFriends(id));
+        final List<User> friendFriends = new ArrayList<>(userStorage.findFriends(friendId));
+
+        assertUserListEquals(expectedFriends, actualFriends);
+        assertTrue(friendFriends.isEmpty(), "friends list of friend should remain empty");
+    }
+
+    @Test
+    void shouldNotThrowWhenAddFriendWhichAlreadyFriend() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId();
+        final long friendId = expectedUsers.getLast().getId();
+        final List<User> expectedFriends = List.of(expectedUsers.getLast());
+
+        userStorage.addFriend(id, friendId);
+        assertDoesNotThrow(() -> userStorage.addFriend(id, friendId));
+        final List<User> actualFriends = new ArrayList<>(userStorage.findFriends(id));
+        final List<User> friendFriends = new ArrayList<>(userStorage.findFriends(friendId));
+
+        assertUserListEquals(expectedFriends, actualFriends);
+        assertTrue(friendFriends.isEmpty(), "friends list of friend should remain empty");
+    }
+
+    @Test
+    void shouldDeleteFriend() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId();
+        final long friendId = expectedUsers.getLast().getId();
+
+        userStorage.addFriend(id, friendId);
+        userStorage.deleteFriend(id, friendId);
+        final List<User> actualFriends = new ArrayList<>(userStorage.findFriends(id));
+
+        assertTrue(actualFriends.isEmpty(), "friends list should be empty");
+    }
+
+    @Test
+    void shouldNotThrowWhenDeleteFriendAndNotFriend() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId();
+        final long friendId = expectedUsers.getLast().getId();
+
+        assertDoesNotThrow(() -> userStorage.deleteFriend(id, friendId));
+    }
+
+    @Test
+    void shouldNotThrowWhenDeleteFriendAndUserNotExist() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId();
+        final long friendId = expectedUsers.getLast().getId();
+        final long nonExistingUserId = id - 1;
+
+        userStorage.addFriend(id, friendId);
+        assertDoesNotThrow(() -> userStorage.deleteFriend(nonExistingUserId, friendId));
+    }
+
+    @Test
+    void shouldNotThrowWhenDeleteFriendAndFriendNotExist() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId();
+        final long friendId = expectedUsers.getLast().getId();
+        final long nonExistingUserId = friendId + 1;
+
+        userStorage.addFriend(id, friendId);
+        assertDoesNotThrow(() -> userStorage.deleteFriend(id, nonExistingUserId));
+    }
+
+    @Test
+    void shouldReturnCorrectCommonFriendsList() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId();
+        final long friendId = expectedUsers.getLast().getId();
+        final long commonFriendId = expectedUsers.get(1).getId();
+        final List<User> expectedFriends = List.of(expectedUsers.get(1));
+
+        userStorage.addFriend(id, commonFriendId);
+        userStorage.addFriend(friendId, commonFriendId);
+        final List<User> actualFriends = new ArrayList<>(userStorage.findCommonFriends(id, friendId));
+
+        assertUserListEquals(expectedFriends, actualFriends);
+    }
+
+    @Test
     void shouldDeleteUser() {
         final List<User> expectedUsers = preloadData();
-        final Long userId = expectedUsers.get(1).getId();
+        final long id = expectedUsers.get(1).getId();
         expectedUsers.remove(1);
 
-        userStorage.delete(userId);
+        userStorage.delete(id);
         final List<User> actualUsers = new ArrayList<>(userStorage.findAll());
 
         assertUserListEquals(expectedUsers, actualUsers);

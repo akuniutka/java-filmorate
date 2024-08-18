@@ -38,10 +38,11 @@ CREATE TABLE IF NOT EXISTS friend_statuses
 
 CREATE TABLE IF NOT EXISTS friends
 (
-  user_id   BIGINT NOT NULL REFERENCES users (user_id),
-  friend_id BIGINT NOT NULL REFERENCES users (user_id),
+  user_id   BIGINT NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
+  friend_id BIGINT NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
   status_id BIGINT NULL REFERENCES friend_statuses (status_id),
-  CONSTRAINT friends_ux UNIQUE (user_id, friend_id)
+  CONSTRAINT friends_ux UNIQUE (user_id, friend_id),
+  CONSTRAINT friends_no_reflection CHECK (user_id <> friend_id)
 );
 
 CREATE TABLE IF NOT EXISTS genres
