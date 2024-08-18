@@ -17,7 +17,6 @@ import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.api.FriendService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 
 import java.util.Collection;
@@ -29,35 +28,34 @@ import java.util.Collection;
 public class UserController {
 
     private final UserService userService;
-    private final FriendService friendService;
     private final UserMapper mapper;
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Collection<UserDto> getCommonFriends(@PathVariable final Long id, @PathVariable final Long otherId) {
+    public Collection<UserDto> getCommonFriends(@PathVariable final long id, @PathVariable final long otherId) {
         log.info("Received GET at /users/{}/friends/common/{}", id, otherId);
-        final Collection<UserDto> dtos = mapper.mapToDto(friendService.getCommonFriends(id, otherId));
+        final Collection<UserDto> dtos = mapper.mapToDto(userService.getCommonFriends(id, otherId));
         log.info("Responded to GET /users/{}/friends/common/{}: {}", id, otherId, dtos);
         return dtos;
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public void addFriend(@PathVariable final Long id, @PathVariable final Long friendId) {
+    public void addFriend(@PathVariable final long id, @PathVariable final long friendId) {
         log.info("Received PUT at /users/{}/friends/{}", id, friendId);
-        friendService.createFriend(id, friendId);
+        userService.addFriend(id, friendId);
         log.info("Responded to PUT /users/{}/friends/{} with no body", id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void deleteFriend(@PathVariable final Long id, @PathVariable final Long friendId) {
+    public void deleteFriend(@PathVariable final long id, @PathVariable final long friendId) {
         log.info("Received DELETE at /users/{}/friends/{}", id, friendId);
-        friendService.deleteFriend(id, friendId);
+        userService.deleteFriend(id, friendId);
         log.info("Responded to DELETE /users/{}/friends/{} with no body", id, friendId);
     }
 
     @GetMapping("/{id}/friends")
-    public Collection<UserDto> getFriends(@PathVariable final Long id) {
+    public Collection<UserDto> getFriends(@PathVariable final long id) {
         log.info("Received GET at /users/{}/friends", id);
-        final Collection<UserDto> dtos = mapper.mapToDto(friendService.getFriendsByUserId(id));
+        final Collection<UserDto> dtos = mapper.mapToDto(userService.getFriends(id));
         log.info("Responded to GET /users/{}/friends: {}", id, dtos);
         return dtos;
     }
@@ -71,7 +69,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserDto getUser(@PathVariable final Long id) {
+    public UserDto getUser(@PathVariable final long id) {
         log.info("Received GET at /users/{}", id);
         final UserDto dto = userService.getUser(id).map(mapper::mapToDto).orElseThrow(
                 () -> new NotFoundException(User.class, id)

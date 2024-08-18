@@ -9,9 +9,17 @@ public interface UserService {
 
     Collection<User> getUsers();
 
-    Optional<User> getUser(Long id);
+    Optional<User> getUser(long id);
 
     User createUser(User user);
 
     Optional<User> updateUser(User user);
+
+    void addFriend(long id, long friendId);
+
+    void deleteFriend(long id, long friendId);
+
+    Collection<User> getFriends(long id);
+
+    Collection<User> getCommonFriends(long id, long friendId);
 }

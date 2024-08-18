@@ -21,7 +21,7 @@ public class BaseDbStorage<T> {
         return jdbc.query(query, mapper);
     }
 
-    protected Optional<T> findById(final String query, final Long id) {
+    protected Optional<T> findById(final String query, final long id) {
         try {
             return Optional.ofNullable(jdbc.queryForObject(query, Map.of("id", id), mapper));
         } catch (EmptyResultDataAccessException ignored) {
@@ -29,7 +29,7 @@ public class BaseDbStorage<T> {
         }
     }
 
-    protected void delete(final String query, final Long id) {
+    protected void delete(final String query, final long id) {
         jdbc.update(query, Map.of("id", id));
     }
 

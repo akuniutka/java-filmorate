@@ -18,7 +18,6 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapperImpl;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.api.FriendService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 
 import java.time.LocalDate;
@@ -53,9 +52,6 @@ class UserControllerTest {
 
     @MockBean
     private UserService userService;
-
-    @MockBean
-    private FriendService friendService;
 
     @Autowired
     private ObjectMapper objectMapper;
