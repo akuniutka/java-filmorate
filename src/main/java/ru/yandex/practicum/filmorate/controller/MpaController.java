@@ -24,7 +24,7 @@ public class MpaController {
     private final MpaMapper mapper;
 
     @GetMapping("/{id}")
-    public MpaDto getMpa(@PathVariable final Long id) {
+    public MpaDto getMpa(@PathVariable final long id) {
         log.info("Received GET at /mpa/{}", id);
         final MpaDto dto = mpaService.getMpa(id).map(mapper::mapToDto).orElseThrow(
                 () -> new NotFoundException(Mpa.class, id)

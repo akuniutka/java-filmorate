@@ -9,5 +9,5 @@ public interface MpaService {
 
     Collection<Mpa> getMpas();
 
-    Optional<Mpa> getMpa(Long id);
+    Optional<Mpa> getMpa(long id);
 }

@@ -8,10 +8,7 @@ import ru.yandex.practicum.filmorate.service.api.GenreService;
 import ru.yandex.practicum.filmorate.storage.api.GenreStorage;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -26,29 +23,7 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    public Collection<Genre> getGenresByFilmId(Long filmId) {
-        return genreStorage.findAllByFilmId(filmId);
-    }
-
-    @Override
-    public Map<Long, Collection<Genre>> getGenresByFilmId(Set<Long> filmIds) {
-        return genreStorage.findAllByFilmId(filmIds);
-    }
-
-    @Override
-    public Optional<Genre> getGenre(Long id) {
+    public Optional<Genre> getGenre(long id) {
         return genreStorage.findById(id);
-    }
-
-    @Override
-    public void updateFilmGenres(Long filmId, Collection<Genre> genres) {
-        Set<Genre> newGenres = new HashSet<>(genres);
-        Set<Genre> oldGenres = new HashSet<>(getGenresByFilmId(filmId));
-        oldGenres.stream()
-                .filter(genre -> !newGenres.contains(genre))
-                .forEach(genre -> genreStorage.deleteFilmGenre(filmId, genre));
-        newGenres.stream()
-                .filter(genre -> !oldGenres.contains(genre))
-                .forEach(genre -> genreStorage.saveFilmGenre(filmId, genre));
     }
 }

@@ -5,7 +5,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.mem.FilmInMemoryStorage;
-import ru.yandex.practicum.filmorate.storage.mem.GenreInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.UserInMemoryStorage;
 
 import java.time.LocalDate;
@@ -32,7 +31,6 @@ class FilmServiceImplTest {
         this.filmStorage = new FilmInMemoryStorage();
         this.filmService = new FilmServiceImpl(
                 filmStorage,
-                new GenreServiceImpl(new GenreInMemoryStorage()),
                 new UserServiceImpl(new UserInMemoryStorage())
         );
     }

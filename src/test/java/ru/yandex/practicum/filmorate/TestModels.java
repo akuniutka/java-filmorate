@@ -5,13 +5,16 @@ import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
-import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -55,16 +58,6 @@ public final class TestModels {
         return dto;
     }
 
-    public static UserDto getRandomUserDto() {
-        final UserDto dto = new UserDto();
-        dto.setId(faker.number().randomNumber());
-        dto.setEmail(faker.internet().emailAddress());
-        dto.setLogin(faker.name().username());
-        dto.setName(faker.name().fullName());
-        dto.setBirthday(faker.date().birthday().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-        return dto;
-    }
-
     public static Film getRandomFilm() {
         final Film film = new Film();
         film.setName(faker.book().title());
@@ -74,6 +67,7 @@ public final class TestModels {
                 Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant())
         ).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         film.setDuration(faker.number().numberBetween(1, Integer.MAX_VALUE));
+        film.setGenres(Collections.emptySet());
         return film;
     }
 
@@ -168,7 +162,7 @@ public final class TestModels {
                 () -> assertEquals(expected.getReleaseDate(), actual.getReleaseDate(), "wrong film release date"),
                 () -> assertEquals(expected.getDuration(), actual.getDuration(), "wrong film duration"),
                 () -> assertEquals(expected.getMpa(), actual.getMpa(), "wrong film MPA"),
-                () -> assertEquals(expected.getGenres(), actual.getGenres(), "wrong film genres")
+                () -> assertGenreListEquals(expected.getGenres(), actual.getGenres(), "wrong film genres")
         );
     }
 
@@ -181,5 +175,15 @@ public final class TestModels {
         for (int i = 0; i < expected.size(); i++) {
             assertFilmEquals(expected.get(i), actual.get(i));
         }
+    }
+
+    public static void assertGenreListEquals(final Collection<Genre> expected, final Collection<Genre> actual,
+            String message
+    ) {
+        if (expected == null) {
+            throw new IllegalArgumentException("value to check against should not be null");
+        }
+        assertNotNull(actual, "should be not null");
+        assertEquals(new ArrayList<>(expected), new ArrayList<>(actual), message);
     }
 }
