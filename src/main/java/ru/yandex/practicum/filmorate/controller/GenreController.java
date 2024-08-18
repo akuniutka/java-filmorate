@@ -24,7 +24,7 @@ public class GenreController {
     private final GenreMapper mapper;
 
     @GetMapping("/{id}")
-    public GenreDto getGenre(@PathVariable final Long id) {
+    public GenreDto getGenre(@PathVariable final long id) {
         log.info("Received GET at /genres/{}", id);
         final GenreDto dto = genreService.getGenre(id).map(mapper::mapToDto).orElseThrow(
                 () -> new NotFoundException(Genre.class, id)

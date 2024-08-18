@@ -25,7 +25,7 @@ public class MpaDbStorage extends BaseDbStorage<Mpa> implements MpaStorage {
         return findAll(FIND_ALL_QUERY);
     }
 
-    public Optional<Mpa> findById(final Long id) {
+    public Optional<Mpa> findById(final long id) {
         return findById(FIND_BY_ID_QUERY, id);
     }
 }

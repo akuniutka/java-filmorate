@@ -23,7 +23,7 @@ public class MpaServiceImpl implements MpaService {
     }
 
     @Override
-    public Optional<Mpa> getMpa(final Long id) {
+    public Optional<Mpa> getMpa(final long id) {
         return mpaStorage.findById(id);
     }
 }

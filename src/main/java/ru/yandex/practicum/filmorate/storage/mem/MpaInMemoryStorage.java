@@ -25,7 +25,7 @@ public class MpaInMemoryStorage implements MpaStorage {
     }
 
     @Override
-    public Optional<Mpa> findById(Long id) {
+    public Optional<Mpa> findById(long id) {
         return Optional.ofNullable(MPAS.get(id));
     }
 

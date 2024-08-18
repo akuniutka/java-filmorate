@@ -20,7 +20,6 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
-import ru.yandex.practicum.filmorate.service.api.LikeService;
 
 import java.util.Collection;
 
@@ -31,33 +30,32 @@ import java.util.Collection;
 public class FilmController {
 
     private final FilmService filmService;
-    private final LikeService likeService;
     private final FilmMapper mapper;
 
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable final Long id, @PathVariable final Long userId) {
+    public void addLike(@PathVariable final long id, @PathVariable final long userId) {
         log.info("Received PUT at /films/{}/like/{}", id, userId);
-        likeService.createLike(id, userId);
+        filmService.addLike(id, userId);
         log.info("Responded to PUT /films/{}/like/{} with no body", id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void deleteLike(@PathVariable final Long id, @PathVariable final Long userId) {
+    public void deleteLike(@PathVariable final long id, @PathVariable final long userId) {
         log.info("Received DELETE at /films/{}/like/{}", id, userId);
-        likeService.deleteLike(id, userId);
+        filmService.deleteLike(id, userId);
         log.info("Responded to DELETE /films/{}/like/{} with no body", id, userId);
     }
 
     @GetMapping("/popular")
-    public Collection<FilmDto> getTopLiked(@RequestParam(defaultValue = "10") @Valid @Positive final Long count) {
+    public Collection<FilmDto> getTopLiked(@RequestParam(defaultValue = "10") @Valid @Positive final long count) {
         log.info("Received GET at /films/popular (count = {})", count);
-        final Collection<FilmDto> dtos = mapper.mapToDto(likeService.getTopFilmsByLikes(count));
+        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getTopFilmsByLikes(count));
         log.info("Responded to GET /films/popular (count = {}): {}", count, dtos);
         return dtos;
     }
 
     @GetMapping("/{id}")
-    public FilmDto getFilm(@PathVariable final Long id) {
+    public FilmDto getFilm(@PathVariable final long id) {
         log.info("Received GET at /films/{}", id);
         final FilmDto dto = filmService.getFilm(id).map(mapper::mapToDto).orElseThrow(
                 () -> new NotFoundException(Film.class, id)

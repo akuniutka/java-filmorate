@@ -7,11 +7,17 @@ import java.util.Optional;
 
 public interface FilmService {
 
-    Film createFilm(Film film);
-
     Collection<Film> getFilms();
+
+    Collection<Film> getTopFilmsByLikes(long limit);
+
+    Optional<Film> getFilm(long id);
+
+    Film createFilm(Film film);
 
     Optional<Film> updateFilm(Film film);
 
-    Optional<Film> getFilm(Long id);
+    void addLike(long id, long userId);
+
+    void deleteLike(long id, long userId);
 }

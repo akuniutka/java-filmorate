@@ -20,7 +20,6 @@ import ru.yandex.practicum.filmorate.mapper.GenreMapperImpl;
 import ru.yandex.practicum.filmorate.mapper.MpaMapperImpl;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
-import ru.yandex.practicum.filmorate.service.api.LikeService;
 import ru.yandex.practicum.filmorate.service.impl.GenreServiceImpl;
 import ru.yandex.practicum.filmorate.service.impl.MpaServiceImpl;
 import ru.yandex.practicum.filmorate.storage.mem.GenreInMemoryStorage;
@@ -57,9 +56,6 @@ class FilmControllerTest {
 
     @MockBean
     private FilmService filmService;
-
-    @MockBean
-    private LikeService likeService;
 
     @Autowired
     private ObjectMapper objectMapper;
