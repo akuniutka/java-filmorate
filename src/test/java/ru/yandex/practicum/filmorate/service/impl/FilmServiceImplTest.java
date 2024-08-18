@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.service.api.FilmService;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.mem.FilmInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.GenreInMemoryStorage;
+import ru.yandex.practicum.filmorate.storage.mem.UserInMemoryStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -31,7 +32,8 @@ class FilmServiceImplTest {
         this.filmStorage = new FilmInMemoryStorage();
         this.filmService = new FilmServiceImpl(
                 filmStorage,
-                new GenreServiceImpl(new GenreInMemoryStorage())
+                new GenreServiceImpl(new GenreInMemoryStorage()),
+                new UserServiceImpl(new UserInMemoryStorage())
         );
     }
 
@@ -69,7 +71,7 @@ class FilmServiceImplTest {
     @Test
     void shouldReturnFilmWithIdAssignedWhenCreateFilmAndIdNotNull() {
         final Film film = getRandomFilm();
-        final Long filmId = filmService.createFilm(film).getId();
+        final long filmId = filmService.createFilm(film).getId();
         final Film otherFilm = getRandomFilm();
         otherFilm.setId(filmId);
         final String name = otherFilm.getName();
@@ -116,7 +118,7 @@ class FilmServiceImplTest {
     @Test
     void shouldReturnEmptyOptionalWhenUpdateFilmAndFilmNotExist() {
         final Film newFilm = getRandomFilm();
-        final Long filmId = faker.number().randomNumber();
+        final long filmId = faker.number().randomNumber();
         newFilm.setId(filmId);
 
         final Optional<Film> actual = filmService.updateFilm(newFilm);
@@ -127,7 +129,7 @@ class FilmServiceImplTest {
     @Test
     void shouldReturnUpdatedFilmWhenUpdateFilm() {
         final Film oldFilm = getRandomFilm();
-        final Long filmId = filmStorage.save(oldFilm).getId();
+        final long filmId = filmStorage.save(oldFilm).getId();
         final Film newFilm = getRandomFilm();
         newFilm.setId(filmId);
         final String name = newFilm.getName();
@@ -154,7 +156,7 @@ class FilmServiceImplTest {
 
     @Test
     void shouldReturnEmptyOptionalWhenGetFilmAndFilmNotExist() {
-        final Long wrongId = faker.number().randomNumber();
+        final long wrongId = faker.number().randomNumber();
 
         final Optional<Film> actual = filmService.getFilm(wrongId);
 
@@ -168,7 +170,7 @@ class FilmServiceImplTest {
         final String description = film.getDescription();
         final LocalDate releaseDate = film.getReleaseDate();
         final Integer duration = film.getDuration();
-        final Long filmId = filmService.createFilm(film).getId();
+        final long filmId = filmService.createFilm(film).getId();
 
         final Film foundFilm = filmService.getFilm(filmId).orElseThrow();
 

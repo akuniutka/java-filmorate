@@ -36,17 +36,17 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     private static final String ADD_FRIEND_QUERY = """
             MERGE INTO friends
             KEY (user_id, friend_id)
-            VALUES (:userId, :friendId, NULL);
+            VALUES (:id, :friendId, NULL);
             """;
     private static final String DELETE_FRIEND_QUERY = """
             DELETE FROM friends
-            WHERE user_id = :userId AND friend_id = :friendId;
+            WHERE user_id = :id AND friend_id = :friendId;
             """;
     private static final String FIND_FRIENDS_QUERY = """
             SELECT u.*
             FROM users AS u
             JOIN friends AS f ON u.user_id = f.friend_id
-            WHERE f.user_id = :userId
+            WHERE f.user_id = :id
             ORDER BY f.friend_id;
             """;
     private static final String FIND_COMMON_FRIENDS_QUERY = """
@@ -55,7 +55,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             JOIN friends AS f2
             ON f1.friend_id = f2.friend_id
             JOIN users AS u ON f1.friend_id = u.user_id
-            WHERE f1.user_id = :userId AND f2.user_id = :friendId
+            WHERE f1.user_id = :id AND f2.user_id = :friendId
             ORDER BY f1.friend_id;
             """;
     private static final String DELETE_QUERY = "DELETE FROM users WHERE user_id = :id;";
@@ -100,7 +100,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public void addFriend(final long id, final long friendId) {
         var params = new MapSqlParameterSource()
-                .addValue("userId", id)
+                .addValue("id", id)
                 .addValue("friendId", friendId);
         execute(ADD_FRIEND_QUERY, params);
     }
@@ -108,21 +108,21 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public void deleteFriend(final long id, final long friendId) {
         var params = new MapSqlParameterSource()
-                .addValue("userId", id)
+                .addValue("id", id)
                 .addValue("friendId", friendId);
         execute(DELETE_FRIEND_QUERY, params);
     }
 
     @Override
     public Collection<User> findFriends(final long id) {
-        var params = new MapSqlParameterSource("userId", id);
+        var params = new MapSqlParameterSource("id", id);
         return findMany(FIND_FRIENDS_QUERY, params);
     }
 
     @Override
     public Collection<User> findCommonFriends(final long id, final long friendId) {
         var params = new MapSqlParameterSource()
-                .addValue("userId", id)
+                .addValue("id", id)
                 .addValue("friendId", friendId);
         return findMany(FIND_COMMON_FRIENDS_QUERY, params);
     }

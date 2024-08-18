@@ -21,6 +21,21 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
             ORDER BY film_id;
             """;
+    private static final String FIND_ALL_ORDER_BY_LIKES_DESC = """
+            SELECT f.*,
+              m.mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            LEFT JOIN
+            (
+              SELECT film_id,
+                COUNT(*) AS likes
+              FROM likes
+              GROUP BY film_id
+            ) AS l ON f.film_id = l.film_id
+            ORDER BY COALESCE (l.likes, 0) DESC
+            LIMIT :limit
+            """;
     private static final String FIND_BY_ID_QUERY = """
             SELECT f.*,
               m.mpa_name
@@ -57,6 +72,15 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             ) AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id;
             """;
+    private static final String ADD_LIKE_QUERY = """
+            MERGE INTO likes
+            KEY (film_id, user_id)
+            VALUES (:id, :userId);
+            """;
+    private static final String DELETE_LIKE_QUERY = """
+            DELETE FROM likes
+            WHERE film_id = :id AND user_id = :userId;
+            """;
     private static final String DELETE_QUERY = "DELETE FROM films WHERE film_id = :id;";
     private static final String DELETE_ALL_QUERY = "DELETE FROM films;";
 
@@ -71,7 +95,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Optional<Film> findById(final Long id) {
+    public Collection<Film> findAllOrderByLikesDesc(long limit) {
+        var params = new MapSqlParameterSource("limit", limit);
+        return findMany(FIND_ALL_ORDER_BY_LIKES_DESC, params);
+    }
+
+    @Override
+    public Optional<Film> findById(final long id) {
         return findById(FIND_BY_ID_QUERY, id);
     }
 
@@ -103,7 +133,23 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public void delete(final Long id) {
+    public void addLike(long id, long userId) {
+        var params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("userId", userId);
+        execute(ADD_LIKE_QUERY, params);
+    }
+
+    @Override
+    public void deleteLike(long id, long userId) {
+        var params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("userId", userId);
+        execute(DELETE_LIKE_QUERY, params);
+    }
+
+    @Override
+    public void delete(final long id) {
         delete(DELETE_QUERY, id);
     }
 

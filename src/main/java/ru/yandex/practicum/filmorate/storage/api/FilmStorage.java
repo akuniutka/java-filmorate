@@ -9,13 +9,19 @@ public interface FilmStorage {
 
     Collection<Film> findAll();
 
-    Optional<Film> findById(Long id);
+    Collection<Film> findAllOrderByLikesDesc(long limit);
+
+    Optional<Film> findById(long id);
 
     Film save(Film film);
 
     Optional<Film> update(Film film);
 
-    void delete(Long id);
+    void addLike(long id, long userId);
+
+    void deleteLike(long id, long userId);
+
+    void delete(long id);
 
     void deleteAll();
 }

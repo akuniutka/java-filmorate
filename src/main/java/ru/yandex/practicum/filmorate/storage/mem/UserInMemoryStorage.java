@@ -59,10 +59,10 @@ public class UserInMemoryStorage implements UserStorage {
     @Override
     public void addFriend(final long id, final long friendId) {
         if (!users.containsKey(id)) {
-            throw new RuntimeException("Cannot add friend: user with id = %s does not exist".formatted(id));
+            throw new RuntimeException("Cannot add friend: user with id = %d does not exist".formatted(id));
         }
         if (!users.containsKey(friendId)) {
-            throw new RuntimeException("Cannot add friend: friend with id = %s does not exist".formatted(friendId));
+            throw new RuntimeException("Cannot add friend: friend with id = %d does not exist".formatted(friendId));
         }
         if (id == friendId) {
             throw new RuntimeException("Cannot add friend: it is user themself");
@@ -78,7 +78,7 @@ public class UserInMemoryStorage implements UserStorage {
     @Override
     public Collection<User> findFriends(final long id) {
         if (!users.containsKey(id)) {
-            throw new RuntimeException("Cannot get friends: user with id = %s does not exist".formatted(id));
+            throw new RuntimeException("Cannot get friends: user with id = %d does not exist".formatted(id));
         }
         return friends.getOrDefault(id, new HashSet<>()).stream()
                 .map(users::get)
@@ -88,10 +88,10 @@ public class UserInMemoryStorage implements UserStorage {
     @Override
     public Collection<User> findCommonFriends(final long id, final long friendId) {
         if (!users.containsKey(id)) {
-            throw new RuntimeException("Cannot get common friends: user with id = %s does not exist".formatted(id));
+            throw new RuntimeException("Cannot get common friends: user with id = %d does not exist".formatted(id));
         }
         if (!users.containsKey(friendId)) {
-            throw new RuntimeException("Cannot get common friends: friend with id = %s does not exist"
+            throw new RuntimeException("Cannot get common friends: friend with id = %d does not exist"
                     .formatted(friendId));
         }
         Set<Long> friendFriends = friends.getOrDefault(friendId, new HashSet<>());
