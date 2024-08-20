@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 @Repository
-public class RewiewDbStorage extends BaseDbStorage<Rewiew>  implements RewiewStorage {
+public class RewiewDbStorage extends BaseDbStorage<Rewiew> implements RewiewStorage {
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM rewiews ORDER BY rewiew_date;";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM rewiews WHERE rewiew_id = :id;";
@@ -22,6 +22,7 @@ public class RewiewDbStorage extends BaseDbStorage<Rewiew>  implements RewiewSto
         super(jdbc, mapper);
 
     }
+
     @Override
     public Collection<Rewiew> findAll() {
         return findAll(FIND_ALL_QUERY);

@@ -1,7 +1,8 @@
 DELETE FROM film_genres;
+DELETE FROM rewiews;
+DELETE FROM friends;
 DELETE FROM friend_statuses;
 DELETE FROM likes;
-DELETE FROM friends;
 DELETE FROM films;
 DELETE FROM users;
 DELETE FROM genres;
@@ -86,9 +87,9 @@ INSERT INTO users (user_name,login,email,birthday) VALUES
 	 ('Joshua','Joshua','eu.ultrices.sit@google.com','2018-05-15');
 
 
-INSERT INTO FILM (film_name,description,release_date,duration, mpa_id) VALUES
+INSERT INTO films (film_name,description,release_date,duration, mpa_id) VALUES
 	 ('По щучьему велению (2023)','Чудо-рыба помогает непутевому Емеле завоевать сердце царской дочери. Сказочный хит с Никитой Кологривым','2023-11-24',115,1),
-	 ('Гарри Поттер и философский камень (2001)','Жизнь десятилетнего Гарри Поттера нельзя назвать сладкой: родители умерли, едва ему исполнился год, а от дяди и тёти, взявших сироту на воспитание, достаются лишь тычки да подзатыльники.','2001-03-04',NULL,1),
+	 ('Гарри Поттер и философский камень (2001)','Жизнь десятилетнего Гарри Поттера нельзя назвать сладкой: родители умерли, едва ему исполнился год, а от дяди и тёти, взявших сироту на воспитание, достаются лишь тычки да подзатыльники.','2001-03-04',130,1),
 	 ('Властелин колец: Братство Кольца (2001)','Сказания о Средиземье — это хроника Великой войны за Кольцо, длившейся не одну тысячу лет. Тот, кто владел Кольцом, получал неограниченную власть, но был обязан служить злу.','2012-12-03',178,3);
 
 INSERT INTO film_genres (film_id,genre_id) VALUES
@@ -99,11 +100,16 @@ INSERT INTO film_genres (film_id,genre_id) VALUES
 	 (2,5),
 	 (2,6);
 
+INSERT INTO friend_statuses (status_id, status) VALUES
+	 (1, 'Отправлен'),
+	 (2, 'Принял');
+
 INSERT INTO likes (film_id,user_id) VALUES
 	 (1,1),
 	 (1,2),
 	 (1,3),
 	 (3,5);
+
 -- FRIENDSHIP
 INSERT INTO friends (user_id,friend_id,status_id) VALUES
 	 (1,2,1),
@@ -114,6 +120,7 @@ INSERT INTO friends (user_id,friend_id,status_id) VALUES
 	 (5,16,2);
 
 
-INSERT INTO friend_statuses (status) VALUES
-	 (1, "Отправлен"),
-	 (2, "Принял");
+INSERT INTO rewiews (rewiew_id,content,is_positive, user_id, film_id, useful, rewiew_date) VALUES
+	 (1,'This film is sooo baad', false, 3, 2, 23,'2018-05-15 12:05:23'),
+	 (2,'This film is soo cool', true, 5, 3, 23,'2021-01-25 09:34:23');
+

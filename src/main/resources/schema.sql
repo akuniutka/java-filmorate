@@ -66,6 +66,5 @@ CREATE TABLE IF NOT EXISTS rewiews
   user_id BIGINT NOT NULL REFERENCES users (user_id),
   film_id  BIGINT NOT NULL REFERENCES films (film_id),
   useful     INT          NOT NULL,
-  rewiew_date DATE         NOT NULL,
-  CONSTRAINT rewiews_ux UNIQUE (user_id, film_id)
+  rewiew_date TIMESTAMP  NOT NULL
 );

@@ -15,9 +15,9 @@ public class RewiewRowMapper implements RowMapper<Rewiew> {
         rewiew.setId(rs.getLong("rewiew_id"));
         rewiew.setContent(rs.getString("content"));
         rewiew.setPositive(rs.getBoolean("is_positive"));
-        rewiew.setUseful(rs.getInt("useful"));
-        rewiew.setFilmId(rs.getLong("film_id"));
         rewiew.setUserId(rs.getLong("user_id"));
+        rewiew.setFilmId(rs.getLong("film_id"));
+        rewiew.setUseful(rs.getInt("useful"));
         rewiew.setRewiewDate(rs.getTimestamp("rewiew_date").toInstant());
         return rewiew;
     }

@@ -27,7 +27,7 @@ public class RewiewController {
         final RewiewDto dto = rewiewService.getRewiew(id).map(mapper::mapToDto).orElseThrow(
                 () -> new NotFoundException(Rewiew.class, id)
         );
-        log.info("Responded to GET /films/{}: {}", id, dto);
+        log.info("Responded to GET /rewiews/{}: {}", id, dto);
         return dto;
     }
 }
