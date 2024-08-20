@@ -7,9 +7,9 @@ import java.time.Instant;
 
 @Data
 @EqualsAndHashCode(of = {"id"})
-public class RewiewLike {
-        private Long rewiewId;
+public class ReviewLike {
         private Long userId;
-        private Instant likeCreateDate;
+        private Long rewiewId;
         private boolean isLike;
-    }
+        private Instant createDatetime;
+}

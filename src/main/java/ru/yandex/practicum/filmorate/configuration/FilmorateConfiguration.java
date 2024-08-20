@@ -29,18 +29,18 @@ public class FilmorateConfiguration {
     private final UserInMemoryStorage userInMemoryStorage;
     private final UserDbStorage userDbStorage;
 
-    private final RewiewDbStorage rewiewDbStorage;
+    private final ReviewDbStorage reviewDbStorage;
 
     @Bean
     @Primary
-    public RewiewStorage rewiewStorageStorage() {
+    public ReviewStorage rewiewStorageStorage() {
         if (props.getStorage() == null) {
-            return rewiewDbStorage;
+            return reviewDbStorage;
         }
         return switch (props.getStorage().getMode()) {
-            case DATABASE -> rewiewDbStorage;
-            case MEMORY -> rewiewDbStorage;
-            case null -> rewiewDbStorage;
+            case DATABASE -> reviewDbStorage;
+            case MEMORY -> reviewDbStorage;
+            case null -> reviewDbStorage;
         };
     }
 

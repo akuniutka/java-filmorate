@@ -7,12 +7,12 @@ import java.time.Instant;
 
 @Data
 @EqualsAndHashCode(of = {"id"})
-public class Rewiew {
+public class Review {
         private Long id;
         private String content;
         private boolean isPositive;
         private Integer useful;
         private Long filmId;
         private Long userId;
-        private Instant rewiewDate;
+        private Instant reviewDate;
     }

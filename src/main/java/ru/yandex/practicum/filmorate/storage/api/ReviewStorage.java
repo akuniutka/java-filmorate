@@ -1,20 +1,20 @@
 package ru.yandex.practicum.filmorate.storage.api;
 
-import ru.yandex.practicum.filmorate.model.Rewiew;
+import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.Collection;
 import java.util.Optional;
 
-public interface RewiewStorage {
-    Collection<Rewiew> findAll();
+public interface ReviewStorage {
+    Collection<Review> findAll();
 
-    Optional<Rewiew> findById(long id);
+    Optional<Review> findById(long id);
 
-//    Rewiew save(Rewiew rewiew);
-//
-//    Optional<Rewiew> update(Rewiew rewiew);
-//
-//    void deleteRewiew(long id);
+     Review save(Review review);
+
+    Optional<Review> update(Review review);
+
+   void delete(long id);
 //
 //    void addLikeToRewiew(long id, long friendId);
 //
