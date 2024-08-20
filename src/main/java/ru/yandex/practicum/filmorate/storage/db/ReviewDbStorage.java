@@ -49,7 +49,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
         var params = new MapSqlParameterSource()
                 .addValue("review_id", review.getId())
                 .addValue("content", review.getContent())
-                .addValue("is_positive", review.isPositive())
+                .addValue("is_positive", review.getIsPositive())
                 .addValue("user_id", review.getUserId())
                 .addValue("film_id", review.getFilmId())
                 .addValue("useful", review.getUseful())
@@ -61,7 +61,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     public Optional<Review> update(final Review review) {
         var params = new MapSqlParameterSource()
                 .addValue("content", review.getContent())
-                .addValue("is_positive", review.isPositive())
+                .addValue("is_positive", review.getIsPositive())
                 .addValue("user_id", review.getUserId())
                 .addValue("film_id", review.getFilmId())
                 .addValue("useful", review.getUseful())

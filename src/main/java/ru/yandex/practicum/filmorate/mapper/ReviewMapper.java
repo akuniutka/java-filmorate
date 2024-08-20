@@ -17,7 +17,7 @@ public abstract class ReviewMapper {
         Review review = new Review();
         review.setId(dto.getReviewId());
         review.setContent(dto.getContent());
-        review.setPositive(dto.isPositive());
+        review.setIsPositive(dto.getIsPositive());
         review.setUseful(0);
         review.setFilmId(dto.getFilmId());
         review.setUserId(dto.getUserId());
@@ -29,7 +29,7 @@ public Review mapToReview(UpdateReviewDto dto) {
     Review review = new Review();
     review.setId(dto.getReviewId());
     review.setContent(dto.getContent());
-    review.setPositive(dto.isPositive());
+    review.setIsPositive(dto.getIsPositive());
     review.setUseful(dto.getUseful());
     review.setFilmId(dto.getFilmId());
     review.setUserId(dto.getUserId());
@@ -40,7 +40,7 @@ public Review mapToReview(UpdateReviewDto dto) {
         ReviewDto dto = new ReviewDto();
         dto.setReviewId(review.getId());
         dto.setContent(review.getContent());
-        dto.setPositive(review.isPositive());
+        dto.setIsPositive(review.getIsPositive());
         dto.setUseful(review.getUseful());
         dto.setFilmId(review.getFilmId());
         dto.setUserId(review.getUserId());

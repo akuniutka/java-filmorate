@@ -10,7 +10,7 @@ import java.time.Instant;
 public class Review {
         private Long id;
         private String content;
-        private boolean isPositive;
+        private Boolean isPositive;
         private Integer useful;
         private Long filmId;
         private Long userId;

@@ -33,7 +33,7 @@ public class FilmorateConfiguration {
 
     @Bean
     @Primary
-    public ReviewStorage rewiewStorageStorage() {
+    public ReviewStorage rewiewStorage() {
         if (props.getStorage() == null) {
             return reviewDbStorage;
         }
