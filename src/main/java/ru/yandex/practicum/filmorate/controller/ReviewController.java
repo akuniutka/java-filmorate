@@ -20,22 +20,23 @@ import java.util.Collection;
 @Slf4j
 public class ReviewController {
 
-    private final ReviewService ReviewService;
+    private final ReviewService reviewService;
     private final ReviewMapper mapper;
 
 
     @GetMapping
     public Collection<ReviewDto> getReviews() {
         log.info("Received GET at /reviews");
-        final Collection<ReviewDto> dtos = mapper.mapToDto(ReviewService.getReviews());
+        final Collection<ReviewDto> dtos = mapper.mapToDto(reviewService.getReviews());
         log.info("Responded to GET /reviews: {}", dtos);
         return dtos;
     }
+
     @PostMapping
     public ReviewDto createReview(@Valid @RequestBody final NewReviewDto newReviewDto) {
         log.info("Received POST at /reviews: {}", newReviewDto);
         final Review review = mapper.mapToReview(newReviewDto);
-        final ReviewDto reviewDto = mapper.mapToDto(ReviewService.createReview(review));
+        final ReviewDto reviewDto = mapper.mapToDto(reviewService.createReview(review));
         log.info("Responded to POST /films: {}", reviewDto);
         return reviewDto;
     }
@@ -44,16 +45,17 @@ public class ReviewController {
     public ReviewDto updateReview(@Valid @RequestBody final UpdateReviewDto updateReviewDto) {
         log.info("Received PUT at /Reviews");
         final Review review = mapper.mapToReview(updateReviewDto);
-        final ReviewDto reviewDto = ReviewService.updateReview(review).map(mapper::mapToDto).orElseThrow(
+        final ReviewDto reviewDto = reviewService.updateReview(review).map(mapper::mapToDto).orElseThrow(
                 () -> new NotFoundException(Review.class, updateReviewDto.getReviewId())
         );
         log.info("Responded to PUT at /Reviews: {}", reviewDto);
         return reviewDto;
     }
+
     @GetMapping("/{id}")
     public ReviewDto getReview(@PathVariable final long id) {
         log.info("Received GET at /Reviews/{}", id);
-        final ReviewDto dto = ReviewService.getReview(id).map(mapper::mapToDto).orElseThrow(
+        final ReviewDto dto = reviewService.getReview(id).map(mapper::mapToDto).orElseThrow(
                 () -> new NotFoundException(Review.class, id)
         );
         log.info("Responded to GET /Reviews/{}: {}", id, dto);
@@ -63,7 +65,7 @@ public class ReviewController {
     @DeleteMapping("/{id}")
     public void deleteReview(@PathVariable final long id) {
         log.info("Received DELETE at /Reviews/{}", id);
-        ReviewService.deleteReview(id);
+        reviewService.deleteReview(id);
         log.info("Responded to DELETE /Reviews/{} with no body", id);
     }
 }

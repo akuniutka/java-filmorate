@@ -1,9 +1,7 @@
 package ru.yandex.practicum.filmorate.dto;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
 

@@ -24,19 +24,20 @@ public abstract class ReviewMapper {
         review.setReviewDate(Instant.now());
         return review;
     }
-//
-public Review mapToReview(UpdateReviewDto dto) {
-    Review review = new Review();
-    review.setId(dto.getReviewId());
-    review.setContent(dto.getContent());
-    review.setIsPositive(dto.getIsPositive());
-    review.setUseful(dto.getUseful());
-    review.setFilmId(dto.getFilmId());
-    review.setUserId(dto.getUserId());
-    return review;
-}
-    public ReviewDto mapToDto(Review review)
-    {
+
+    //
+    public Review mapToReview(UpdateReviewDto dto) {
+        Review review = new Review();
+        review.setId(dto.getReviewId());
+        review.setContent(dto.getContent());
+        review.setIsPositive(dto.getIsPositive());
+        review.setUseful(dto.getUseful());
+        review.setFilmId(dto.getFilmId());
+        review.setUserId(dto.getUserId());
+        return review;
+    }
+
+    public ReviewDto mapToDto(Review review) {
         ReviewDto dto = new ReviewDto();
         dto.setReviewId(review.getId());
         dto.setContent(review.getContent());

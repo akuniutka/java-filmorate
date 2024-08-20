@@ -44,6 +44,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
         super(jdbc, mapper);
 
     }
+
     @Override
     public Review save(final Review review) {
         var params = new MapSqlParameterSource()
@@ -68,6 +69,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
                 .addValue("review_id", review.getId());
         return findOne(UPDATE_QUERY, params);
     }
+
     @Override
     public Collection<Review> findAll() {
         return findAll(FIND_ALL_QUERY);
