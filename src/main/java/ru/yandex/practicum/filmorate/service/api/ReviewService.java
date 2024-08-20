@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface ReviewService {
     Collection<Review> getReviews();
+    Collection<Review> getReviewsForFilm(long filmId, long count);
 
     Optional<Review> getReview(long id);
 
@@ -16,12 +17,12 @@ public interface ReviewService {
 
     void deleteReview(long id);
 
-//    void addLikeToReview(long id, long friendId);
-//
-//    void addDislikeToReview(long id, long userId);
-//
-//    void deleteLikeToReview(long id, long userId);
-//
-//    void deleteDislikeToReview(long id, long userId);
+     Review addLike(long reviewId, long userId);
+
+     Review addDislike(long reviewId, long userId);
+
+    Review deleteLike(long reviewId, long userId);
+
+    Review deleteDislike(long reviewId, long userId);
 }
 

@@ -74,6 +74,6 @@ CREATE TABLE IF NOT EXISTS film_likes_dislikes
   user_id BIGINT NOT NULL REFERENCES users (user_id),
   review_id  BIGINT NOT NULL REFERENCES reviews (review_id),
   is_like BOOLEAN,
-  create_datetime TIMESTAMP NOT NULL,
-  CONSTRAINT film_likes_dislikes_ux UNIQUE (user_id, review_id)
+  create_datetime TIMESTAMP NOT NULL
+
 );
