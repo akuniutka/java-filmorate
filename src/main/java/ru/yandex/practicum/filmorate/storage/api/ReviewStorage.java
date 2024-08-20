@@ -7,14 +7,16 @@ import java.util.Optional;
 
 public interface ReviewStorage {
     Collection<Review> findAll();
+
     Collection<Review> getReviewsForFilm(long filmId, long count);
+
     Optional<Review> findById(long id);
 
-     Review save(Review review);
+    Review save(Review review);
 
     Optional<Review> update(Review review);
 
-   void delete(long id);
+    void delete(long id);
 
     Review addLike(long reviewId, long userId);
 

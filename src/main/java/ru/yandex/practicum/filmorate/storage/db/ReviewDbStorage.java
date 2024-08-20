@@ -21,6 +21,8 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     private static final String DELETE_QUERY = "DELETE FROM reviews WHERE review_id = :id;";
     private static final String DELETE_LIKES_DISLIKES_QUERY = "DELETE FROM film_likes_dislikes WHERE review_id = :id;";
 
+    private static final String SELECT_LIKE_TO_REVIEW = "SELECT COUNT(*) FROM film_likes_dislikes " +
+            "WHERE review_id = :review_id AND user_id = :user_id AND is_like = :is_like;";
 
     private static final String DELETE_LIKE_QUERY = """
             DELETE FROM film_likes_dislikes
@@ -54,11 +56,28 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
               WHERE review_id = :review_id;
             """;
 
+    private static final String UPDATE_QUERY_USEFUL = """
+            UPDATE reviews
+              SET useful = :useful
+              WHERE review_id = :review_id;
+            """;
+
+
+    private static final String UPDATE_LIKES = """
+            UPDATE film_likes_dislikes
+              SET is_like = :is_like
+              WHERE review_id = :review_id AND user_id = :user_id;
+            """;
+
     private static final String UPDATE_QUERY_DECREMENT_USEFUL = """
             UPDATE reviews
               SET useful = (SELECT useful FROM reviews WHERE review_id = :review_id) - 1
               WHERE review_id = :review_id;
             """;
+    private static final String GET_REWIEW_USEFUL = """
+            SELECT useful FROM reviews WHERE review_id = :review_id;
+            """;
+
     @Autowired
     public ReviewDbStorage(final NamedParameterJdbcTemplate jdbc, RowMapper<Review> mapper) {
         super(jdbc, mapper);
@@ -116,53 +135,122 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public Review addLike(long reviewId, long userId) {
+        if (isLikeExist(reviewId, userId, false)) {
+
+
+            long useful = getUsefulCount(reviewId) + 2;
+            var params = new MapSqlParameterSource()
+                    .addValue("review_id", reviewId)
+                    .addValue("useful", useful);
+            execute(UPDATE_QUERY_USEFUL, params);
+            params = new MapSqlParameterSource()
+                    .addValue("user_id", userId)
+                    .addValue("review_id", reviewId)
+                    .addValue("is_like", true);
+            execute(UPDATE_LIKES, params);
+            return findById(reviewId).get();
+        }
+        if (isLikeExist(reviewId, userId, true)) {
+            return findById(reviewId).get();
+        }
         var params = new MapSqlParameterSource()
                 .addValue("user_id", userId)
                 .addValue("review_id", reviewId)
                 .addValue("is_like", true)
                 .addValue("create_datetime", Instant.now());
         execute(ADD_LIKE_QUERY, params);
+        long useful = getUsefulCount(reviewId) + 1;
         params = new MapSqlParameterSource()
-                .addValue("review_id", reviewId);
-        execute(UPDATE_QUERY_INCREMENT_USEFUL, params);
+                .addValue("review_id", reviewId)
+                .addValue("useful", useful);
+        execute(UPDATE_QUERY_USEFUL, params);
         return findById(reviewId).get();
     }
 
     @Override
     public Review addDislike(long reviewId, long userId) {
+
+        if (isLikeExist(reviewId, userId, true)) {
+
+
+            long useful = getUsefulCount(reviewId) - 2;
+            var params = new MapSqlParameterSource()
+                    .addValue("review_id", reviewId)
+                    .addValue("useful", useful);
+            execute(UPDATE_QUERY_USEFUL, params);
+
+            params = new MapSqlParameterSource()
+                    .addValue("user_id", userId)
+                    .addValue("review_id", reviewId)
+                    .addValue("is_like", false);
+            execute(UPDATE_LIKES, params);
+            return findById(reviewId).get();
+        }
+        if (isLikeExist(reviewId, userId, false)) {
+            return findById(reviewId).get();
+        }
         var params = new MapSqlParameterSource()
                 .addValue("user_id", userId)
                 .addValue("review_id", reviewId)
                 .addValue("is_like", false)
                 .addValue("create_datetime", Instant.now());
         execute(ADD_LIKE_QUERY, params);
+        long useful = getUsefulCount(reviewId) - 1;
         params = new MapSqlParameterSource()
-                .addValue("review_id", reviewId);
-        execute(UPDATE_QUERY_DECREMENT_USEFUL, params);
+                .addValue("review_id", reviewId)
+                .addValue("useful", useful);
+        execute(UPDATE_QUERY_USEFUL, params);
         return findById(reviewId).get();
     }
 
     @Override
     public Review deleteLike(long reviewId, long userId) {
-        var params = new MapSqlParameterSource()
-                .addValue("review_id", reviewId)
-                .addValue("user_id", userId);
-        execute(DELETE_LIKE_QUERY, params);
-        params = new MapSqlParameterSource()
-                .addValue("review_id", reviewId);
-        execute(UPDATE_QUERY_DECREMENT_USEFUL, params);
+
+        if (isLikeExist(reviewId, userId, true)) {
+            var params = new MapSqlParameterSource()
+                    .addValue("review_id", reviewId)
+                    .addValue("user_id", userId);
+            execute(DELETE_LIKE_QUERY, params);
+            long useful = getUsefulCount(reviewId) - 1;
+
+            params = new MapSqlParameterSource()
+                    .addValue("review_id", reviewId)
+                    .addValue("useful", useful);
+            execute(UPDATE_QUERY_USEFUL, params);
+
+        }
         return findById(reviewId).get();
     }
 
     @Override
     public Review deleteDislike(long reviewId, long userId) {
+        if (isLikeExist(reviewId, userId, true)) {
+            var params = new MapSqlParameterSource()
+                    .addValue("review_id", reviewId)
+                    .addValue("user_id", userId);
+            execute(DELETE_LIKE_QUERY, params);
+            long useful = getUsefulCount(reviewId) + 1;
+            params = new MapSqlParameterSource()
+                    .addValue("review_id", reviewId)
+                    .addValue("useful", useful);
+            execute(UPDATE_QUERY_USEFUL, params);
+
+        }
+        return findById(reviewId).get();
+    }
+
+    public Long getUsefulCount(long reviewId) {
+        var params = new MapSqlParameterSource()
+                .addValue("review_id", reviewId);
+        return jdbc.queryForObject(GET_REWIEW_USEFUL, params, Long.class);
+    }
+
+    Boolean isLikeExist(long reviewId, long userId, boolean status) {
         var params = new MapSqlParameterSource()
                 .addValue("review_id", reviewId)
-                .addValue("user_id", userId);
-        execute(DELETE_LIKE_QUERY, params);
-        params = new MapSqlParameterSource()
-                .addValue("review_id", reviewId);
-        execute(UPDATE_QUERY_INCREMENT_USEFUL, params);
-        return findById(reviewId).get();
+                .addValue("user_id", userId)
+                .addValue("is_like", status);
+        Integer count = jdbc.queryForObject(SELECT_LIKE_TO_REVIEW, params, Integer.class);
+        return count > 0;
     }
 }

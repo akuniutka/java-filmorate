@@ -48,7 +48,6 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
 
-
     @Override
     public Review createReview(final Review review) {
         assertFilmExist(review.getFilmId());
@@ -74,12 +73,14 @@ public class ReviewServiceImpl implements ReviewService {
         assertUserExist(userId);
         return reviewStorage.addLike(reviewId, userId);
     }
+
     @Override
     public Review deleteLike(final long reviewId, final long userId) {
         assertReviewExist(reviewId);
         assertUserExist(userId);
         return reviewStorage.deleteLike(reviewId, userId);
     }
+
     @Override
     public Review addDislike(final long reviewId, final long userId) {
         assertReviewExist(reviewId);
@@ -94,7 +95,7 @@ public class ReviewServiceImpl implements ReviewService {
         return reviewStorage.deleteDislike(reviewId, userId);
     }
 
-     private void assertReviewExist(final long id) {
+    private void assertReviewExist(final long id) {
         reviewStorage.findById(id).orElseThrow(() -> new NotFoundException(Review.class, id));
     }
 
