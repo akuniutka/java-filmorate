@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS reviews
   review_date TIMESTAMP  NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS film_likes_dislikes
+CREATE TABLE IF NOT EXISTS reviews_likes_dislikes
 (
   user_id BIGINT NOT NULL REFERENCES users (user_id),
   review_id  BIGINT NOT NULL REFERENCES reviews (review_id),

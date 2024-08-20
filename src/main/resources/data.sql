@@ -1,4 +1,4 @@
-DELETE FROM film_likes_dislikes;
+DELETE FROM reviews_likes_dislikes;
 DELETE FROM film_genres;
 DELETE FROM reviews;
 DELETE FROM friends;

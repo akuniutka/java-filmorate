@@ -1,4 +1,4 @@
-DELETE FROM film_likes_dislikes;
+DELETE FROM reviews_likes_dislikes;
 DELETE FROM film_genres;
 DELETE FROM reviews;
 DELETE FROM friends;
@@ -128,7 +128,7 @@ INSERT INTO reviews (content,is_positive, user_id, film_id, useful, review_date)
 
 
 
-INSERT INTO film_likes_dislikes (user_id, review_id,is_like, create_datetime) VALUES
+INSERT INTO reviews_likes_dislikes (user_id, review_id,is_like, create_datetime) VALUES
 	 (1, 1, false, '2024-08-15 12:05:23'),
 	 (1, 2, true, '2024-08-15 13:05:23'),
 	 (7, 1, true, '2024-08-15 11:05:23'),

@@ -19,13 +19,13 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     private static final String FIND_ALL_REVIEW_FOR_FILM = "SELECT * FROM reviews WHERE film_id = :film_id ORDER BY useful DESC LIMIT :count;";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM reviews WHERE review_id = :id;";
     private static final String DELETE_QUERY = "DELETE FROM reviews WHERE review_id = :id;";
-    private static final String DELETE_LIKES_DISLIKES_QUERY = "DELETE FROM film_likes_dislikes WHERE review_id = :id;";
+    private static final String DELETE_LIKES_DISLIKES_QUERY = "DELETE FROM reviews_likes_dislikes WHERE review_id = :id;";
 
-    private static final String SELECT_LIKE_TO_REVIEW = "SELECT COUNT(*) FROM film_likes_dislikes " +
+    private static final String SELECT_LIKE_TO_REVIEW = "SELECT COUNT(*) FROM reviews_likes_dislikes " +
             "WHERE review_id = :review_id AND user_id = :user_id AND is_like = :is_like;";
 
     private static final String DELETE_LIKE_QUERY = """
-            DELETE FROM film_likes_dislikes
+            DELETE FROM reviews_likes_dislikes
             WHERE review_id = :review_id AND user_id = :user_id;
             """;
     private static final String SAVE_QUERY = """
@@ -47,7 +47,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             );
             """;
     private static final String ADD_LIKE_QUERY = """
-            INSERT INTO film_likes_dislikes (user_id, review_id, is_like, create_datetime)
+            INSERT INTO reviews_likes_dislikes (user_id, review_id, is_like, create_datetime)
             VALUES (:user_id, :review_id, :is_like, :create_datetime);
             """;
     private static final String UPDATE_QUERY_INCREMENT_USEFUL = """
@@ -64,7 +64,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
 
     private static final String UPDATE_LIKES = """
-            UPDATE film_likes_dislikes
+            UPDATE reviews_likes_dislikes
               SET is_like = :is_like
               WHERE review_id = :review_id AND user_id = :user_id;
             """;
