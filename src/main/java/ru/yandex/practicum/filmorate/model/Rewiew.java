@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.Instant;
+
 @Data
 @EqualsAndHashCode(of = {"id"})
 public class Rewiew {
@@ -10,6 +12,7 @@ public class Rewiew {
         private String content;
         private boolean isPositive;
         private Integer useful;
-        private Film film;
-        private User user;
+        private Long filmId;
+        private Long userId;
+        private Instant rewiewDate;
     }

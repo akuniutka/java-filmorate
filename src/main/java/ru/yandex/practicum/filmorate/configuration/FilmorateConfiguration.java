@@ -4,14 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.api.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.api.MpaStorage;
-import ru.yandex.practicum.filmorate.storage.api.UserStorage;
-import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.db.GenreDbStorage;
-import ru.yandex.practicum.filmorate.storage.db.MpaDbStorage;
-import ru.yandex.practicum.filmorate.storage.db.UserDbStorage;
+import ru.yandex.practicum.filmorate.storage.api.*;
+import ru.yandex.practicum.filmorate.storage.db.*;
 import ru.yandex.practicum.filmorate.storage.mem.FilmInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.GenreInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.MpaInMemoryStorage;
@@ -34,6 +28,22 @@ public class FilmorateConfiguration {
 
     private final UserInMemoryStorage userInMemoryStorage;
     private final UserDbStorage userDbStorage;
+
+    private final RewiewDbStorage rewiewDbStorage;
+
+    @Bean
+    @Primary
+    public RewiewStorage rewiewStorageStorage() {
+        if (props.getStorage() == null) {
+            return rewiewDbStorage;
+        }
+        return switch (props.getStorage().getMode()) {
+            case DATABASE -> rewiewDbStorage;
+            case MEMORY -> rewiewDbStorage;
+            case null -> rewiewDbStorage;
+        };
+    }
+
 
     @Bean
     @Primary

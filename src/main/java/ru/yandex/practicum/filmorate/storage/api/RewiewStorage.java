@@ -1,18 +1,18 @@
-package ru.yandex.practicum.filmorate.service.api;
+package ru.yandex.practicum.filmorate.storage.api;
 
 import ru.yandex.practicum.filmorate.model.Rewiew;
 
 import java.util.Collection;
 import java.util.Optional;
 
-public interface RewiewService {
-    Collection<Rewiew> getRewiews();
+public interface RewiewStorage {
+    Collection<Rewiew> findAll();
 
-    Optional<Rewiew> getRewiew(long id);
+    Optional<Rewiew> findById(long id);
 
-//    Rewiew createRewiew(Rewiew rewiew);
+//    Rewiew save(Rewiew rewiew);
 //
-//    Optional<Rewiew> updateRewiew(Rewiew rewiew);
+//    Optional<Rewiew> update(Rewiew rewiew);
 //
 //    void deleteRewiew(long id);
 //
@@ -24,4 +24,3 @@ public interface RewiewService {
 //
 //    void deleteDislikeToRewiew(long id, long userId);
 }
-
