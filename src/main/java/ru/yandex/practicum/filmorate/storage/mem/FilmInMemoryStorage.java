@@ -90,4 +90,9 @@ public class FilmInMemoryStorage implements FilmStorage {
         likes.clear();
         films.clear();
     }
+
+    @Override
+    public Set<Long> getLikesByUserId(long userId) {
+        return Set.of();
+    }
 }
