@@ -5,6 +5,7 @@ import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -96,8 +97,14 @@ public final class TestModels {
         return dto;
     }
 
-    public static User cloneUser(User user) {
-        User clone = new User();
+    public static Director getRandomDirector() {
+        final Director director = new Director();
+        director.setName(faker.name().fullName());
+        return director;
+    }
+
+    public static User cloneUser(final User user) {
+        final User clone = new User();
         clone.setId(user.getId());
         clone.setEmail(user.getEmail());
         clone.setLogin(user.getLogin());
@@ -106,8 +113,8 @@ public final class TestModels {
         return clone;
     }
 
-    public static Film cloneFilm(Film film) {
-        Film clone = new Film();
+    public static Film cloneFilm(final Film film) {
+        final Film clone = new Film();
         clone.setId(film.getId());
         clone.setName(film.getName());
         clone.setDescription(film.getDescription());
@@ -122,6 +129,13 @@ public final class TestModels {
         if (film.getGenres() != null) {
             clone.setGenres(new HashSet<>(film.getGenres()));
         }
+        return clone;
+    }
+
+    public static Director cloneDirector(final Director director) {
+        final Director clone = new Director();
+        clone.setId(director.getId());
+        clone.setName(director.getName());
         return clone;
     }
 
@@ -185,5 +199,27 @@ public final class TestModels {
         }
         assertNotNull(actual, "should be not null");
         assertEquals(new ArrayList<>(expected), new ArrayList<>(actual), message);
+    }
+
+    public static void assertDirectorEquals(final Director expected, final Director actual) {
+        if (expected == null) {
+            throw new IllegalArgumentException("value to check against should not be null");
+        }
+        assertNotNull(actual, "should be not null");
+        assertAll("wrong user",
+                () -> assertEquals(expected.getId(), actual.getId(), "wrong director id"),
+                () -> assertEquals(expected.getName(), actual.getName(), "wrong director name")
+        );
+    }
+
+    public static void assertDirectorListEquals(final List<Director> expected, final List<Director> actual) {
+        if (expected == null) {
+            throw new IllegalArgumentException("value to check against should not be null");
+        }
+        assertNotNull(actual, "should be not null");
+        assertEquals(expected.size(), actual.size(), "wrong list size");
+        for (int i = 0; i < expected.size(); i++) {
+            assertDirectorEquals(expected.get(i), actual.get(i));
+        }
     }
 }
