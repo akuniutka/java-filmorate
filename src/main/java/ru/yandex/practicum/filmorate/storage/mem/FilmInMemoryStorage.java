@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.mem;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
@@ -36,12 +37,12 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
 
     @Override
     public Film save(Film entity) {
-        return sortFilmGenres(super.save(entity));
+        return sortFilmDirectors(sortFilmGenres(super.save(entity)));
     }
 
     @Override
     public Optional<Film> update(Film entity) {
-        return super.update(entity).map(this::sortFilmGenres);
+        return super.update(entity).map(this::sortFilmGenres).map(this::sortFilmDirectors);
     }
 
     @Override
@@ -74,6 +75,17 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
         if (genres != null && !genres.isEmpty()) {
             film.setGenres(genres.stream()
                     .sorted(Comparator.comparing(Genre::getId))
+                    .toList()
+            );
+        }
+        return film;
+    }
+
+    private Film sortFilmDirectors(final Film film) {
+        final Collection<Director> directors = film.getDirectors();
+        if (directors != null && !directors.isEmpty()) {
+            film.setDirectors(directors.stream()
+                    .sorted(Comparator.comparing(Director::getId))
                     .toList()
             );
         }

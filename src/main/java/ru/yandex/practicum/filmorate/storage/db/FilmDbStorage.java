@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
@@ -15,6 +16,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -118,29 +120,63 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             DELETE FROM film_genres
             WHERE film_id = :id;
             """;
+    private static final String FIND_DIRECTORS_BY_FILM_ID_QUERY = """
+            SELECT d.*
+            FROM directors AS d
+            JOIN film_directors AS fd ON d.director_id = fd.director_id
+            WHERE fd.film_id = :id
+            ORDER BY d.director_id
+            """;
+    private static final String FIND_DIRECTORS_BY_FILM_IDS_QUERY = """
+            SELECT fd.film_id,
+              d.*
+            FROM directors AS d
+            JOIN film_directors AS fd ON d.director_id = fd.director_id
+            WHERE fd.film_id IN (%s)
+            ORDER BY d.director_id;
+            """;
+    private static final String SAVE_FILM_DIRECTOR_QUERY = """
+            MERGE INTO film_directors
+            KEY (film_id, director_id)
+            VALUES (:id, :directorId);
+            """;
+    private static final String DELETE_FILM_DIRECTORS_QUERY = """
+            DELETE FROM film_directors
+            WHERE film_id = :id AND director_id NOT IN (%s);
+            """;
+    private static final String DELETE_ALL_FILM_DIRECTORS_QUERY = """
+            DELETE FROM film_directors
+            WHERE film_id = :id;
+            """;
 
     private final RowMapper<Genre> genreMapper;
+    private final RowMapper<Director> directorMapper;
 
     @Autowired
-    public FilmDbStorage(final NamedParameterJdbcTemplate jdbc, RowMapper<Film> mapper, RowMapper<Genre> genreMapper) {
+    public FilmDbStorage(
+            final NamedParameterJdbcTemplate jdbc,
+            final RowMapper<Film> mapper,
+            final RowMapper<Genre> genreMapper,
+            final RowMapper<Director> directorMapper) {
         super(jdbc, mapper);
         this.genreMapper = genreMapper;
+        this.directorMapper = directorMapper;
     }
 
     @Override
     public Collection<Film> findAll() {
-        return supplementWithGenres(findAll(FIND_ALL_QUERY));
+        return supplementWithDirectors(supplementWithGenres(findAll(FIND_ALL_QUERY)));
     }
 
     @Override
     public Collection<Film> findAllOrderByLikesDesc(long limit) {
         var params = new MapSqlParameterSource("limit", limit);
-        return supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC, params));
+        return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC, params)));
     }
 
     @Override
     public Optional<Film> findById(final long id) {
-        return findById(FIND_BY_ID_QUERY, id).map(this::supplementWithGenres);
+        return findById(FIND_BY_ID_QUERY, id).map(this::supplementWithGenres).map(this::supplementWithDirectors);
     }
 
     @Override
@@ -155,7 +191,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 .addValue("mpaId", mpaId);
         Film savedFilm = findOne(SAVE_QUERY, params).orElseThrow();
         saveFilmGenres(savedFilm.getId(), film.getGenres());
-        return supplementWithGenres(savedFilm);
+        saveFilmDirectors(savedFilm.getId(), film.getDirectors());
+        return supplementWithDirectors(supplementWithGenres(savedFilm));
     }
 
     @Override
@@ -173,8 +210,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         savedFilm.ifPresent(f -> {
             saveFilmGenres(film.getId(), film.getGenres());
             deleteFilmGenresExcept(film.getId(), film.getGenres());
+            saveFilmDirectors(film.getId(), film.getDirectors());
+            deleteFilmDirectorsExcept(film.getId(), film.getDirectors());
         });
-        return savedFilm.map(this::supplementWithGenres);
+        return savedFilm.map(this::supplementWithGenres).map(this::supplementWithDirectors);
     }
 
     @Override
@@ -250,6 +289,56 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     .map(Object::toString)
                     .collect(Collectors.joining(", "));
             execute(DELETE_FILM_GENRES_QUERY.formatted(genreIds), params);
+        }
+    }
+
+    private Film supplementWithDirectors(final Film film) {
+        var params = new MapSqlParameterSource("id", film.getId());
+        Collection<Director> directors = jdbc.query(FIND_DIRECTORS_BY_FILM_ID_QUERY, params, directorMapper);
+        film.setDirectors(directors);
+        return film;
+    }
+
+    private Collection<Film> supplementWithDirectors(final Collection<Film> films) {
+        final String filmIds = films.stream()
+                .map(Film::getId)
+                .map(Object::toString)
+                .collect(Collectors.joining(", "));
+        final Map<Long, Collection<Director>> directorsByFilmId = new HashMap<>();
+        jdbc.getJdbcOperations().query(FIND_DIRECTORS_BY_FILM_IDS_QUERY.formatted(filmIds),
+                rs -> {
+                    Long filmId = rs.getLong("film_id");
+                    Director director = directorMapper.mapRow(rs, 0);
+                    directorsByFilmId.computeIfAbsent(filmId, key -> new ArrayList<>()).add(director);
+                }
+        );
+        return films.stream()
+                .peek(film -> film.setDirectors(directorsByFilmId.getOrDefault(film.getId(), new ArrayList<>())))
+                .toList();
+    }
+
+    private void saveFilmDirectors(final long id, final Collection<Director> directors) {
+        if (directors != null && !directors.isEmpty()) {
+            SqlParameterSource[] params = directors.stream()
+                    .map(director -> new MapSqlParameterSource()
+                            .addValue("id", id)
+                            .addValue("directorId", director.getId())
+                    )
+                    .toArray(SqlParameterSource[]::new);
+            jdbc.batchUpdate(SAVE_FILM_DIRECTOR_QUERY, params);
+        }
+    }
+
+    private void deleteFilmDirectorsExcept(final long id, final Collection<Director> directors) {
+        var params = new MapSqlParameterSource("id", id);
+        if (directors == null || directors.isEmpty()) {
+            execute(DELETE_ALL_FILM_DIRECTORS_QUERY, params);
+        } else {
+            final String directorIds = directors.stream()
+                    .map(Director::getId)
+                    .map(Objects::toString)
+                    .collect(Collectors.joining(", "));
+            execute(DELETE_FILM_DIRECTORS_QUERY.formatted(directorIds), params);
         }
     }
 }

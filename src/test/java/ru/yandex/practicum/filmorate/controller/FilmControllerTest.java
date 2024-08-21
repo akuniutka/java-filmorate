@@ -15,13 +15,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.DirectorMapperImpl;
 import ru.yandex.practicum.filmorate.mapper.FilmMapperImpl;
 import ru.yandex.practicum.filmorate.mapper.GenreMapperImpl;
 import ru.yandex.practicum.filmorate.mapper.MpaMapperImpl;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
+import ru.yandex.practicum.filmorate.service.impl.DirectorServiceImpl;
 import ru.yandex.practicum.filmorate.service.impl.GenreServiceImpl;
 import ru.yandex.practicum.filmorate.service.impl.MpaServiceImpl;
+import ru.yandex.practicum.filmorate.storage.mem.DirectorInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.GenreInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.MpaInMemoryStorage;
 
@@ -45,7 +48,9 @@ import static ru.yandex.practicum.filmorate.TestModels.getRandomFilm;
 
 @WebMvcTest(FilmController.class)
 @Import({FilmMapperImpl.class, MpaMapperImpl.class, GenreServiceImpl.class, GenreMapperImpl.class, MpaServiceImpl.class,
-        MpaInMemoryStorage.class, GenreInMemoryStorage.class})
+        DirectorMapperImpl.class, MpaInMemoryStorage.class, GenreInMemoryStorage.class, DirectorServiceImpl.class,
+        DirectorInMemoryStorage.class
+})
 class FilmControllerTest {
 
     private static final String URL = "/films";

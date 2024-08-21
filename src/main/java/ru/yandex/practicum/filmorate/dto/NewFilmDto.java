@@ -31,4 +31,5 @@ public class NewFilmDto {
 
     private FilmMpa mpa;
     private Collection<FilmGenre> genres;
+    private Collection<FilmDirector> directors;
 }

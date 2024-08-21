@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.api.DirectorService;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Mapper
 public abstract class DirectorMapper {
@@ -32,7 +33,13 @@ public abstract class DirectorMapper {
 
     public Director mapToDirector(final FilmDirector dto) {
         return dto == null ? null : directorService.getDirector(dto.getId()).orElseThrow(
-                () -> new ValidationException("Checl that director id is correct (you sent %s".formatted(dto.getId()))
+                () -> new ValidationException("Check that director id is correct (you sent %s".formatted(dto.getId()))
         );
+    }
+
+    public Collection<Director> mapToDirector(final Collection<FilmDirector> dtos) {
+        return dtos == null ? null : dtos.stream()
+                .map(this::mapToDirector)
+                .collect(Collectors.toSet());
     }
 }
