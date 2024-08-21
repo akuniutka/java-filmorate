@@ -20,4 +20,6 @@ public interface FilmService {
     void addLike(long id, long userId);
 
     void deleteLike(long id, long userId);
+
+    Collection<Film> getCommonFilms(long id, long friendId);
 }

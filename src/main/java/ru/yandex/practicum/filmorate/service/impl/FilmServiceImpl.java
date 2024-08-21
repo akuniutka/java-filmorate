@@ -67,6 +67,13 @@ public class FilmServiceImpl implements FilmService {
         filmStorage.deleteLike(id, userId);
     }
 
+    @Override
+    public Collection<Film> getCommonFilms(long id, long friendId) {
+        assertUserExist(id);
+        assertUserExist(friendId);
+        return filmStorage.getCommonFilms(id, friendId);
+    }
+
     private void assertFilmExist(final long id) {
         filmStorage.findById(id).orElseThrow(() -> new NotFoundException(Film.class, id));
     }

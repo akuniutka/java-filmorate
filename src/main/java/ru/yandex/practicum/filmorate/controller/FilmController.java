@@ -91,4 +91,12 @@ public class FilmController {
         log.info("Responded to PUT /films: {}", filmDto);
         return filmDto;
     }
+
+    @GetMapping("/common")
+    public Collection<FilmDto> getCommonFilms(@RequestParam final long userId, @RequestParam final long friendId) {
+        log.info("Received GET at /films/common?userId={}&friendId={}", userId, friendId);
+        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getCommonFilms(userId, friendId));
+        log.info("Responded to GET /films/common?userId={}&friendId={}: {}", userId, friendId, dtos);
+        return dtos;
+    }
 }

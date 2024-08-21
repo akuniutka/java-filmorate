@@ -119,6 +119,18 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             WHERE film_id = :id;
             """;
 
+    private static final String FIND_COMMON_FILMS_QUERY = """
+            SELECT f.*, m.mpa_name, COUNT(l3.user_id) AS like_count
+            FROM films f
+            JOIN likes l1 ON f.film_id = l1.film_id
+            JOIN likes l2 ON f.film_id = l2.film_id
+            LEFT JOIN mpa m ON f.mpa_id = m.mpa_id
+            LEFT JOIN likes l3 ON f.film_id = l3.film_id
+            WHERE l1.user_id = :id AND l2.user_id = :friendId
+            GROUP BY f.film_id, m.mpa_name
+            ORDER BY like_count DESC;
+            """;
+
     private final RowMapper<Genre> genreMapper;
 
     @Autowired
@@ -201,6 +213,15 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public void deleteAll() {
         execute(DELETE_ALL_QUERY);
+    }
+
+    //ЕСЛИ ТЕСТЫ НЕ БУДУТ ПРОХОДИТЬ - ПЕРЕПРОВЕРИТЬ ЭТОТ МЕТОД
+    @Override
+    public Collection<Film> getCommonFilms(long id, long friendId) {
+        var params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("friendId", friendId);
+        return supplementWithGenres(findMany(FIND_COMMON_FILMS_QUERY, params));
     }
 
     private Film supplementWithGenres(final Film film) {
