@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.mem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 
 import java.util.Collection;
@@ -11,64 +12,41 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 @Component
 @Slf4j
-public class FilmInMemoryStorage implements FilmStorage {
+public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements FilmStorage {
 
-    private final Map<Long, Film> films;
     private final Map<Long, Set<Long>> likes;
-    private long lastUsedId;
 
     public FilmInMemoryStorage() {
-        this.films = new HashMap<>();
+        super(Film::getId, Film::setId);
         this.likes = new HashMap<>();
-        this.lastUsedId = 0L;
-    }
-
-    @Override
-    public Collection<Film> findAll() {
-        return films.values();
     }
 
     @Override
     public Collection<Film> findAllOrderByLikesDesc(final long limit) {
-        return films.values().stream()
-                .sorted(Comparator.comparing(film -> likes.getOrDefault(film.getId(), Collections.emptySet()).size()))
+        return data.values().stream()
+                .sorted(Comparator.comparingInt(this::countFilmLikes).thenComparing(byId))
                 .limit(limit)
                 .toList();
     }
 
     @Override
-    public Optional<Film> findById(final long id) {
-        return Optional.ofNullable(films.get(id));
+    public Film save(Film entity) {
+        return sortFilmGenres(super.save(entity));
     }
 
     @Override
-    public Film save(final Film film) {
-        Objects.requireNonNull(film, "Cannot save film: is null");
-        film.setId(++lastUsedId);
-        films.put(film.getId(), film);
-        return film;
-    }
-
-    @Override
-    public Optional<Film> update(final Film film) {
-        Objects.requireNonNull(film, "Cannot update film: is null");
-        if (films.containsKey(film.getId())) {
-            films.put(film.getId(), film);
-            return Optional.of(film);
-        } else {
-            return Optional.empty();
-        }
+    public Optional<Film> update(Film entity) {
+        return super.update(entity).map(this::sortFilmGenres);
     }
 
     @Override
     public void addLike(long id, long userId) {
-        if (!films.containsKey(id)) {
+        if (!data.containsKey(id)) {
             throw new RuntimeException("Cannot add like: film with id = %d does not exist".formatted(id));
         }
         likes.computeIfAbsent(id, key -> new HashSet<>()).add(userId);
@@ -82,12 +60,27 @@ public class FilmInMemoryStorage implements FilmStorage {
     @Override
     public void delete(final long id) {
         likes.remove(id);
-        films.remove(id);
+        super.delete(id);
     }
 
     @Override
     public void deleteAll() {
         likes.clear();
-        films.clear();
+        super.deleteAll();
+    }
+
+    private Film sortFilmGenres(final Film film) {
+        final Collection<Genre> genres = film.getGenres();
+        if (genres != null && !genres.isEmpty()) {
+            film.setGenres(genres.stream()
+                    .sorted(Comparator.comparing(Genre::getId))
+                    .toList()
+            );
+        }
+        return film;
+    }
+
+    private int countFilmLikes(final Film film) {
+        return likes.getOrDefault(film.getId(), Collections.emptySet()).size();
     }
 }
