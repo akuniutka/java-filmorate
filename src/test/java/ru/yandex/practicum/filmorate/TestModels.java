@@ -1,8 +1,10 @@
 package ru.yandex.practicum.filmorate;
 
 import com.github.javafaker.Faker;
+import ru.yandex.practicum.filmorate.dto.NewDirectorDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserDto;
+import ru.yandex.practicum.filmorate.dto.UpdateDirectorDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -101,6 +103,19 @@ public final class TestModels {
         final Director director = new Director();
         director.setName(faker.name().fullName());
         return director;
+    }
+
+    public static NewDirectorDto getRandomNewDirectorDto() {
+        final NewDirectorDto dto = new NewDirectorDto();
+        dto.setName(faker.name().fullName());
+        return dto;
+    }
+
+    public static UpdateDirectorDto getRandomUpdateDirectorDto() {
+        final UpdateDirectorDto dto = new UpdateDirectorDto();
+        dto.setId(faker.number().randomNumber());
+        dto.setName(faker.name().fullName());
+        return dto;
     }
 
     public static User cloneUser(final User user) {
