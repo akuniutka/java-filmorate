@@ -10,16 +10,17 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
+
+    private static final String GET_LIKES_BY_USER_ID_QUERY = """
+        SELECT film_id
+        FROM likes
+        WHERE user_id = :userId;
+    """;
 
     private static final String FIND_ALL_QUERY = """
             SELECT f.*,
@@ -251,5 +252,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     .collect(Collectors.joining(", "));
             execute(DELETE_FILM_GENRES_QUERY.formatted(genreIds), params);
         }
+    }
+
+    @Override
+    public Set<Long> getLikesByUserId(long userId) {
+        var params = new MapSqlParameterSource("userId", userId);
+        return new HashSet<>(jdbc.query(GET_LIKES_BY_USER_ID_QUERY, params, (rs, rowNum) -> rs.getLong("film_id")));
     }
 }

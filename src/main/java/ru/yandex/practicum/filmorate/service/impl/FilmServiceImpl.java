@@ -10,9 +10,8 @@ import ru.yandex.practicum.filmorate.service.api.FilmService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +57,49 @@ public class FilmServiceImpl implements FilmService {
         assertFilmExist(id);
         assertUserExist(userId);
         filmStorage.addLike(id, userId);
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(long userId) {
+        Set<Long> currentUserLikes = filmStorage.getLikesByUserId(userId);
+
+        Collection<User> allUsers = userService.getUsers();
+
+        User bestMatchUser = null;
+        int maxIntersection = 0;
+
+        for (User otherUser : allUsers) {
+            if (otherUser.getId() == userId) {
+                continue;
+            }
+
+            Set<Long> otherUserLikes = filmStorage.getLikesByUserId(otherUser.getId());
+            int intersectionSize = getIntersectionSize(currentUserLikes, otherUserLikes);
+
+            if (intersectionSize > maxIntersection) {
+                maxIntersection = intersectionSize;
+                bestMatchUser = otherUser;
+            }
+        }
+
+        if (bestMatchUser != null) {
+            Set<Long> bestMatchLikes = filmStorage.getLikesByUserId(bestMatchUser.getId());
+            bestMatchLikes.removeAll(currentUserLikes);
+
+            return bestMatchLikes.stream()
+                    .map(filmStorage::findById)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toList());
+        }
+
+        return List.of();
+    }
+
+    private int getIntersectionSize(Set<Long> set1, Set<Long> set2) {
+        Set<Long> intersection = new HashSet<>(set1);
+        intersection.retainAll(set2);
+        return intersection.size();
     }
 
     @Override
