@@ -10,12 +10,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
@@ -189,18 +184,18 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> findAllOrderByLikesDesc(long limit, Long genreId, Integer year) {
-        if (genreId !=0 && year != 0) {
+        if (genreId != 0 && year != 0) {
             var params = new MapSqlParameterSource()
                     .addValue("limit", limit)
                     .addValue("genreId", genreId)
                     .addValue("year", year);
             return supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE_AND_YEAR, params));
-        } else if (genreId != 0 && year ==0) {
+        } else if (genreId != 0 && year == 0) {
             var params = new MapSqlParameterSource()
                     .addValue("limit", limit)
                     .addValue("genreId", genreId);
             return supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE, params));
-        } else if (genreId == 0 && year !=0) {
+        } else if (genreId == 0 && year != 0) {
             var params = new MapSqlParameterSource()
                     .addValue("limit", limit)
                     .addValue("year", year);
