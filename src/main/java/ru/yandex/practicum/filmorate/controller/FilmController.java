@@ -47,7 +47,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<FilmDto> getTopLiked(@RequestParam(defaultValue = "10", required = false) @Valid @Positive final long count,
+    public Collection<FilmDto> getTopLiked(@RequestParam(defaultValue = "10000", required = false) @Valid @Positive final long count,
                                            @RequestParam(defaultValue = "0", required = false) @Valid  final Long genreId,
                                            @RequestParam(defaultValue = "0", required = false) @Valid final Integer year) {
         log.info("Received GET at /films/popular (count = {}, genreId = {}, year = {})", count, genreId,year);
