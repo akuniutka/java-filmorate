@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -33,6 +34,21 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
                 .sorted(Comparator.comparingInt(this::countFilmLikes).thenComparing(byId))
                 .limit(limit)
                 .toList();
+    }
+
+    @Override
+    public Collection<Film> findAllByDirectorId(long directorId) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Film> findAllByDirectorIdOrderByYear(long directorId) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Film> findAllByDirectorIdOrderByLikes(long directorId) {
+        return List.of();
     }
 
     @Override

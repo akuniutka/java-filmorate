@@ -11,6 +11,12 @@ public interface FilmService {
 
     Collection<Film> getTopFilmsByLikes(long limit);
 
+    Collection<Film> getFilmsByDirectorId(long directorId);
+
+    Collection<Film> getFilmsByDirectorIdOrderByYear(long directorId);
+
+    Collection<Film> getFilmsByDirectorIdOrderByLikes(long directorId);
+
     Optional<Film> getFilm(long id);
 
     Film createFilm(Film film);

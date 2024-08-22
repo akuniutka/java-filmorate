@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
@@ -90,5 +91,20 @@ public class FilmController {
         );
         log.info("Responded to PUT /films: {}", filmDto);
         return filmDto;
+    }
+
+    @GetMapping("/director/{directorId}")
+    public Collection<FilmDto> getFilmsByDirector(@PathVariable final long directorId, @RequestParam final String sortBy) {
+        log.info("Received GET at /films/director/{}?sortBy={}", directorId, sortBy);
+        final Collection<Film> films = switch (sortBy) {
+            case "year" -> filmService.getFilmsByDirectorIdOrderByYear(directorId);
+            case "likes" -> filmService.getFilmsByDirectorIdOrderByLikes(directorId);
+            case null -> filmService.getFilmsByDirectorId(directorId);
+            default -> throw new ValidationException("Check parameter to sort films by (you send %s)"
+                    .formatted(sortBy));
+        };
+        final Collection<FilmDto> dtos = mapper.mapToDto(films);
+        log.info("Responded to GET /films/director/{}?sortBy={}: {}", directorId, sortBy, dtos);
+        return dtos;
     }
 }

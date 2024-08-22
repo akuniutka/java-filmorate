@@ -45,6 +45,40 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             ORDER BY COALESCE (l.likes, 0) DESC
             LIMIT :limit
             """;
+    private static final String FIND_ALL_BY_DIRECTOR_ID_QUERY = """
+            SELECT f.*,
+              m.mpa_name
+            FROM films AS f
+            JOIN film_directors AS fd ON f.film_id = fd.film_id
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            WHERE fd.director_id = :directorId
+            ORDER BY f.film_id;
+            """;
+    private static final String FIND_ALL_BY_DIRECTOR_ID_ORDER_BY_YEAR_QUERY = """
+            SELECT f.*,
+              m.mpa_name
+            FROM films AS f
+            JOIN film_directors AS fd ON f.film_id = fd.film_id
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            WHERE fd.director_id = :directorId
+            ORDER BY EXTRACT(YEAR FROM f.release_date), f.film_id;
+            """;
+    private static final String FIND_ALL_BY_DIRECTOR_ID_ORDER_BY_LIKES_QUERY = """
+            SELECT f.*,
+              m.mpa_name
+            FROM films AS f
+            JOIN film_directors AS fd ON f.film_id = fd.film_id
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            LEFT JOIN
+            (
+              SELECT film_id,
+                COUNT(*) AS likes
+              FROM likes
+              GROUP BY film_id
+            ) AS l ON f.film_id = l.film_id
+            WHERE fd.director_id = :directorId
+            ORDER BY COALESCE (l.likes, 0) DESC, f.film_id;
+            """;
     private static final String FIND_BY_ID_QUERY = """
             SELECT f.*,
               m.mpa_name
@@ -169,9 +203,27 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllOrderByLikesDesc(long limit) {
+    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
         var params = new MapSqlParameterSource("limit", limit);
         return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC, params)));
+    }
+
+    @Override
+    public Collection<Film> findAllByDirectorId(final long directorId) {
+        var params = new MapSqlParameterSource("directorId", directorId);
+        return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_BY_DIRECTOR_ID_QUERY, params)));
+    }
+
+    @Override
+    public Collection<Film> findAllByDirectorIdOrderByYear(final long directorId) {
+        var params = new MapSqlParameterSource("directorId", directorId);
+        return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_BY_DIRECTOR_ID_ORDER_BY_YEAR_QUERY, params)));
+    }
+
+    @Override
+    public Collection<Film> findAllByDirectorIdOrderByLikes(final long directorId) {
+        var params = new MapSqlParameterSource("directorId", directorId);
+        return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_BY_DIRECTOR_ID_ORDER_BY_LIKES_QUERY, params)));
     }
 
     @Override
@@ -217,7 +269,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public void addLike(long id, long userId) {
+    public void addLike(final long id, final long userId) {
         var params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("userId", userId);
@@ -225,7 +277,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public void deleteLike(long id, long userId) {
+    public void deleteLike(final long id, final long userId) {
         var params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("userId", userId);

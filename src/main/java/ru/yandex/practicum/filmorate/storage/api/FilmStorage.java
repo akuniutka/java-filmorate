@@ -11,6 +11,12 @@ public interface FilmStorage {
 
     Collection<Film> findAllOrderByLikesDesc(long limit);
 
+    Collection<Film> findAllByDirectorId(long directorId);
+
+    Collection<Film> findAllByDirectorIdOrderByYear(long directorId);
+
+    Collection<Film> findAllByDirectorIdOrderByLikes(long directorId);
+
     Optional<Film> findById(long id);
 
     Film save(Film film);
