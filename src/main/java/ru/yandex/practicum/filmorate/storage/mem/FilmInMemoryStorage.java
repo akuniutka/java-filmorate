@@ -35,7 +35,7 @@ public class FilmInMemoryStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
+    public Collection<Film> findAllOrderByLikesDesc(final long limit, final Long genreId, final Integer year) {
         return films.values().stream()
                 .sorted(Comparator.comparing(film -> likes.getOrDefault(film.getId(), Collections.emptySet()).size()))
                 .limit(limit)

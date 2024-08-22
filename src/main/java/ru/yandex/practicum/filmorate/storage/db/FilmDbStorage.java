@@ -33,6 +33,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
               m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            LEFT JOIN film_genres fg ON f.film_id = fg.film_id
             LEFT JOIN
             (
               SELECT film_id,
@@ -40,6 +41,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
               FROM likes
               GROUP BY film_id
             ) AS l ON f.film_id = l.film_id
+            WHERE (:genreId !=0 AND fg.genre_id = :genreId)
+            OR (:year !=0 EXTRACT (YEAR FROM f.release_date) = :year)
             ORDER BY COALESCE (l.likes, 0) DESC
             LIMIT :limit
             """;
@@ -133,8 +136,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllOrderByLikesDesc(long limit) {
-        var params = new MapSqlParameterSource("limit", limit);
+    public Collection<Film> findAllOrderByLikesDesc(long limit, Long genreId, Integer year) {
+        var params = new MapSqlParameterSource()
+                .addValue("limit", limit)
+                .addValue("genre_id", genreId)
+                .addValue("year", year);
         return supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC, params));
     }
 

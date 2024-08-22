@@ -9,7 +9,7 @@ public interface FilmStorage {
 
     Collection<Film> findAll();
 
-    Collection<Film> findAllOrderByLikesDesc(long limit);
+    Collection<Film> findAllOrderByLikesDesc(long limit, Long genreId, Integer year);
 
     Optional<Film> findById(long id);
 
