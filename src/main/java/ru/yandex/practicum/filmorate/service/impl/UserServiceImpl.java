@@ -5,10 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.api.UserService;
+import ru.yandex.practicum.filmorate.storage.api.EventStorage;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,6 +24,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserStorage userStorage;
+    private final EventStorage eventStorage;
 
     @Override
     public Collection<User> getUsers() {
@@ -36,6 +42,7 @@ public class UserServiceImpl implements UserService {
         resetNameToLoginIfBlank(user);
         final User userStored = userStorage.save(user);
         log.info("Created new user: {}", userStored);
+
         return userStored;
     }
 
@@ -56,6 +63,15 @@ public class UserServiceImpl implements UserService {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
         userStorage.addFriend(id, friendId);
+        // добавление события добавления друга в таблицу events
+        Event event = new Event();
+        event.setEventType(EventType.FRIEND);
+        event.setUserId(id);
+        event.setOperation(Operation.ADD);
+        event.setTimestamp(Instant.now());
+        event.setEntityId(friendId);
+        eventStorage.save(event);
+
     }
 
     @Override
@@ -66,6 +82,14 @@ public class UserServiceImpl implements UserService {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
         userStorage.deleteFriend(id, friendId);
+        // добавление события удаления друга в таблице events
+        Event event = new Event();
+        event.setEventType(EventType.FRIEND);
+        event.setUserId(id);
+        event.setOperation(Operation.REMOVE);
+        event.setTimestamp(Instant.now());
+        event.setEntityId(friendId);
+        eventStorage.save(event);
     }
 
     @Override

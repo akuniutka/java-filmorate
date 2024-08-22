@@ -53,7 +53,7 @@ public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage
     }
 
     @Override
-    public Event save(Event event) {
+    public void save(Event event) {
         var params = new MapSqlParameterSource()
                 .addValue("event_id", event.getId())
                 .addValue("user_id", event.getUserId())
@@ -61,11 +61,11 @@ public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage
                 .addValue("operation", event.getOperation().name())
                 .addValue("entity_id", event.getEntityId())
                 .addValue("time_stamp", Timestamp.from(event.getTimestamp()));
-        return findOne(SAVE_QUERY, params).orElseThrow();
+        execute(SAVE_QUERY, params);
     }
 
     @Override
-    public Optional<Event> update(Event event) {
+    public void update(Event event) {
         var params = new MapSqlParameterSource()
                 .addValue("event_id", event.getId())
                 .addValue("user_id", event.getUserId())
@@ -73,7 +73,7 @@ public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage
                 .addValue("operation", event.getOperation().name())
                 .addValue("entity_id", event.getEntityId())
                 .addValue("time_stamp", Timestamp.from(event.getTimestamp()));
-        return findOne(UPDATE_QUERY, params);
+        execute(UPDATE_QUERY, params);
     }
 
     @Override

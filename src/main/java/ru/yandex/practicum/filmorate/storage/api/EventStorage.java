@@ -10,9 +10,9 @@ public interface EventStorage {
 
     Collection<Event> findAll(Long userId);
 
-    Event save(Event event);
+    void save(Event event);
 
-    Optional<Event> update(Event event);
+    void update(Event event);
 
     void delete(long id);
 
