@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate.storage.api;
 
 import ru.yandex.practicum.filmorate.model.Event;
-import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.Collection;
-import java.util.Optional;
 
 public interface EventStorage {
 

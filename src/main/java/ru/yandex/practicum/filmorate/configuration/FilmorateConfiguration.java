@@ -30,6 +30,7 @@ public class FilmorateConfiguration {
     private final UserDbStorage userDbStorage;
 
     private final ReviewDbStorage reviewDbStorage;
+    private final EventDbStorage eventDbStorage;
 
     @Bean
     @Primary

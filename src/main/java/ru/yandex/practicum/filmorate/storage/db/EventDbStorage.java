@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.storage.api.EventStorage;
 
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Optional;
 
 @Repository
 public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage {
@@ -40,11 +39,13 @@ public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage
             DELETE FROM events
             WHERE event_id = :event_id;
             """;
+
     @Autowired
     public EventDbStorage(final NamedParameterJdbcTemplate jdbc, RowMapper<Event> mapper) {
         super(jdbc, mapper);
 
     }
+
     @Override
     public Collection<Event> findAll(Long userId) {
         var params = new MapSqlParameterSource()
@@ -61,7 +62,7 @@ public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage
                 .addValue("operation", event.getOperation().name())
                 .addValue("entity_id", event.getEntityId())
                 .addValue("time_stamp", Timestamp.from(event.getTimestamp()));
-        execute(SAVE_QUERY, params);
+        Event savedEvent = findOne(SAVE_QUERY, params).orElseThrow();
     }
 
     @Override

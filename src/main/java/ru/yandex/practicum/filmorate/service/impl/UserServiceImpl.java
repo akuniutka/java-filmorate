@@ -32,6 +32,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Collection<Event> getEvents(long id) {
+        return eventStorage.findAll(id);
+    }
+
+    @Override
     public Optional<User> getUser(final long userId) {
         return userStorage.findById(userId);
     }

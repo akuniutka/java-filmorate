@@ -12,7 +12,6 @@ public class Event {
     private Long userId;
     private EventType eventType;
     private Operation operation;
-    private Long eventId;
     private Long entityId;
     private Instant timestamp;
 }
