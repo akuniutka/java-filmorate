@@ -21,7 +21,6 @@ public abstract class ReviewMapper {
         review.setUseful(0);
         review.setFilmId(dto.getFilmId());
         review.setUserId(dto.getUserId());
-        review.setReviewDate(Instant.now());
         return review;
     }
 

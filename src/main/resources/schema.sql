@@ -65,17 +65,14 @@ CREATE TABLE IF NOT EXISTS reviews
   is_positive  BOOLEAN,
   user_id BIGINT NOT NULL REFERENCES users (user_id),
   film_id  BIGINT NOT NULL REFERENCES films (film_id),
-  useful INT,
-  review_date TIMESTAMP  NOT NULL
+  useful INT
 );
 
 CREATE TABLE IF NOT EXISTS reviews_likes_dislikes
 (
   user_id BIGINT NOT NULL REFERENCES users (user_id),
   review_id  BIGINT NOT NULL REFERENCES reviews (review_id),
-  is_like BOOLEAN,
-  create_datetime TIMESTAMP NOT NULL
-
+  is_like BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS events
@@ -86,5 +83,4 @@ CREATE TABLE IF NOT EXISTS events
   operation  VARCHAR NOT NULL,
   entity_id BIGINT NOT NULL,
   time_stamp TIMESTAMP NOT NULL
-
 );

@@ -14,5 +14,4 @@ public class ReviewDto {
     private Integer useful;
     private Long filmId;
     private Long userId;
-    private Instant reviewDate;
 }

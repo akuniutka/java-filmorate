@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.api.ReviewStorage;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -30,8 +29,8 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             """;
     private static final String SAVE_QUERY = """
             SELECT * FROM FINAL TABLE (
-              INSERT INTO reviews ( content, is_positive, user_id, film_id, useful, review_date)
-              VALUES (:content, :is_positive, :user_id, :film_id, :useful, :review_date)
+              INSERT INTO reviews ( content, is_positive, user_id, film_id, useful)
+              VALUES (:content, :is_positive, :user_id, :film_id, :useful)
             );
             """;
 
@@ -47,13 +46,8 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             );
             """;
     private static final String ADD_LIKE_QUERY = """
-            INSERT INTO reviews_likes_dislikes (user_id, review_id, is_like, create_datetime)
-            VALUES (:user_id, :review_id, :is_like, :create_datetime);
-            """;
-    private static final String UPDATE_QUERY_INCREMENT_USEFUL = """
-            UPDATE reviews
-              SET useful = (SELECT useful FROM reviews WHERE review_id = :review_id) + 1
-              WHERE review_id = :review_id;
+            INSERT INTO reviews_likes_dislikes (user_id, review_id, is_like)
+            VALUES (:user_id, :review_id, :is_like);
             """;
 
     private static final String UPDATE_QUERY_USEFUL = """
@@ -69,11 +63,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
               WHERE review_id = :review_id AND user_id = :user_id;
             """;
 
-    private static final String UPDATE_QUERY_DECREMENT_USEFUL = """
-            UPDATE reviews
-              SET useful = (SELECT useful FROM reviews WHERE review_id = :review_id) - 1
-              WHERE review_id = :review_id;
-            """;
+
     private static final String GET_REWIEW_USEFUL = """
             SELECT useful FROM reviews WHERE review_id = :review_id;
             """;
@@ -92,8 +82,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
                 .addValue("is_positive", review.getIsPositive())
                 .addValue("user_id", review.getUserId())
                 .addValue("film_id", review.getFilmId())
-                .addValue("useful", review.getUseful())
-                .addValue("review_date", review.getReviewDate());
+                .addValue("useful", review.getUseful());
         return findOne(SAVE_QUERY, params).orElseThrow();
     }
 
@@ -156,8 +145,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
         var params = new MapSqlParameterSource()
                 .addValue("user_id", userId)
                 .addValue("review_id", reviewId)
-                .addValue("is_like", true)
-                .addValue("create_datetime", Instant.now());
+                .addValue("is_like", true);
         execute(ADD_LIKE_QUERY, params);
         long useful = getUsefulCount(reviewId) + 1;
         params = new MapSqlParameterSource()
@@ -192,8 +180,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
         var params = new MapSqlParameterSource()
                 .addValue("user_id", userId)
                 .addValue("review_id", reviewId)
-                .addValue("is_like", false)
-                .addValue("create_datetime", Instant.now());
+                .addValue("is_like", false);
         execute(ADD_LIKE_QUERY, params);
         long useful = getUsefulCount(reviewId) - 1;
         params = new MapSqlParameterSource()

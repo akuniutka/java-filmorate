@@ -14,5 +14,4 @@ public class Review {
         private Integer useful;
         private Long filmId;
         private Long userId;
-        private Instant reviewDate;
     }
