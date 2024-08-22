@@ -45,6 +45,19 @@ public class FilmorateConfiguration {
         };
     }
 
+    @Bean
+    @Primary
+    public EventStorage eventStorage() {
+        if (props.getStorage() == null) {
+            return eventDbStorage;
+        }
+        return switch (props.getStorage().getMode()) {
+            case DATABASE -> eventDbStorage;
+            case MEMORY -> eventDbStorage;
+            case null -> eventDbStorage;
+        };
+    }
+
 
     @Bean
     @Primary

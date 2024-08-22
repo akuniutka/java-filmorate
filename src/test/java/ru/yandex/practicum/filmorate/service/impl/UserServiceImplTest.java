@@ -6,20 +6,17 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.api.UserService;
-import ru.yandex.practicum.filmorate.storage.mem.UserInMemoryStorage;
+import ru.yandex.practicum.filmorate.storage.api.EventStorage;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
+import ru.yandex.practicum.filmorate.storage.mem.EventInMemoryStorage;
+import ru.yandex.practicum.filmorate.storage.mem.UserInMemoryStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static ru.yandex.practicum.filmorate.TestModels.faker;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomUser;
 
@@ -28,10 +25,12 @@ class UserServiceImplTest {
     private static final String WRONG_MESSAGE = "Wrong exception message";
     private final UserStorage userStorage;
     private final UserService userService;
+    private final EventStorage eventStorage;
 
     UserServiceImplTest() {
         this.userStorage = new UserInMemoryStorage();
-        this.userService = new UserServiceImpl(userStorage);
+        this.eventStorage = new EventInMemoryStorage();
+        this.userService = new UserServiceImpl(userStorage, eventStorage);
     }
 
     @Test

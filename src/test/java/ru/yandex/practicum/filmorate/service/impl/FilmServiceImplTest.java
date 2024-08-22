@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.service.impl;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
+import ru.yandex.practicum.filmorate.storage.api.EventStorage;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.mem.EventInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.FilmInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.UserInMemoryStorage;
 
@@ -12,12 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static ru.yandex.practicum.filmorate.TestModels.faker;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomFilm;
 
@@ -26,12 +23,15 @@ class FilmServiceImplTest {
     private static final String WRONG_MESSAGE = "Wrong exception message";
     private final FilmStorage filmStorage;
     private final FilmService filmService;
+    private final EventStorage eventStorage;
 
     FilmServiceImplTest() {
         this.filmStorage = new FilmInMemoryStorage();
+        this.eventStorage = new EventInMemoryStorage();
         this.filmService = new FilmServiceImpl(
                 filmStorage,
-                new UserServiceImpl(new UserInMemoryStorage())
+                new UserServiceImpl(new UserInMemoryStorage(), eventStorage),
+                eventStorage
         );
     }
 
