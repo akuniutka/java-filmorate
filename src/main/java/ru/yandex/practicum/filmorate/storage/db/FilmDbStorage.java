@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     private static final String GET_LIKES_BY_USER_ID_QUERY = """
-        SELECT film_id 
-        FROM likes 
+        SELECT film_id
+        FROM likes
         WHERE user_id = :userId;
     """;
 
