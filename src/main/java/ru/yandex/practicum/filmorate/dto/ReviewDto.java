@@ -3,8 +3,6 @@ package ru.yandex.practicum.filmorate.dto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.time.Instant;
-
 @Data
 @EqualsAndHashCode(of = {"reviewId"})
 public class ReviewDto {
