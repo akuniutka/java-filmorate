@@ -23,5 +23,5 @@ public interface FilmService {
 
     void deleteLike(long id, long userId);
 
-
+    void deleteFilm(long id);
 }

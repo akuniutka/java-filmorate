@@ -22,9 +22,9 @@ public interface FilmStorage {
 
     void deleteLike(long id, long userId);
 
-    void delete(long id);
-
     void deleteAll();
 
     Set<Long> getLikesByUserId(long userId);
+
+    void deleteById(long id);
 }

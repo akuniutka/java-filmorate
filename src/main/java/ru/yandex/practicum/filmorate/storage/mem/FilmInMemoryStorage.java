@@ -80,12 +80,6 @@ public class FilmInMemoryStorage implements FilmStorage {
     }
 
     @Override
-    public void delete(final long id) {
-        likes.remove(id);
-        films.remove(id);
-    }
-
-    @Override
     public void deleteAll() {
         likes.clear();
         films.clear();
@@ -95,4 +89,7 @@ public class FilmInMemoryStorage implements FilmStorage {
     public Set<Long> getLikesByUserId(long userId) {
         return Set.of();
     }
+
+    @Override
+    public void deleteById(long id) {}
 }
