@@ -107,4 +107,32 @@ public class FilmController {
         log.info("Responded to GET /films/director/{}?sortBy={}: {}", directorId, sortBy, dtos);
         return dtos;
     }
+
+    @GetMapping("/search")
+    public Collection<FilmDto> searchFilms(
+            @RequestParam String query,
+            @RequestParam(name = "by", required = false, defaultValue = "title") String by) {
+        log.info("Received GET at /films/search?query={}&by={}", query, by);
+        // Разбиваем параметры by на отдельные значения (director, title)
+        String[] searchCriteria = by.split(",");
+
+        Collection<Film> films;
+
+        if (searchCriteria.length == 1) {
+            // Если указано только одно значение в параметре by
+            if ("director".equalsIgnoreCase(searchCriteria[0])) {
+                films = filmService.searchFilmsByDirectorName(query);
+            } else {
+                films = filmService.searchFilmsByTitle(query);
+            }
+        } else {
+            // Если указаны оба значения (director, title)
+            films = filmService.searchFilmsByTitleAndDirectorName(query);
+        }
+
+        // Маппим фильмы на DTO и возвращаем результат
+        final Collection<FilmDto> dtos = mapper.mapToDto(films);
+        log.info("Responded to GET /films/search?query={}&by={}: {}", query, by, dtos);
+        return dtos;
+    }
 }

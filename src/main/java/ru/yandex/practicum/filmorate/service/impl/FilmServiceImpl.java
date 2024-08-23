@@ -82,6 +82,21 @@ public class FilmServiceImpl implements FilmService {
         filmStorage.deleteLike(id, userId);
     }
 
+    @Override
+    public Collection<Film> searchFilmsByTitle(String query) {
+        return filmStorage.searchFilmsByTitle(query);
+    }
+
+    @Override
+    public Collection<Film> searchFilmsByDirectorName(String query) {
+        return filmStorage.searchFilmsByDirectorName(query);
+    }
+
+    @Override
+    public Collection<Film> searchFilmsByTitleAndDirectorName(String query) {
+        return filmStorage.searchFilmsByTitleAndDirectorName(query);
+    }
+
     private void assertFilmExist(final long id) {
         filmStorage.findById(id).orElseThrow(() -> new NotFoundException(Film.class, id));
     }

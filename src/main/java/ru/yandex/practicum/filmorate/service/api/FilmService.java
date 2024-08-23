@@ -26,4 +26,10 @@ public interface FilmService {
     void addLike(long id, long userId);
 
     void deleteLike(long id, long userId);
+
+    Collection<Film> searchFilmsByTitle(String query);
+
+    Collection<Film> searchFilmsByDirectorName(String query);
+
+    Collection<Film> searchFilmsByTitleAndDirectorName(String query);
 }
