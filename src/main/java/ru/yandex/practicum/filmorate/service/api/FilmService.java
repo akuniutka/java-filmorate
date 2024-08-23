@@ -25,6 +25,8 @@ public interface FilmService {
 
     void addLike(long id, long userId);
 
+    Collection<Film> getRecommendations(long userId);
+
     void deleteLike(long id, long userId);
 
     Collection<Film> searchFilmsByTitle(String query);
@@ -32,4 +34,6 @@ public interface FilmService {
     Collection<Film> searchFilmsByDirectorName(String query);
 
     Collection<Film> searchFilmsByTitleAndDirectorName(String query);
+
+
 }
