@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 @Repository
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
+    private static final String deleteGenreSql = "DELETE FROM film_genres WHERE film_id = ?";
+
     private static final String GET_LIKES_BY_USER_ID_QUERY = """
         SELECT film_id 
         FROM likes 
@@ -259,4 +261,15 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         var params = new MapSqlParameterSource("userId", userId);
         return new HashSet<>(jdbc.query(GET_LIKES_BY_USER_ID_QUERY, params, (rs, rowNum) -> rs.getLong("film_id")));
     }
+
+    @Override
+    public void deleteById(long filmId) {
+        String sqlQuery = "DELETE FROM film_genres WHERE film_id = :filmId";
+        MapSqlParameterSource params = new MapSqlParameterSource("filmId", filmId);
+        jdbc.update(sqlQuery, params);
+
+        sqlQuery = "DELETE FROM films WHERE film_id = :filmId";
+        jdbc.update(sqlQuery, params);
+    }
+
 }

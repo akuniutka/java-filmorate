@@ -136,4 +136,11 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     public void deleteAll() {
         execute(DELETE_ALL_QUERY);
     }
+
+    @Override
+    public void deleteById(long userId) {
+        String sqlQuery = "DELETE FROM users WHERE user_id = :userId";
+        MapSqlParameterSource params = new MapSqlParameterSource("userId", userId);
+        jdbc.update(sqlQuery, params);
+    }
 }

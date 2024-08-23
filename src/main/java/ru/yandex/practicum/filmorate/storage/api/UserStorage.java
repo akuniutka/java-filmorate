@@ -26,4 +26,6 @@ public interface UserStorage {
     void delete(long id);
 
     void deleteAll();
+
+    void deleteById(long userId);
 }

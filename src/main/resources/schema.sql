@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS films
 
 CREATE TABLE IF NOT EXISTS likes
 (
-  film_id BIGINT NOT NULL REFERENCES films (film_id),
-  user_id BIGINT NOT NULL REFERENCES users (user_id),
+  film_id BIGINT NOT NULL REFERENCES films (film_id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
   CONSTRAINT likes_ux UNIQUE (film_id, user_id)
 );
 

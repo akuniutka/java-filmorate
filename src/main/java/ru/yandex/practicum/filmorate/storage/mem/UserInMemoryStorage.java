@@ -112,4 +112,8 @@ public class UserInMemoryStorage implements UserStorage {
         friends.clear();
         users.clear();
     }
+
+    @Override
+    public void deleteById(long userId) {
+    }
 }

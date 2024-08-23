@@ -91,4 +91,11 @@ public class FilmController {
         log.info("Responded to PUT /films: {}", filmDto);
         return filmDto;
     }
+
+    @DeleteMapping("/{filmId}")
+    public void deleteFilm(@PathVariable @Positive long filmId) {
+        log.info("Received DELETE request at /films/{}", filmId);
+        filmService.deleteFilm(filmId);
+        log.info("Film with id {} deleted successfully", filmId);
+    }
 }
