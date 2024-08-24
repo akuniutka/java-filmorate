@@ -127,5 +127,7 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public void deleteById(long id) {}
+    public void deleteById(long id) {
+
+    }
 }

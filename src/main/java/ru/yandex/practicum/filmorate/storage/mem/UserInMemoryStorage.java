@@ -75,5 +75,7 @@ public class UserInMemoryStorage extends BaseInMemoryStorage<User> implements Us
     }
 
     @Override
-    public void deleteById(long userId) {}
+    public void deleteById(long userId) {
+
+    }
 }
