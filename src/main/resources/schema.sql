@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS reviews_likes_dislikes
   review_id  BIGINT NOT NULL REFERENCES reviews (review_id),
   is_like BOOLEAN,
   create_datetime TIMESTAMP NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS directors
 (
