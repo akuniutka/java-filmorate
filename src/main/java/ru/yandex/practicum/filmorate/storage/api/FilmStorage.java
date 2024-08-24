@@ -33,4 +33,10 @@ public interface FilmStorage {
     void deleteAll();
 
     Set<Long> getLikesByUserId(long userId);
+
+    Collection<Film> searchFilmsByTitle(String query);
+
+    Collection<Film> searchFilmsByDirectorName(String query);
+
+    Collection<Film> searchFilmsByTitleAndDirectorName(String query);
 }

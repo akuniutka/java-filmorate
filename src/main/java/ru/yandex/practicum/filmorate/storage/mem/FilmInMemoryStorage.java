@@ -86,6 +86,21 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
         super.deleteAll();
     }
 
+    @Override
+    public Collection<Film> searchFilmsByTitle(String query) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Collection<Film> searchFilmsByDirectorName(String query) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Collection<Film> searchFilmsByTitleAndDirectorName(String query) {
+        return Collections.emptyList();
+    }
+
     private Film sortFilmGenres(final Film film) {
         final Collection<Genre> genres = film.getGenres();
         if (genres != null && !genres.isEmpty()) {

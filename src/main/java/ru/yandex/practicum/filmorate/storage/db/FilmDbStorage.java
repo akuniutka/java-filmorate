@@ -183,6 +183,46 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             WHERE film_id = :id;
             """;
 
+    private static final String SEARCH_FILMS_BY_TITLE_QUERY = """
+            SELECT f.*,
+              m.mpa_name,
+              COUNT(l.film_id) AS like_count
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            LEFT JOIN likes AS l ON f.film_id = l.film_id
+            WHERE film_name ILIKE :query
+            GROUP BY f.film_id, m.mpa_name
+            ORDER BY like_count DESC
+            """;
+
+    private static final String SEARCH_FILMS_BY_DIRECTORY_NAME_QUERY = """
+            SELECT f.*,
+              m.mpa_name,
+              COUNT(l.film_id) AS like_count
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            LEFT JOIN likes AS l ON f.film_id = l.film_id
+            LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id
+            LEFT JOIN directors AS d ON fd.director_id = d.director_id
+            WHERE d.director_name ILIKE :query
+            GROUP BY f.film_id, m.mpa_name
+            ORDER BY like_count DESC
+            """;
+
+    private static final String SEARCH_FILMS_BY_TITLE_AND_DIRECTORY_NAME_QUERY = """
+            SELECT f.*,
+               m.mpa_name,
+               COUNT(DISTINCT l.film_id) AS like_count
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            LEFT JOIN likes AS l ON f.film_id = l.film_id
+            LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id
+            LEFT JOIN directors AS d ON fd.director_id = d.director_id
+            WHERE (f.film_name ILIKE :query OR d.director_name ILIKE :query)
+            GROUP BY f.film_id, m.mpa_name
+            ORDER BY like_count DESC
+            """;
+
     private final RowMapper<Genre> genreMapper;
     private final RowMapper<Director> directorMapper;
 
@@ -292,6 +332,31 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public void deleteAll() {
         execute(DELETE_ALL_QUERY);
+    }
+
+    @Override
+    public Collection<Film> searchFilmsByTitle(String query) {
+        String searchQuery = "%" + query + "%";
+        var params = new MapSqlParameterSource()
+                .addValue("query", searchQuery);
+        return supplementWithDirectors(supplementWithGenres(findMany(SEARCH_FILMS_BY_TITLE_QUERY, params)));
+    }
+
+    @Override
+    public Collection<Film> searchFilmsByDirectorName(String query) {
+        String searchQuery = "%" + query + "%";
+        var params = new MapSqlParameterSource()
+                .addValue("query", searchQuery);
+        return supplementWithDirectors(supplementWithGenres(findMany(SEARCH_FILMS_BY_DIRECTORY_NAME_QUERY, params)));
+    }
+
+    @Override
+    public Collection<Film> searchFilmsByTitleAndDirectorName(String query) {
+        String searchQuery = "%" + query + "%";
+        var params = new MapSqlParameterSource()
+                .addValue("query", searchQuery);
+
+        return supplementWithDirectors(supplementWithGenres(findMany(SEARCH_FILMS_BY_TITLE_AND_DIRECTORY_NAME_QUERY, params)));
     }
 
     private Film supplementWithGenres(final Film film) {
