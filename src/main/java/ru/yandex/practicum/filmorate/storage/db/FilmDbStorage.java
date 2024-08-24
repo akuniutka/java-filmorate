@@ -304,17 +304,20 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     .addValue("limit", limit)
                     .addValue("genreId", genreId)
                     .addValue("year", year);
-            return supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE_AND_YEAR, params));
+            return supplementWithDirectors(supplementWithGenres(findMany(
+                    FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE_AND_YEAR, params)));
         } else if (genreId != 0 && year == 0) {
             var params = new MapSqlParameterSource()
                     .addValue("limit", limit)
                     .addValue("genreId", genreId);
-            return supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE, params));
+            return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE,
+                    params)));
         } else if (genreId == 0 && year != 0) {
             var params = new MapSqlParameterSource()
                     .addValue("limit", limit)
                     .addValue("year", year);
-            return supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_YEAR, params));
+            return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_YEAR,
+                    params)));
         }
         var params = new MapSqlParameterSource("limit", limit);
         return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC, params)));
