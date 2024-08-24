@@ -12,6 +12,12 @@ public interface FilmStorage {
 
     Collection<Film> findAllOrderByLikesDesc(long limit);
 
+    Collection<Film> findAllByDirectorId(long directorId);
+
+    Collection<Film> findAllByDirectorIdOrderByYear(long directorId);
+
+    Collection<Film> findAllByDirectorIdOrderByLikes(long directorId);
+
     Optional<Film> findById(long id);
 
     Film save(Film film);
@@ -27,4 +33,10 @@ public interface FilmStorage {
     void deleteAll();
 
     Set<Long> getLikesByUserId(long userId);
+
+    Collection<Film> searchFilmsByTitle(String query);
+
+    Collection<Film> searchFilmsByDirectorName(String query);
+
+    Collection<Film> searchFilmsByTitleAndDirectorName(String query);
 }

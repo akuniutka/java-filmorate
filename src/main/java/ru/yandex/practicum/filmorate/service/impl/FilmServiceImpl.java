@@ -32,6 +32,21 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
+    public Collection<Film> getFilmsByDirectorId(final long directorId) {
+        return filmStorage.findAllByDirectorId(directorId);
+    }
+
+    @Override
+    public Collection<Film> getFilmsByDirectorIdOrderByYear(final long directorId) {
+        return filmStorage.findAllByDirectorIdOrderByYear(directorId);
+    }
+
+    @Override
+    public Collection<Film> getFilmsByDirectorIdOrderByLikes(final long directorId) {
+        return filmStorage.findAllByDirectorIdOrderByLikes(directorId);
+    }
+
+    @Override
     public Optional<Film> getFilm(final long id) {
         return filmStorage.findById(id);
     }
@@ -107,6 +122,21 @@ public class FilmServiceImpl implements FilmService {
         assertFilmExist(id);
         assertUserExist(userId);
         filmStorage.deleteLike(id, userId);
+    }
+
+    @Override
+    public Collection<Film> searchFilmsByTitle(String query) {
+        return filmStorage.searchFilmsByTitle(query);
+    }
+
+    @Override
+    public Collection<Film> searchFilmsByDirectorName(String query) {
+        return filmStorage.searchFilmsByDirectorName(query);
+    }
+
+    @Override
+    public Collection<Film> searchFilmsByTitleAndDirectorName(String query) {
+        return filmStorage.searchFilmsByTitleAndDirectorName(query);
     }
 
     private void assertFilmExist(final long id) {

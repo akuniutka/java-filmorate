@@ -24,8 +24,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUser(final long userId) {
-        return userStorage.findById(userId);
+    public Optional<User> getUser(final long id) {
+        return userStorage.findById(id);
     }
 
     @Override

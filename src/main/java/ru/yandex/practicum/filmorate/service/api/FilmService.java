@@ -11,6 +11,12 @@ public interface FilmService {
 
     Collection<Film> getTopFilmsByLikes(long limit);
 
+    Collection<Film> getFilmsByDirectorId(long directorId);
+
+    Collection<Film> getFilmsByDirectorIdOrderByYear(long directorId);
+
+    Collection<Film> getFilmsByDirectorIdOrderByLikes(long directorId);
+
     Optional<Film> getFilm(long id);
 
     Film createFilm(Film film);
@@ -22,6 +28,12 @@ public interface FilmService {
     Collection<Film> getRecommendations(long userId);
 
     void deleteLike(long id, long userId);
+
+    Collection<Film> searchFilmsByTitle(String query);
+
+    Collection<Film> searchFilmsByDirectorName(String query);
+
+    Collection<Film> searchFilmsByTitleAndDirectorName(String query);
 
 
 }
