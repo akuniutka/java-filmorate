@@ -4,8 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import ru.yandex.practicum.filmorate.storage.api.*;
-import ru.yandex.practicum.filmorate.storage.db.*;
+import ru.yandex.practicum.filmorate.storage.api.DirectorStorage;
+import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.api.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.api.MpaStorage;
+import ru.yandex.practicum.filmorate.storage.api.UserStorage;
+import ru.yandex.practicum.filmorate.storage.db.DirectorDbStorage;
+import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.db.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.db.MpaDbStorage;
+import ru.yandex.practicum.filmorate.storage.db.UserDbStorage;
+import ru.yandex.practicum.filmorate.storage.mem.DirectorInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.FilmInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.GenreInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.MpaInMemoryStorage;
@@ -28,6 +37,9 @@ public class FilmorateConfiguration {
 
     private final UserInMemoryStorage userInMemoryStorage;
     private final UserDbStorage userDbStorage;
+  
+    private final DirectorInMemoryStorage directorInMemoryStorage;
+    private final DirectorDbStorage directorDbStorage;
 
     private final ReviewDbStorage reviewDbStorage;
 
@@ -94,6 +106,19 @@ public class FilmorateConfiguration {
             case DATABASE -> userDbStorage;
             case MEMORY -> userInMemoryStorage;
             case null -> userInMemoryStorage;
+        };
+    }
+
+    @Bean
+    @Primary
+    public DirectorStorage directorStorage() {
+        if (props.getStorage() == null) {
+            return directorInMemoryStorage;
+        }
+        return switch (props.getStorage().getMode()) {
+            case DATABASE -> directorDbStorage;
+            case MEMORY -> directorInMemoryStorage;
+            case null -> directorInMemoryStorage;
         };
     }
 }

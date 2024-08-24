@@ -9,9 +9,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +24,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUser(final long userId) {
-        return userStorage.findById(userId);
+    public Optional<User> getUser(final long id) {
+        return userStorage.findById(id);
     }
 
     @Override
@@ -81,6 +79,10 @@ public class UserServiceImpl implements UserService {
         return userStorage.findCommonFriends(id, friendId);
     }
 
+    public Collection<User> getAllUsers() {
+        return userStorage.findAll();
+    }
+
     private void assertUserExists(final long id) {
         userStorage.findById(id).orElseThrow(() -> new NotFoundException(User.class, id));
     }
@@ -90,4 +92,5 @@ public class UserServiceImpl implements UserService {
             user.setName(user.getLogin());
         }
     }
+
 }
