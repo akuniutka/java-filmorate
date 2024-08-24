@@ -4,6 +4,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 
 public interface FilmStorage {
 
@@ -30,4 +31,6 @@ public interface FilmStorage {
     void delete(long id);
 
     void deleteAll();
+
+    Set<Long> getLikesByUserId(long userId);
 }

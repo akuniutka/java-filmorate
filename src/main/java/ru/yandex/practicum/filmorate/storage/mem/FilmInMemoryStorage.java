@@ -111,4 +111,9 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     private int countFilmLikes(final Film film) {
         return likes.getOrDefault(film.getId(), Collections.emptySet()).size();
     }
+
+    @Override
+    public Set<Long> getLikesByUserId(long userId) {
+        return Set.of();
+    }
 }
