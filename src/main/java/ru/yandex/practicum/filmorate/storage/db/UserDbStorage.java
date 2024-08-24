@@ -62,7 +62,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     private static final String DELETE_ALL_QUERY = "DELETE FROM users;";
 
     @Autowired
-    public UserDbStorage(final NamedParameterJdbcTemplate jdbc, RowMapper<User> mapper) {
+    public UserDbStorage(final NamedParameterJdbcTemplate jdbc, final RowMapper<User> mapper) {
         super(jdbc, mapper);
     }
 
