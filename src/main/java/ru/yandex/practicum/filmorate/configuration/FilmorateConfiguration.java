@@ -37,7 +37,7 @@ public class FilmorateConfiguration {
 
     private final UserInMemoryStorage userInMemoryStorage;
     private final UserDbStorage userDbStorage;
-  
+
     private final DirectorInMemoryStorage directorInMemoryStorage;
     private final DirectorDbStorage directorDbStorage;
 
