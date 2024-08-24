@@ -8,7 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
 
-@Mapper(uses = {MpaMapper.class, GenreMapper.class})
+@Mapper(uses = {MpaMapper.class, GenreMapper.class, DirectorMapper.class})
 public interface FilmMapper {
 
     Film mapToFilm(NewFilmDto dto);

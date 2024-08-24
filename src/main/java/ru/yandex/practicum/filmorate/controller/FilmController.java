@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
@@ -84,5 +85,48 @@ public class FilmController {
         );
         log.info("Responded to PUT /films: {}", filmDto);
         return filmDto;
+    }
+
+    @GetMapping("/director/{directorId}")
+    public Collection<FilmDto> getFilmsByDirector(@PathVariable final long directorId, @RequestParam final String sortBy) {
+        log.info("Received GET at /films/director/{}?sortBy={}", directorId, sortBy);
+        final Collection<Film> films = switch (sortBy) {
+            case "year" -> filmService.getFilmsByDirectorIdOrderByYear(directorId);
+            case "likes" -> filmService.getFilmsByDirectorIdOrderByLikes(directorId);
+            case null -> filmService.getFilmsByDirectorId(directorId);
+            default -> throw new ValidationException("Check parameter to sort films by (you send %s)"
+                    .formatted(sortBy));
+        };
+        final Collection<FilmDto> dtos = mapper.mapToDto(films);
+        log.info("Responded to GET /films/director/{}?sortBy={}: {}", directorId, sortBy, dtos);
+        return dtos;
+    }
+
+    @GetMapping("/search")
+    public Collection<FilmDto> searchFilms(
+            @RequestParam String query,
+            @RequestParam(name = "by", required = false, defaultValue = "title") String by) {
+        log.info("Received GET at /films/search?query={}&by={}", query, by);
+        // Разбиваем параметры by на отдельные значения (director, title)
+        String[] searchCriteria = by.split(",");
+
+        Collection<Film> films;
+
+        if (searchCriteria.length == 1) {
+            // Если указано только одно значение в параметре by
+            if ("director".equalsIgnoreCase(searchCriteria[0])) {
+                films = filmService.searchFilmsByDirectorName(query);
+            } else {
+                films = filmService.searchFilmsByTitle(query);
+            }
+        } else {
+            // Если указаны оба значения (director, title)
+            films = filmService.searchFilmsByTitleAndDirectorName(query);
+        }
+
+        // Маппим фильмы на DTO и возвращаем результат
+        final Collection<FilmDto> dtos = mapper.mapToDto(films);
+        log.info("Responded to GET /films/search?query={}&by={}: {}", query, by, dtos);
+        return dtos;
     }
 }

@@ -16,7 +16,9 @@ import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.api.FilmService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 
 import java.util.Collection;
@@ -28,6 +30,7 @@ import java.util.Collection;
 public class UserController {
 
     private final UserService userService;
+    private final FilmService filmService;
     private final UserMapper mapper;
 
     @GetMapping("/{id}/friends/common/{otherId}")
@@ -97,4 +100,10 @@ public class UserController {
         log.info("Responded to PUT at /users: {}", userDto);
         return userDto;
     }
+
+    @GetMapping("/{id}/recommendations")
+    public Collection<Film> getRecommendations(@PathVariable long id) {
+        return filmService.getRecommendations(id);
+    }
+
 }

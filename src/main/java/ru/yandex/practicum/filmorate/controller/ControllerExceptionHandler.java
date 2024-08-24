@@ -27,7 +27,9 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         log.debug(exception.getMessage(), exception);
         String detail = "Check that id of %s is correct (you sent %s)".formatted(exception.getModelName(),
                 exception.getModelId());
-        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, detail);
+        ProblemDetail response = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, detail);
+        response.setProperty("error", detail);
+        return response;
     }
 
     @ExceptionHandler
