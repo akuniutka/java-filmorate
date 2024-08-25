@@ -21,4 +21,5 @@ public class FilmDto {
     private Integer duration;
     private MpaDto mpa;
     private Collection<GenreDto> genres;
+    private Collection<DirectorDto> directors;
 }

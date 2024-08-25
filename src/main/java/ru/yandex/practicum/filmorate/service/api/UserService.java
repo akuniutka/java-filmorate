@@ -22,4 +22,5 @@ public interface UserService {
     Collection<User> getFriends(long id);
 
     Collection<User> getCommonFriends(long id, long friendId);
+
 }
