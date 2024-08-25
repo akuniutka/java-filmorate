@@ -243,42 +243,46 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     private static final String SEARCH_FILMS_BY_TITLE_QUERY = """
             SELECT f.*,
-              m.mpa_name,
-              COUNT(l.film_id) AS like_count
+              m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN likes AS l ON f.film_id = l.film_id
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
             WHERE film_name ILIKE :query
-            GROUP BY f.film_id, m.mpa_name
-            ORDER BY like_count DESC
+            ORDER BY fr.rating DESC, f.film_id;
             """;
 
     private static final String SEARCH_FILMS_BY_DIRECTORY_NAME_QUERY = """
             SELECT f.*,
-              m.mpa_name,
-              COUNT(l.film_id) AS like_count
+              m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN likes AS l ON f.film_id = l.film_id
-            LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id
-            LEFT JOIN directors AS d ON fd.director_id = d.director_id
-            WHERE d.director_name ILIKE :query
-            GROUP BY f.film_id, m.mpa_name
-            ORDER BY like_count DESC
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
+            WHERE f.film_id IN
+            (
+              SELECT fd.film_id
+              FROM film_directors AS fd
+              JOIN directors AS d ON fd.director_id = d.director_id
+              WHERE d.director_name ILIKE :query
+            )
+            ORDER BY fr.rating DESC, f.film_id;
             """;
 
     private static final String SEARCH_FILMS_BY_TITLE_AND_DIRECTORY_NAME_QUERY = """
             SELECT f.*,
-               m.mpa_name,
-               COUNT(DISTINCT l.film_id) AS like_count
+               m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN likes AS l ON f.film_id = l.film_id
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
             LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id
             LEFT JOIN directors AS d ON fd.director_id = d.director_id
-            WHERE (f.film_name ILIKE :query OR d.director_name ILIKE :query)
-            GROUP BY f.film_id, m.mpa_name
-            ORDER BY like_count DESC
+            WHERE f.film_name ILIKE :query OR f.film_id IN
+            (
+              SELECT fd.film_id
+              FROM film_directors AS fd
+              JOIN directors AS d ON fd.director_id = d.director_id
+              WHERE d.director_name ILIKE :query
+            )
+            ORDER BY fr.rating DESC, f.film_id;
             """;
 
     private static final String FIND_COMMON_FILMS_QUERY = """

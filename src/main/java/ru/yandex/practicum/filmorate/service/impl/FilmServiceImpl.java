@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.api.DirectorService;
 import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
@@ -24,6 +25,7 @@ public class FilmServiceImpl implements FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
     private final EventService eventService;
+    private final DirectorService directorService;
 
     @Override
     public Collection<Film> getFilms() {
@@ -37,16 +39,19 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<Film> getFilmsByDirectorId(final long directorId) {
+        directorService.assertDirectorExists(directorId);
         return filmStorage.findAllByDirectorId(directorId);
     }
 
     @Override
     public Collection<Film> getFilmsByDirectorIdOrderByYear(final long directorId) {
+        directorService.assertDirectorExists(directorId);
         return filmStorage.findAllByDirectorIdOrderByYear(directorId);
     }
 
     @Override
     public Collection<Film> getFilmsByDirectorIdOrderByLikes(final long directorId) {
+        directorService.assertDirectorExists(directorId);
         return filmStorage.findAllByDirectorIdOrderByLikes(directorId);
     }
 
