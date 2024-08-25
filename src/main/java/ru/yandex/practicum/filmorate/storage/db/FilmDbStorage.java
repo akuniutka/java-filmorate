@@ -400,6 +400,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         var params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("userId", userId);
+
         execute(ADD_LIKE_QUERY, params);
     }
 

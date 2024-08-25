@@ -4,8 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
@@ -20,6 +23,7 @@ public class FilmServiceImpl implements FilmService {
 
     private final FilmStorage filmStorage;
     private final UserService userService;
+    private final EventService eventService;
 
     @Override
     public Collection<Film> getFilms() {
@@ -71,6 +75,8 @@ public class FilmServiceImpl implements FilmService {
     public void addLike(final long id, final long userId) {
         assertFilmExist(id);
         assertUserExist(userId);
+        // добавление события добавления лайка в таблицу events
+        eventService.create(EventType.LIKE, userId, Operation.ADD, id);
         filmStorage.addLike(id, userId);
     }
 
@@ -121,6 +127,8 @@ public class FilmServiceImpl implements FilmService {
     public void deleteLike(final long id, final long userId) {
         assertFilmExist(id);
         assertUserExist(userId);
+        // добавление события удаления лайка в таблицу events
+        eventService.create(EventType.LIKE, userId, Operation.REMOVE, id);
         filmStorage.deleteLike(id, userId);
     }
 

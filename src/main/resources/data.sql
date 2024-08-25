@@ -1,3 +1,4 @@
+DELETE FROM events;
 DELETE FROM reviews_likes_dislikes;
 DELETE FROM film_genres;
 DELETE FROM reviews;
@@ -13,7 +14,7 @@ ALTER TABLE MPA ALTER COLUMN mpa_id RESTART WITH 1;
 ALTER TABLE films ALTER COLUMN film_id RESTART WITH 1;
 ALTER TABLE users ALTER COLUMN user_id RESTART WITH 1;
 ALTER TABLE reviews ALTER COLUMN review_id RESTART WITH 1;
-
+ALTER TABLE events ALTER COLUMN event_id RESTART WITH 1;
 
 CREATE TABLE initial_genres_data_temp
 (

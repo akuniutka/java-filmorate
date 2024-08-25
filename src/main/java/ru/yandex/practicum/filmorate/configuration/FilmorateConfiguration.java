@@ -5,12 +5,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import ru.yandex.practicum.filmorate.storage.api.DirectorStorage;
+import ru.yandex.practicum.filmorate.storage.api.EventStorage;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.api.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.api.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.api.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 import ru.yandex.practicum.filmorate.storage.db.DirectorDbStorage;
+import ru.yandex.practicum.filmorate.storage.db.EventDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.MpaDbStorage;
@@ -44,6 +46,7 @@ public class FilmorateConfiguration {
     private final DirectorDbStorage directorDbStorage;
 
     private final ReviewDbStorage reviewDbStorage;
+    private final EventDbStorage eventDbStorage;
 
     @Bean
     @Primary
@@ -55,6 +58,19 @@ public class FilmorateConfiguration {
             case DATABASE -> reviewDbStorage;
             case MEMORY -> reviewDbStorage;
             case null -> reviewDbStorage;
+        };
+    }
+
+    @Bean
+    @Primary
+    public EventStorage eventStorage() {
+        if (props.getStorage() == null) {
+            return eventDbStorage;
+        }
+        return switch (props.getStorage().getMode()) {
+            case DATABASE -> eventDbStorage;
+            case MEMORY -> eventDbStorage;
+            case null -> eventDbStorage;
         };
     }
 
