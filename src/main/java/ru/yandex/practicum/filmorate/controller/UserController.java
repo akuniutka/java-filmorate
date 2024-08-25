@@ -19,6 +19,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.EventMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 
 import java.util.Collection;
@@ -30,6 +31,7 @@ import java.util.Collection;
 public class UserController {
 
     private final UserService userService;
+    private final EventService eventService;
     private final UserMapper mapper;
     private final EventMapper eventMapper;
 
@@ -44,7 +46,7 @@ public class UserController {
     @GetMapping("/{id}/feed")
     public Collection<EventDto> getFeed(@PathVariable final long id) {
         log.info("Received GET at /users/{}/feed", id);
-        final Collection<EventDto> dtos = eventMapper.mapToDto(userService.getEvents(id));
+        final Collection<EventDto> dtos = eventMapper.mapToDto(eventService.getEvents(id));
         log.info("Responded to GET /users/{}/feed: {}", id, dtos);
         return dtos;
     }
@@ -53,14 +55,14 @@ public class UserController {
     public void addFriend(@PathVariable final long id, @PathVariable final long friendId) {
         log.info("Received PUT at /users/{}/friends/{}", id, friendId);
         userService.addFriend(id, friendId);
-        log.info("Responded to PUT /users/{}/friends/{} with no body", id, friendId);
+        log.info("Responded to PUT /users/{}/friends/{}", id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(@PathVariable final long id, @PathVariable final long friendId) {
         log.info("Received DELETE at /users/{}/friends/{}", id, friendId);
         userService.deleteFriend(id, friendId);
-        log.info("Responded to DELETE /users/{}/friends/{} with no body", id, friendId);
+        log.info("Responded to DELETE /users/{}/friends/{}", id, friendId);
     }
 
     @GetMapping("/{id}/friends")

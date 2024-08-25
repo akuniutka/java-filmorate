@@ -4,9 +4,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(of = {"userId"})
+@EqualsAndHashCode(of = {"userId", "reviewId"})
 public class ReviewLike {
     private Long userId;
-    private Long rewiewId;
+    private Long reviewId;
     private boolean isLike;
 }
