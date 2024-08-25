@@ -8,11 +8,13 @@ import ru.yandex.practicum.filmorate.storage.api.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.api.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.api.MpaStorage;
+import ru.yandex.practicum.filmorate.storage.api.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 import ru.yandex.practicum.filmorate.storage.db.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.MpaDbStorage;
+import ru.yandex.practicum.filmorate.storage.db.ReviewDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.UserDbStorage;
 import ru.yandex.practicum.filmorate.storage.mem.DirectorInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.FilmInMemoryStorage;
@@ -40,6 +42,22 @@ public class FilmorateConfiguration {
 
     private final DirectorInMemoryStorage directorInMemoryStorage;
     private final DirectorDbStorage directorDbStorage;
+
+    private final ReviewDbStorage reviewDbStorage;
+
+    @Bean
+    @Primary
+    public ReviewStorage rewiewStorage() {
+        if (props.getStorage() == null) {
+            return reviewDbStorage;
+        }
+        return switch (props.getStorage().getMode()) {
+            case DATABASE -> reviewDbStorage;
+            case MEMORY -> reviewDbStorage;
+            case null -> reviewDbStorage;
+        };
+    }
+
 
     @Bean
     @Primary
