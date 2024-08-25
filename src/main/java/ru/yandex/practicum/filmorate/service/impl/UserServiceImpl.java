@@ -5,7 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 
@@ -17,11 +20,13 @@ import java.util.*;
 public class UserServiceImpl implements UserService {
 
     private final UserStorage userStorage;
+    private final EventService eventService;
 
     @Override
     public Collection<User> getUsers() {
         return userStorage.findAll();
     }
+
 
     @Override
     public Optional<User> getUser(final long id) {
@@ -54,6 +59,8 @@ public class UserServiceImpl implements UserService {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
         userStorage.addFriend(id, friendId);
+        // добавление события добавления друга в таблицу events
+        eventService.create(EventType.FRIEND, id, Operation.ADD, friendId);
     }
 
     @Override
@@ -64,6 +71,9 @@ public class UserServiceImpl implements UserService {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
         userStorage.deleteFriend(id, friendId);
+        // добавление события удаления друга в таблице events
+        eventService.create(EventType.FRIEND, id, Operation.REMOVE, friendId);
+
     }
 
     @Override

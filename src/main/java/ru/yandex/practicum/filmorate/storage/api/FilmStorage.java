@@ -10,7 +10,7 @@ public interface FilmStorage {
 
     Collection<Film> findAll();
 
-    Collection<Film> findAllOrderByLikesDesc(long limit);
+    Collection<Film> findAllOrderByLikesDesc(long limit, Long genreId, Integer year);
 
     Collection<Film> findAllByDirectorId(long directorId);
 
@@ -39,4 +39,6 @@ public interface FilmStorage {
     Collection<Film> searchFilmsByDirectorName(String query);
 
     Collection<Film> searchFilmsByTitleAndDirectorName(String query);
+
+    Collection<Film> getCommonFilms(long id, long friendId);
 }
