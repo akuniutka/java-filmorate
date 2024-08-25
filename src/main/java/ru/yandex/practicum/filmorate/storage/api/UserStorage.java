@@ -23,7 +23,7 @@ public interface UserStorage {
 
     Collection<User> findCommonFriends(long id, long friendId);
 
-    void delete(long id);
-
     void deleteAll();
+
+    void deleteById(long userId);
 }

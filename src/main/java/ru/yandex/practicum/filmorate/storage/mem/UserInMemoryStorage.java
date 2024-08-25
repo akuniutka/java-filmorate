@@ -69,15 +69,13 @@ public class UserInMemoryStorage extends BaseInMemoryStorage<User> implements Us
     }
 
     @Override
-    public void delete(final long id) {
-        friends.remove(id);
-        friends.values().forEach(s -> s.remove(id));
-        super.delete(id);
-    }
-
-    @Override
     public void deleteAll() {
         friends.clear();
         super.deleteAll();
+    }
+
+    @Override
+    public void deleteById(long userId) {
+
     }
 }

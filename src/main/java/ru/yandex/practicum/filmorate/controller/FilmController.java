@@ -87,6 +87,13 @@ public class FilmController {
         return filmDto;
     }
 
+    @DeleteMapping("/{filmId}")
+    public void deleteFilm(@PathVariable long filmId) {
+        log.info("Received DELETE request at /films/{}", filmId);
+        filmService.deleteFilm(filmId);
+        log.info("Film with id {} deleted successfully", filmId);
+    }
+
     @GetMapping("/common")
     public Collection<FilmDto> getCommonFilms(@RequestParam final long userId, @RequestParam final long friendId) {
         log.info("Received GET at /films/common?userId={}&friendId={}", userId, friendId);

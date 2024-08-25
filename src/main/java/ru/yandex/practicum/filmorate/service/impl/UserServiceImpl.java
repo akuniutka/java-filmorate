@@ -89,6 +89,11 @@ public class UserServiceImpl implements UserService {
         return userStorage.findCommonFriends(id, friendId);
     }
 
+    @Override
+    public void deleteUserById(long userId) {
+        userStorage.deleteById(userId);
+    }
+
     public Collection<User> getAllUsers() {
         return userStorage.findAll();
     }

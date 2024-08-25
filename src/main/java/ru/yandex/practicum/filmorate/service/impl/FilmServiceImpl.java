@@ -133,6 +133,11 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
+    public void deleteFilm(long id) {
+        filmStorage.deleteById(id);
+    }
+
+    @Override
     public Collection<Film> searchFilmsByTitle(String query) {
         return filmStorage.searchFilmsByTitle(query);
     }

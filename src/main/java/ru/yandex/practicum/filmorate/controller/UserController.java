@@ -116,7 +116,17 @@ public class UserController {
 
     @GetMapping("/{id}/recommendations")
     public Collection<Film> getRecommendations(@PathVariable long id) {
-        return filmService.getRecommendations(id);
+        log.info("Received GET request at /film/{}\", id");
+        Collection<Film> dtos = filmService.getRecommendations(id);
+        log.info("Responded to GET /film: {}", id);
+        return dtos;
+    }
+
+    @DeleteMapping("/{userId}")
+    public void deleteUser(@PathVariable long userId) {
+        log.info("Received DELETE request at /Users/{}", userId);
+        userService.deleteUserById(userId);
+        log.info("User with id {} deleted successfully", userId);
     }
 
 }

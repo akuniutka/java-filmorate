@@ -17,6 +17,10 @@ import java.util.stream.Collectors;
 @Repository
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
+    private static final String DELETE_FROM_FILM = """
+        DELETE FROM films WHERE film_id = :filmId
+    """;
+
     private static final String GET_LIKES_BY_USER_ID_QUERY = """
         SELECT film_id
         FROM likes
@@ -179,7 +183,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             DELETE FROM likes
             WHERE film_id = :id AND user_id = :userId;
             """;
-    private static final String DELETE_QUERY = "DELETE FROM films WHERE film_id = :id;";
     private static final String DELETE_ALL_QUERY = "DELETE FROM films;";
     private static final String FIND_GENRES_BY_FILM_ID_QUERY = """
             SELECT g.*
@@ -413,11 +416,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public void delete(final long id) {
-        delete(DELETE_QUERY, id);
-    }
-
-    @Override
     public void deleteAll() {
         execute(DELETE_ALL_QUERY);
     }
@@ -560,5 +558,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public Set<Long> getLikesByUserId(long userId) {
         var params = new MapSqlParameterSource("userId", userId);
         return new HashSet<>(jdbc.query(GET_LIKES_BY_USER_ID_QUERY, params, (rs, rowNum) -> rs.getLong("film_id")));
+    }
+
+    @Override
+    public void deleteById(long filmId) {
+        MapSqlParameterSource params = new MapSqlParameterSource("filmId", filmId);
+        jdbc.update(DELETE_FROM_FILM, params);
     }
 }

@@ -23,4 +23,5 @@ public interface UserService {
 
     Collection<User> getCommonFriends(long id, long friendId);
 
+    void deleteUserById(long userId);
 }
