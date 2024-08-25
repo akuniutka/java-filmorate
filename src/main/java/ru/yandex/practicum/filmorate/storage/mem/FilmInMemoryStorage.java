@@ -70,8 +70,12 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public void deleteLike(long id, long userId) {
-        Optional.ofNullable(likes.get(id)).ifPresent(s -> s.remove(userId));
+    public boolean deleteLike(long id, long userId) {
+        Set<Long> filmLikes = likes.get(id);
+        if (filmLikes == null) {
+            return false;
+        }
+        return filmLikes.remove(userId);
     }
 
     @Override

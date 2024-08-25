@@ -38,10 +38,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             SELECT * FROM FINAL TABLE (
               UPDATE reviews
               SET content = :content,
-                is_positive = :is_positive,
-                user_id = :user_id,
-                film_id = :film_id,
-                useful = :useful
+                is_positive = :is_positive
               WHERE review_id = :review_id
             );
             """;
@@ -117,9 +114,11 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public void delete(final long id) {
+    public boolean delete(final long id) {
         delete(DELETE_LIKES_DISLIKES_QUERY, id);
-        delete(DELETE_QUERY, id);
+//        delete(DELETE_QUERY, id);
+        var params = new MapSqlParameterSource("id", id);
+        return jdbc.update(DELETE_QUERY, params) > 0;
     }
 
     @Override

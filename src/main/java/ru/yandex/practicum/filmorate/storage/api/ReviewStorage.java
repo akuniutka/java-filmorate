@@ -16,7 +16,7 @@ public interface ReviewStorage {
 
     Optional<Review> update(Review review);
 
-    void delete(long id);
+    boolean delete(long id);
 
     Review addLike(long reviewId, long userId);
 

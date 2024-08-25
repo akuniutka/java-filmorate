@@ -20,7 +20,6 @@ import ru.yandex.practicum.filmorate.mapper.EventMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 
@@ -33,7 +32,6 @@ import java.util.Collection;
 public class UserController {
 
     private final UserService userService;
-    private final EventService eventService;
     private final FilmService filmService;
     private final UserMapper mapper;
     private final EventMapper eventMapper;
@@ -49,7 +47,7 @@ public class UserController {
     @GetMapping("/{id}/feed")
     public Collection<EventDto> getFeed(@PathVariable final long id) {
         log.info("Received GET at /users/{}/feed", id);
-        final Collection<EventDto> dtos = eventMapper.mapToDto(eventService.getEvents(id));
+        final Collection<EventDto> dtos = eventMapper.mapToDto(userService.getEvents(id));
         log.info("Responded to GET /users/{}/feed: {}", id, dtos);
         return dtos;
     }
@@ -116,7 +114,7 @@ public class UserController {
 
     @GetMapping("/{id}/recommendations")
     public Collection<Film> getRecommendations(@PathVariable long id) {
-        log.info("Received GET request at /film/{}\", id");
+        log.info("Received GET request at /film/{}", id);
         Collection<Film> dtos = filmService.getRecommendations(id);
         log.info("Responded to GET /film: {}", id);
         return dtos;

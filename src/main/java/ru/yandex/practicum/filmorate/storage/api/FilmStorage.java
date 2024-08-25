@@ -26,7 +26,7 @@ public interface FilmStorage {
 
     void addLike(long id, long userId);
 
-    void deleteLike(long id, long userId);
+    boolean deleteLike(long id, long userId);
 
     void deleteAll();
 
