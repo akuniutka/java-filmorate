@@ -377,7 +377,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         var params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("friendId", friendId);
-        return supplementWithGenres(findMany(FIND_COMMON_FILMS_QUERY, params));
+        return supplementWithDirectors(supplementWithGenres(findMany(FIND_COMMON_FILMS_QUERY, params)));
     }
 
     private Film supplementWithGenres(final Film film) {
