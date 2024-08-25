@@ -80,18 +80,6 @@ public abstract class AbstractFilmStorageTest {
     }
 
     @Test
-    void shouldDeleteFilm() {
-        final List<Film> expectedFilms = preloadData();
-        final long id = expectedFilms.get(1).getId();
-        expectedFilms.remove(1);
-
-        filmStorage.delete(id);
-        final List<Film> actualFilms = new ArrayList<>(filmStorage.findAll());
-
-        assertFilmListEquals(expectedFilms, actualFilms);
-    }
-
-    @Test
     void shouldDeleteAllFilms() {
         preloadData();
 

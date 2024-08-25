@@ -9,7 +9,7 @@ public interface FilmService {
 
     Collection<Film> getFilms();
 
-    Collection<Film> getTopFilmsByLikes(long limit);
+    Collection<Film> getTopFilmsByLikes(long limit, Long genreId, Integer year);
 
     Collection<Film> getFilmsByDirectorId(long directorId);
 
@@ -29,10 +29,13 @@ public interface FilmService {
 
     void deleteLike(long id, long userId);
 
+    void deleteFilm(long id);
+
     Collection<Film> searchFilmsByTitle(String query);
 
     Collection<Film> searchFilmsByDirectorName(String query);
 
     Collection<Film> searchFilmsByTitleAndDirectorName(String query);
 
+    Collection<Film> getCommonFilms(long id, long friendId);
 }

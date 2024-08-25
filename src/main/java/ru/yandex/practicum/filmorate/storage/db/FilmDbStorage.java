@@ -17,6 +17,10 @@ import java.util.stream.Collectors;
 @Repository
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
+    private static final String DELETE_FROM_FILM = """
+        DELETE FROM films WHERE film_id = :filmId
+    """;
+
     private static final String GET_LIKES_BY_USER_ID_QUERY = """
         SELECT film_id
         FROM likes
@@ -35,15 +39,42 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
               m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN
-            (
-              SELECT film_id,
-                COUNT(*) AS likes
-              FROM likes
-              GROUP BY film_id
-            ) AS l ON f.film_id = l.film_id
-            ORDER BY COALESCE (l.likes, 0) DESC
-            LIMIT :limit
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
+            ORDER BY fr.rating DESC, f.film_id
+            LIMIT :limit;
+            """;
+    private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE_AND_YEAR = """
+            SELECT f.*,
+              m.mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            JOIN film_genres fg ON f.film_id = fg.film_id
+            JOIN film_ratings fr ON f.film_id = fr.film_id
+            WHERE genre_id = :genreId
+              AND EXTRACT (YEAR FROM release_date) = :year
+            ORDER BY fr.rating DESC, f.film_id
+            LIMIT :limit;
+            """;
+    private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE = """
+            SELECT f.*,
+              m.mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            JOIN film_genres fg ON f.film_id = fg.film_id
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
+            WHERE genre_id = :genreId
+            ORDER BY fr.rating DESC, film_id
+            LIMIT :limit;
+            """;
+    private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_YEAR = """
+            SELECT f.*,
+              m.mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
+            WHERE EXTRACT (YEAR FROM release_date) = :year
+            ORDER BY fr.rating DESC, f.film_id
+            LIMIT :limit;
             """;
     private static final String FIND_ALL_BY_DIRECTOR_ID_QUERY = """
             SELECT f.*,
@@ -69,15 +100,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             FROM films AS f
             JOIN film_directors AS fd ON f.film_id = fd.film_id
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN
-            (
-              SELECT film_id,
-                COUNT(*) AS likes
-              FROM likes
-              GROUP BY film_id
-            ) AS l ON f.film_id = l.film_id
+            JOIN film_ratings AS fr ON fr.film_id = f.film_id
             WHERE fd.director_id = :directorId
-            ORDER BY COALESCE (l.likes, 0) DESC, f.film_id;
+            ORDER BY fr.rating DESC, f.film_id;
             """;
     private static final String FIND_BY_ID_QUERY = """
             SELECT f.*,
@@ -124,7 +149,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             DELETE FROM likes
             WHERE film_id = :id AND user_id = :userId;
             """;
-    private static final String DELETE_QUERY = "DELETE FROM films WHERE film_id = :id;";
     private static final String DELETE_ALL_QUERY = "DELETE FROM films;";
     private static final String FIND_GENRES_BY_FILM_ID_QUERY = """
             SELECT g.*
@@ -185,42 +209,58 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     private static final String SEARCH_FILMS_BY_TITLE_QUERY = """
             SELECT f.*,
-              m.mpa_name,
-              COUNT(l.film_id) AS like_count
+              m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN likes AS l ON f.film_id = l.film_id
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
             WHERE film_name ILIKE :query
-            GROUP BY f.film_id, m.mpa_name
-            ORDER BY like_count DESC
+            ORDER BY fr.rating DESC, f.film_id;
             """;
 
     private static final String SEARCH_FILMS_BY_DIRECTORY_NAME_QUERY = """
             SELECT f.*,
-              m.mpa_name,
-              COUNT(l.film_id) AS like_count
+              m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN likes AS l ON f.film_id = l.film_id
-            LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id
-            LEFT JOIN directors AS d ON fd.director_id = d.director_id
-            WHERE d.director_name ILIKE :query
-            GROUP BY f.film_id, m.mpa_name
-            ORDER BY like_count DESC
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
+            WHERE f.film_id IN
+            (
+              SELECT fd.film_id
+              FROM film_directors AS fd
+              JOIN directors AS d ON fd.director_id = d.director_id
+              WHERE d.director_name ILIKE :query
+            )
+            ORDER BY fr.rating DESC, f.film_id;
             """;
 
     private static final String SEARCH_FILMS_BY_TITLE_AND_DIRECTORY_NAME_QUERY = """
             SELECT f.*,
-               m.mpa_name,
-               COUNT(DISTINCT l.film_id) AS like_count
+               m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN likes AS l ON f.film_id = l.film_id
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
             LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id
             LEFT JOIN directors AS d ON fd.director_id = d.director_id
-            WHERE (f.film_name ILIKE :query OR d.director_name ILIKE :query)
-            GROUP BY f.film_id, m.mpa_name
-            ORDER BY like_count DESC
+            WHERE f.film_name ILIKE :query OR f.film_id IN
+            (
+              SELECT fd.film_id
+              FROM film_directors AS fd
+              JOIN directors AS d ON fd.director_id = d.director_id
+              WHERE d.director_name ILIKE :query
+            )
+            ORDER BY fr.rating DESC, f.film_id;
+            """;
+
+    private static final String FIND_COMMON_FILMS_QUERY = """
+            SELECT f.*,
+              m.mpa_name
+            FROM films AS f
+            JOIN likes AS l1 ON f.film_id = l1.film_id
+            JOIN likes AS l2 ON f.film_id = l2.film_id
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
+            WHERE l1.user_id = :id AND l2.user_id = :friendId
+            ORDER BY fr.rating DESC, f.film_id;
             """;
 
     private final RowMapper<Genre> genreMapper;
@@ -243,7 +283,27 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
+    public Collection<Film> findAllOrderByLikesDesc(long limit, Long genreId, Integer year) {
+        if (genreId != 0 && year != 0) {
+            var params = new MapSqlParameterSource()
+                    .addValue("limit", limit)
+                    .addValue("genreId", genreId)
+                    .addValue("year", year);
+            return supplementWithDirectors(supplementWithGenres(findMany(
+                    FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE_AND_YEAR, params)));
+        } else if (genreId != 0 && year == 0) {
+            var params = new MapSqlParameterSource()
+                    .addValue("limit", limit)
+                    .addValue("genreId", genreId);
+            return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE,
+                    params)));
+        } else if (genreId == 0 && year != 0) {
+            var params = new MapSqlParameterSource()
+                    .addValue("limit", limit)
+                    .addValue("year", year);
+            return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_YEAR,
+                    params)));
+        }
         var params = new MapSqlParameterSource("limit", limit);
         return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC, params)));
     }
@@ -313,20 +373,17 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         var params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("userId", userId);
+
         execute(ADD_LIKE_QUERY, params);
     }
 
     @Override
-    public void deleteLike(final long id, final long userId) {
+    public boolean deleteLike(final long id, final long userId) {
         var params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("userId", userId);
-        execute(DELETE_LIKE_QUERY, params);
-    }
-
-    @Override
-    public void delete(final long id) {
-        delete(DELETE_QUERY, id);
+//        execute(DELETE_LIKE_QUERY, params);
+        return jdbc.update(DELETE_LIKE_QUERY, params) > 0;
     }
 
     @Override
@@ -357,6 +414,15 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 .addValue("query", searchQuery);
 
         return supplementWithDirectors(supplementWithGenres(findMany(SEARCH_FILMS_BY_TITLE_AND_DIRECTORY_NAME_QUERY, params)));
+    }
+
+    //ЕСЛИ ТЕСТЫ НЕ БУДУТ ПРОХОДИТЬ - ПЕРЕПРОВЕРИТЬ ЭТОТ МЕТОД
+    @Override
+    public Collection<Film> getCommonFilms(long id, long friendId) {
+        var params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("friendId", friendId);
+        return supplementWithDirectors(supplementWithGenres(findMany(FIND_COMMON_FILMS_QUERY, params)));
     }
 
     private Film supplementWithGenres(final Film film) {
@@ -463,5 +529,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public Set<Long> getLikesByUserId(long userId) {
         var params = new MapSqlParameterSource("userId", userId);
         return new HashSet<>(jdbc.query(GET_LIKES_BY_USER_ID_QUERY, params, (rs, rowNum) -> rs.getLong("film_id")));
+    }
+
+    @Override
+    public void deleteById(long filmId) {
+        MapSqlParameterSource params = new MapSqlParameterSource("filmId", filmId);
+        jdbc.update(DELETE_FROM_FILM, params);
     }
 }

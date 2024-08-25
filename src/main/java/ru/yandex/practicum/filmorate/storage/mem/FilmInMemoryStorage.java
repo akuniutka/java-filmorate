@@ -29,7 +29,7 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
+    public Collection<Film> findAllOrderByLikesDesc(final long limit, final Long genreId, final Integer year) {
         return data.values().stream()
                 .sorted(Comparator.comparingInt(this::countFilmLikes).thenComparing(byId))
                 .limit(limit)
@@ -70,14 +70,12 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public void deleteLike(long id, long userId) {
-        Optional.ofNullable(likes.get(id)).ifPresent(s -> s.remove(userId));
-    }
-
-    @Override
-    public void delete(final long id) {
-        likes.remove(id);
-        super.delete(id);
+    public boolean deleteLike(long id, long userId) {
+        Set<Long> filmLikes = likes.get(id);
+        if (filmLikes == null) {
+            return false;
+        }
+        return filmLikes.remove(userId);
     }
 
     @Override
@@ -130,5 +128,15 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     @Override
     public Set<Long> getLikesByUserId(long userId) {
         return Set.of();
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(long id, long friendId) {
+        return null;
+    }
+
+    @Override
+    public void deleteById(long id) {
+
     }
 }

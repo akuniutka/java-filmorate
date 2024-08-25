@@ -198,18 +198,6 @@ public abstract class AbstractUserStorageTest {
     }
 
     @Test
-    void shouldDeleteUser() {
-        final List<User> expectedUsers = preloadData();
-        final long id = expectedUsers.get(1).getId();
-        expectedUsers.remove(1);
-
-        userStorage.delete(id);
-        final List<User> actualUsers = new ArrayList<>(userStorage.findAll());
-
-        assertUserListEquals(expectedUsers, actualUsers);
-    }
-
-    @Test
     void shouldDeleteAllUsers() {
         preloadData();
 

@@ -4,8 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.api.DirectorService;
+import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
@@ -20,6 +24,8 @@ public class FilmServiceImpl implements FilmService {
 
     private final FilmStorage filmStorage;
     private final UserService userService;
+    private final EventService eventService;
+    private final DirectorService directorService;
 
     @Override
     public Collection<Film> getFilms() {
@@ -27,22 +33,25 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public Collection<Film> getTopFilmsByLikes(final long limit) {
-        return filmStorage.findAllOrderByLikesDesc(limit);
+    public Collection<Film> getTopFilmsByLikes(final long limit, final Long genreId, final Integer year) {
+        return filmStorage.findAllOrderByLikesDesc(limit, genreId, year);
     }
 
     @Override
     public Collection<Film> getFilmsByDirectorId(final long directorId) {
+        directorService.assertDirectorExists(directorId);
         return filmStorage.findAllByDirectorId(directorId);
     }
 
     @Override
     public Collection<Film> getFilmsByDirectorIdOrderByYear(final long directorId) {
+        directorService.assertDirectorExists(directorId);
         return filmStorage.findAllByDirectorIdOrderByYear(directorId);
     }
 
     @Override
     public Collection<Film> getFilmsByDirectorIdOrderByLikes(final long directorId) {
+        directorService.assertDirectorExists(directorId);
         return filmStorage.findAllByDirectorIdOrderByLikes(directorId);
     }
 
@@ -71,6 +80,8 @@ public class FilmServiceImpl implements FilmService {
     public void addLike(final long id, final long userId) {
         assertFilmExist(id);
         assertUserExist(userId);
+        // добавление события добавления лайка в таблицу events
+        eventService.create(EventType.LIKE, userId, Operation.ADD, id);
         filmStorage.addLike(id, userId);
     }
 
@@ -121,7 +132,15 @@ public class FilmServiceImpl implements FilmService {
     public void deleteLike(final long id, final long userId) {
         assertFilmExist(id);
         assertUserExist(userId);
-        filmStorage.deleteLike(id, userId);
+        // добавление события удаления лайка в таблицу events
+        if (filmStorage.deleteLike(id, userId)) {
+            eventService.create(EventType.LIKE, userId, Operation.REMOVE, id);
+        }
+    }
+
+    @Override
+    public void deleteFilm(long id) {
+        filmStorage.deleteById(id);
     }
 
     @Override
@@ -137,6 +156,13 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Collection<Film> searchFilmsByTitleAndDirectorName(String query) {
         return filmStorage.searchFilmsByTitleAndDirectorName(query);
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(long id, long friendId) {
+        assertUserExist(id);
+        assertUserExist(friendId);
+        return filmStorage.getCommonFilms(id, friendId);
     }
 
     private void assertFilmExist(final long id) {

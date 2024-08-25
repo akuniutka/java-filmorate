@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.NewUserDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.EventMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -32,12 +34,21 @@ public class UserController {
     private final UserService userService;
     private final FilmService filmService;
     private final UserMapper mapper;
+    private final EventMapper eventMapper;
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public Collection<UserDto> getCommonFriends(@PathVariable final long id, @PathVariable final long otherId) {
         log.info("Received GET at /users/{}/friends/common/{}", id, otherId);
         final Collection<UserDto> dtos = mapper.mapToDto(userService.getCommonFriends(id, otherId));
         log.info("Responded to GET /users/{}/friends/common/{}: {}", id, otherId, dtos);
+        return dtos;
+    }
+
+    @GetMapping("/{id}/feed")
+    public Collection<EventDto> getFeed(@PathVariable final long id) {
+        log.info("Received GET at /users/{}/feed", id);
+        final Collection<EventDto> dtos = eventMapper.mapToDto(userService.getEvents(id));
+        log.info("Responded to GET /users/{}/feed: {}", id, dtos);
         return dtos;
     }
 
@@ -103,7 +114,17 @@ public class UserController {
 
     @GetMapping("/{id}/recommendations")
     public Collection<Film> getRecommendations(@PathVariable long id) {
-        return filmService.getRecommendations(id);
+        log.info("Received GET request at /film/{}", id);
+        Collection<Film> dtos = filmService.getRecommendations(id);
+        log.info("Responded to GET /film: {}", id);
+        return dtos;
+    }
+
+    @DeleteMapping("/{userId}")
+    public void deleteUser(@PathVariable long userId) {
+        log.info("Received DELETE request at /Users/{}", userId);
+        userService.deleteUserById(userId);
+        log.info("User with id {} deleted successfully", userId);
     }
 
 }

@@ -16,4 +16,6 @@ public interface DirectorService {
     Optional<Director> updateDirector(Director director);
 
     void deleteDirector(long id);
+
+    void assertDirectorExists(long id);
 }

@@ -15,6 +15,7 @@ import java.util.Optional;
 @Repository
 public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
+    private static final String DELETE_USER = "DELETE FROM users WHERE user_id = :userId";
     private static final String FIND_ALL_QUERY = "SELECT * FROM users ORDER BY user_id;";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM users WHERE user_id = :id;";
     private static final String SAVE_QUERY = """
@@ -58,7 +59,6 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             WHERE f1.user_id = :id AND f2.user_id = :friendId
             ORDER BY f1.friend_id;
             """;
-    private static final String DELETE_QUERY = "DELETE FROM users WHERE user_id = :id;";
     private static final String DELETE_ALL_QUERY = "DELETE FROM users;";
 
     @Autowired
@@ -106,11 +106,12 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     }
 
     @Override
-    public void deleteFriend(final long id, final long friendId) {
+    public boolean deleteFriend(final long id, final long friendId) {
         var params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("friendId", friendId);
-        execute(DELETE_FRIEND_QUERY, params);
+//        execute(DELETE_FRIEND_QUERY, params);
+        return jdbc.update(DELETE_FRIEND_QUERY, params) > 0;
     }
 
     @Override
@@ -128,12 +129,13 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     }
 
     @Override
-    public void delete(final long id) {
-        delete(DELETE_QUERY, id);
+    public void deleteAll() {
+        execute(DELETE_ALL_QUERY);
     }
 
     @Override
-    public void deleteAll() {
-        execute(DELETE_ALL_QUERY);
+    public void deleteById(long userId) {
+        MapSqlParameterSource params = new MapSqlParameterSource("userId", userId);
+        jdbc.update(DELETE_USER, params);
     }
 }
