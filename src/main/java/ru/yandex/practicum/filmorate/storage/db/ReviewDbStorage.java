@@ -38,10 +38,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             SELECT * FROM FINAL TABLE (
               UPDATE reviews
               SET content = :content,
-                is_positive = :is_positive,
-                user_id = :user_id,
-                film_id = :film_id,
-                useful = :useful
+                is_positive = :is_positive
               WHERE review_id = :review_id
             );
             """;
