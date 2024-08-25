@@ -39,70 +39,42 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
               m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN
-            (
-              SELECT film_id,
-                COUNT(*) AS likes
-              FROM likes
-              GROUP BY film_id
-            ) AS l ON f.film_id = l.film_id
-            ORDER BY COALESCE (l.likes, 0) DESC
-            LIMIT :limit
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
+            ORDER BY fr.rating DESC, f.film_id
+            LIMIT :limit;
             """;
     private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE_AND_YEAR = """
             SELECT f.*,
-              m.mpa_name,
-              fg.genre_id
+              m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN film_genres fg ON f.film_id = fg.film_id
-            LEFT JOIN
-            (
-              SELECT film_id,
-                COUNT(*) AS likes
-              FROM likes
-              GROUP BY film_id
-            ) AS l ON f.film_id = l.film_id
-            WHERE genre_Id = :genreId
-            AND EXTRACT (YEAR FROM release_date) = :year
-            ORDER BY COALESCE (l.likes, 0) DESC
-            LIMIT :limit
+            JOIN film_genres fg ON f.film_id = fg.film_id
+            JOIN film_ratings fr ON f.film_id = fr.film_id
+            WHERE genre_id = :genreId
+              AND EXTRACT (YEAR FROM release_date) = :year
+            ORDER BY fr.rating DESC, f.film_id
+            LIMIT :limit;
             """;
     private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE = """
             SELECT f.*,
-              m.mpa_name,
-              fg.genre_id
+              m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN film_genres fg ON f.film_id = fg.film_id
-            LEFT JOIN
-            (
-              SELECT film_id,
-                COUNT(*) AS likes
-              FROM likes
-              GROUP BY film_id
-            ) AS l ON f.film_id = l.film_id
-            WHERE genre_Id = :genreId
-            ORDER BY COALESCE (l.likes, 0) DESC
-            LIMIT :limit
+            JOIN film_genres fg ON f.film_id = fg.film_id
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
+            WHERE genre_id = :genreId
+            ORDER BY fr.rating DESC, film_id
+            LIMIT :limit;
             """;
     private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_YEAR = """
             SELECT f.*,
-              m.mpa_name,
-              fg.genre_id
+              m.mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN film_genres fg ON f.film_id = fg.film_id
-            LEFT JOIN
-            (
-              SELECT film_id,
-                COUNT(*) AS likes
-              FROM likes
-              GROUP BY film_id
-            ) AS l ON f.film_id = l.film_id
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
             WHERE EXTRACT (YEAR FROM release_date) = :year
-            ORDER BY COALESCE (l.likes, 0) DESC
-            LIMIT :limit
+            ORDER BY fr.rating DESC, f.film_id
+            LIMIT :limit;
             """;
     private static final String FIND_ALL_BY_DIRECTOR_ID_QUERY = """
             SELECT f.*,
@@ -128,15 +100,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             FROM films AS f
             JOIN film_directors AS fd ON f.film_id = fd.film_id
             LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
-            LEFT JOIN
-            (
-              SELECT film_id,
-                COUNT(*) AS likes
-              FROM likes
-              GROUP BY film_id
-            ) AS l ON f.film_id = l.film_id
+            JOIN film_ratings AS fr ON fr.film_id = f.film_id
             WHERE fd.director_id = :directorId
-            ORDER BY COALESCE (l.likes, 0) DESC, f.film_id;
+            ORDER BY fr.rating DESC, f.film_id;
             """;
     private static final String FIND_BY_ID_QUERY = """
             SELECT f.*,
@@ -286,15 +252,15 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             """;
 
     private static final String FIND_COMMON_FILMS_QUERY = """
-            SELECT f.*, m.mpa_name, COUNT(l3.user_id) AS like_count
-            FROM films f
-            JOIN likes l1 ON f.film_id = l1.film_id
-            JOIN likes l2 ON f.film_id = l2.film_id
-            LEFT JOIN mpa m ON f.mpa_id = m.mpa_id
-            LEFT JOIN likes l3 ON f.film_id = l3.film_id
+            SELECT f.*,
+              m.mpa_name
+            FROM films AS f
+            JOIN likes AS l1 ON f.film_id = l1.film_id
+            JOIN likes AS l2 ON f.film_id = l2.film_id
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            JOIN film_ratings AS fr ON f.film_id = fr.film_id
             WHERE l1.user_id = :id AND l2.user_id = :friendId
-            GROUP BY f.film_id, m.mpa_name
-            ORDER BY like_count DESC;
+            ORDER BY fr.rating DESC, f.film_id;
             """;
 
     private final RowMapper<Genre> genreMapper;
