@@ -28,6 +28,7 @@ public class EventServiceImpl implements EventService {
         event.setTimestamp(Instant.now());
         event.setEntityId(entityId);
         eventStorage.save(event);
+        log.info("New event added to action log: {}", event);
     }
 
     @Override

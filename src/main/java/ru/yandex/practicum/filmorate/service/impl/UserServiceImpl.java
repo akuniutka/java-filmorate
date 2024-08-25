@@ -71,10 +71,10 @@ public class UserServiceImpl implements UserService {
         if (Objects.equals(id, friendId)) {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
-        userStorage.deleteFriend(id, friendId);
-        // добавление события удаления друга в таблице events
-        eventService.create(EventType.FRIEND, id, Operation.REMOVE, friendId);
-
+        if (userStorage.deleteFriend(id, friendId)) {
+            // добавление события удаления друга в таблице events
+            eventService.create(EventType.FRIEND, id, Operation.REMOVE, friendId);
+        }
     }
 
     @Override

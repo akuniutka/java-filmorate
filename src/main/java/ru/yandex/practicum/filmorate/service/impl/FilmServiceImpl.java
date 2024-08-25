@@ -133,8 +133,9 @@ public class FilmServiceImpl implements FilmService {
         assertFilmExist(id);
         assertUserExist(userId);
         // добавление события удаления лайка в таблицу events
-        eventService.create(EventType.LIKE, userId, Operation.REMOVE, id);
-        filmStorage.deleteLike(id, userId);
+        if (filmStorage.deleteLike(id, userId)) {
+            eventService.create(EventType.LIKE, userId, Operation.REMOVE, id);
+        }
     }
 
     @Override

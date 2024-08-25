@@ -45,8 +45,9 @@ public class ReviewServiceImpl implements ReviewService {
     public void deleteReview(long id) {
         assertReviewExist(id);
         long userId = reviewStorage.findById(id).get().getUserId();
-        reviewStorage.delete(id);
-        eventService.create(EventType.REVIEW, userId, Operation.REMOVE, id);
+        if (reviewStorage.delete(id)) {
+            eventService.create(EventType.REVIEW, userId, Operation.REMOVE, id);
+        }
     }
 
 
@@ -67,9 +68,10 @@ public class ReviewServiceImpl implements ReviewService {
         Objects.requireNonNull(review, "Cannot update Review: is null");
         final Optional<Review> reviewStored = reviewStorage.update(review);
         if (reviewStored.isPresent()) {
-            log.info("Updated Review: {}", reviewStored.get());
             // добавление события обновления отзыва в таблицу events
-            eventService.create(EventType.REVIEW, review.getUserId(), Operation.UPDATE, review.getId());
+            eventService.create(EventType.REVIEW, reviewStored.get().getUserId(), Operation.UPDATE,
+                    reviewStored.get().getId());
+            log.info("Updated Review: {}", reviewStored.get());
         }
         return reviewStored;
     }
@@ -78,8 +80,6 @@ public class ReviewServiceImpl implements ReviewService {
     public Review addLike(final long reviewId, final long userId) {
         assertReviewExist(reviewId);
         assertUserExist(userId);
-        // добавление события добавления лайка в таблицу events
-        eventService.create(EventType.LIKE, userId, Operation.ADD, reviewId);
         return reviewStorage.addLike(reviewId, userId);
     }
 
@@ -87,8 +87,6 @@ public class ReviewServiceImpl implements ReviewService {
     public Review deleteLike(final long reviewId, final long userId) {
         assertReviewExist(reviewId);
         assertUserExist(userId);
-        // добавление события удаления лайка в таблицу events
-        eventService.create(EventType.LIKE, userId, Operation.REMOVE, reviewId);
         return reviewStorage.deleteLike(reviewId, userId);
     }
 
@@ -96,8 +94,6 @@ public class ReviewServiceImpl implements ReviewService {
     public Review addDislike(final long reviewId, final long userId) {
         assertReviewExist(reviewId);
         assertUserExist(userId);
-        // добавление события добавления лайка в таблицу events
-        eventService.create(EventType.LIKE, userId, Operation.ADD, reviewId);
         return reviewStorage.addDislike(reviewId, userId);
     }
 
@@ -105,8 +101,6 @@ public class ReviewServiceImpl implements ReviewService {
     public Review deleteDislike(final long reviewId, final long userId) {
         assertReviewExist(reviewId);
         assertUserExist(userId);
-        // добавление события удаления лайка в таблицу events
-        eventService.create(EventType.LIKE, userId, Operation.REMOVE, reviewId);
         return reviewStorage.deleteDislike(reviewId, userId);
     }
 

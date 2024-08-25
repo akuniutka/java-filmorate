@@ -106,11 +106,12 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     }
 
     @Override
-    public void deleteFriend(final long id, final long friendId) {
+    public boolean deleteFriend(final long id, final long friendId) {
         var params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("friendId", friendId);
-        execute(DELETE_FRIEND_QUERY, params);
+//        execute(DELETE_FRIEND_QUERY, params);
+        return jdbc.update(DELETE_FRIEND_QUERY, params) > 0;
     }
 
     @Override

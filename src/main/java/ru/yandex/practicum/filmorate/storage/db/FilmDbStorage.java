@@ -412,11 +412,12 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public void deleteLike(final long id, final long userId) {
+    public boolean deleteLike(final long id, final long userId) {
         var params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("userId", userId);
-        execute(DELETE_LIKE_QUERY, params);
+//        execute(DELETE_LIKE_QUERY, params);
+        return jdbc.update(DELETE_LIKE_QUERY, params) > 0;
     }
 
     @Override

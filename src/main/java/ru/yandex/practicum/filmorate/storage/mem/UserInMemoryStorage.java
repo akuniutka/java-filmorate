@@ -38,8 +38,12 @@ public class UserInMemoryStorage extends BaseInMemoryStorage<User> implements Us
     }
 
     @Override
-    public void deleteFriend(final long id, final long friendId) {
-        Optional.ofNullable(friends.get(id)).ifPresent(s -> s.remove(friendId));
+    public boolean deleteFriend(final long id, final long friendId) {
+        Set<Long> userFriends = friends.get(id);
+        if (userFriends == null) {
+            return false;
+        }
+        return userFriends.remove(friendId);
     }
 
     @Override
