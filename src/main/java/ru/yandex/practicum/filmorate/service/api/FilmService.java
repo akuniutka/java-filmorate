@@ -9,7 +9,7 @@ public interface FilmService {
 
     Collection<Film> getFilms();
 
-    Collection<Film> getTopFilmsByLikes(long limit);
+    Collection<Film> getTopFilmsByLikes(long limit, Long genreId, Integer year);
 
     Collection<Film> getFilmsByDirectorId(long directorId);
 

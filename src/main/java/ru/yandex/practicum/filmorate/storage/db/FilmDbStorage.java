@@ -45,6 +45,61 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             ORDER BY COALESCE (l.likes, 0) DESC
             LIMIT :limit
             """;
+    private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE_AND_YEAR = """
+            SELECT f.*,
+              m.mpa_name,
+              fg.genre_id
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            LEFT JOIN film_genres fg ON f.film_id = fg.film_id
+            LEFT JOIN
+            (
+              SELECT film_id,
+                COUNT(*) AS likes
+              FROM likes
+              GROUP BY film_id
+            ) AS l ON f.film_id = l.film_id
+            WHERE genre_Id = :genreId
+            AND EXTRACT (YEAR FROM release_date) = :year
+            ORDER BY COALESCE (l.likes, 0) DESC
+            LIMIT :limit
+            """;
+    private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE = """
+            SELECT f.*,
+              m.mpa_name,
+              fg.genre_id
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            LEFT JOIN film_genres fg ON f.film_id = fg.film_id
+            LEFT JOIN
+            (
+              SELECT film_id,
+                COUNT(*) AS likes
+              FROM likes
+              GROUP BY film_id
+            ) AS l ON f.film_id = l.film_id
+            WHERE genre_Id = :genreId
+            ORDER BY COALESCE (l.likes, 0) DESC
+            LIMIT :limit
+            """;
+    private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_YEAR = """
+            SELECT f.*,
+              m.mpa_name,
+              fg.genre_id
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id
+            LEFT JOIN film_genres fg ON f.film_id = fg.film_id
+            LEFT JOIN
+            (
+              SELECT film_id,
+                COUNT(*) AS likes
+              FROM likes
+              GROUP BY film_id
+            ) AS l ON f.film_id = l.film_id
+            WHERE EXTRACT (YEAR FROM release_date) = :year
+            ORDER BY COALESCE (l.likes, 0) DESC
+            LIMIT :limit
+            """;
     private static final String FIND_ALL_BY_DIRECTOR_ID_QUERY = """
             SELECT f.*,
               m.mpa_name
@@ -243,7 +298,27 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
+    public Collection<Film> findAllOrderByLikesDesc(long limit, Long genreId, Integer year) {
+        if (genreId != 0 && year != 0) {
+            var params = new MapSqlParameterSource()
+                    .addValue("limit", limit)
+                    .addValue("genreId", genreId)
+                    .addValue("year", year);
+            return supplementWithDirectors(supplementWithGenres(findMany(
+                    FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE_AND_YEAR, params)));
+        } else if (genreId != 0 && year == 0) {
+            var params = new MapSqlParameterSource()
+                    .addValue("limit", limit)
+                    .addValue("genreId", genreId);
+            return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE,
+                    params)));
+        } else if (genreId == 0 && year != 0) {
+            var params = new MapSqlParameterSource()
+                    .addValue("limit", limit)
+                    .addValue("year", year);
+            return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_YEAR,
+                    params)));
+        }
         var params = new MapSqlParameterSource("limit", limit);
         return supplementWithDirectors(supplementWithGenres(findMany(FIND_ALL_ORDER_BY_LIKES_DESC, params)));
     }

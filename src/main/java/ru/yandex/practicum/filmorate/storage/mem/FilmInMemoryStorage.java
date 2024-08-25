@@ -29,7 +29,7 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
+    public Collection<Film> findAllOrderByLikesDesc(final long limit, final Long genreId, final Integer year) {
         return data.values().stream()
                 .sorted(Comparator.comparingInt(this::countFilmLikes).thenComparing(byId))
                 .limit(limit)
