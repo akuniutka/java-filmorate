@@ -87,6 +87,14 @@ public class FilmController {
         return filmDto;
     }
 
+    @GetMapping("/common")
+    public Collection<FilmDto> getCommonFilms(@RequestParam final long userId, @RequestParam final long friendId) {
+        log.info("Received GET at /films/common?userId={}&friendId={}", userId, friendId);
+        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getCommonFilms(userId, friendId));
+        log.info("Responded to GET /films/common?userId={}&friendId={}: {}", userId, friendId, dtos);
+        return dtos;
+    }
+
     @GetMapping("/director/{directorId}")
     public Collection<FilmDto> getFilmsByDirector(@PathVariable final long directorId, @RequestParam final String sortBy) {
         log.info("Received GET at /films/director/{}?sortBy={}", directorId, sortBy);

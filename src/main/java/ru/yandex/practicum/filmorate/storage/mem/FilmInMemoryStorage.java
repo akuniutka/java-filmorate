@@ -131,4 +131,9 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     public Set<Long> getLikesByUserId(long userId) {
         return Set.of();
     }
+
+    @Override
+    public Collection<Film> getCommonFilms(long id, long friendId) {
+        return null;
+    }
 }
