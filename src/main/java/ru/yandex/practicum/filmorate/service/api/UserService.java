@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service.api;
 
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
@@ -24,4 +25,6 @@ public interface UserService {
     Collection<User> getCommonFriends(long id, long friendId);
 
     void deleteUserById(long userId);
+
+    Collection<Event> getEvents(long id);
 }

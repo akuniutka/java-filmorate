@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
@@ -92,6 +93,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUserById(long userId) {
         userStorage.deleteById(userId);
+    }
+
+    @Override
+    public Collection<Event> getEvents(final long id) {
+        assertUserExists(id);
+        return eventService.getEvents(id);
     }
 
     public Collection<User> getAllUsers() {
