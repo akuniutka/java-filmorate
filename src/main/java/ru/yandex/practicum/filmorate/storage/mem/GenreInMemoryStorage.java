@@ -5,32 +5,16 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.api.GenreStorage;
 
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Component
 @Slf4j
-public class GenreInMemoryStorage implements GenreStorage {
-
-    private final Map<Long, Genre> genres;
+public class GenreInMemoryStorage extends BaseInMemoryStorage<Genre> implements GenreStorage {
 
     public GenreInMemoryStorage() {
-        this.genres = getGenres();
-    }
-
-    @Override
-    public Collection<Genre> findAll() {
-        return genres.values().stream()
-                .sorted(Comparator.comparing(Genre::getId))
-                .toList();
-    }
-
-    @Override
-    public Optional<Genre> findById(final long id) {
-        return Optional.ofNullable(genres.get(id));
+        super(Genre::getId, Genre::setId);
+        this.data.putAll(getGenres());
     }
 
     private Map<Long, Genre> getGenres() {

@@ -47,7 +47,7 @@ public abstract class AbstractFilmStorageTest {
     @Test
     void shouldReturnEmptyOptionalForUnknownId() {
         final List<Film> expectedFilms = preloadData();
-        final Long id = expectedFilms.getFirst().getId() - 1;
+        final long id = expectedFilms.getFirst().getId() - 1;
 
         final Optional<Film> actual = filmStorage.findById(id);
 
@@ -57,7 +57,7 @@ public abstract class AbstractFilmStorageTest {
     @Test
     void shouldUpdateFilm() {
         final List<Film> expectedFilms = preloadData();
-        final Long id = expectedFilms.get(1).getId();
+        final long id = expectedFilms.get(1).getId();
         final Film expectedFilm = getRandomFilm();
         expectedFilm.setId(id);
 
@@ -82,13 +82,13 @@ public abstract class AbstractFilmStorageTest {
     @Test
     void shouldDeleteFilm() {
         final List<Film> expectedFilms = preloadData();
-        final Long id = expectedFilms.get(1).getId();
+        final long id = expectedFilms.get(1).getId();
         expectedFilms.remove(1);
 
         filmStorage.delete(id);
-        final List<Film> actualUsers = new ArrayList<>(filmStorage.findAll());
+        final List<Film> actualFilms = new ArrayList<>(filmStorage.findAll());
 
-        assertFilmListEquals(expectedFilms, actualUsers);
+        assertFilmListEquals(expectedFilms, actualFilms);
     }
 
     @Test

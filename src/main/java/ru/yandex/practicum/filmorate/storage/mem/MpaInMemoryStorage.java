@@ -5,28 +5,16 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.api.MpaStorage;
 
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Component
 @Slf4j
-public class MpaInMemoryStorage implements MpaStorage {
+public class MpaInMemoryStorage extends BaseInMemoryStorage<Mpa> implements MpaStorage {
 
-    private static final Map<Long, Mpa> MPAS = getMpas();
-
-    @Override
-    public Collection<Mpa> findAll() {
-        return MPAS.values().stream()
-                .sorted(Comparator.comparing(Mpa::getId))
-                .toList();
-    }
-
-    @Override
-    public Optional<Mpa> findById(long id) {
-        return Optional.ofNullable(MPAS.get(id));
+    public MpaInMemoryStorage() {
+        super(Mpa::getId, Mpa::setId);
+        this.data.putAll(getMpas());
     }
 
     private static Map<Long, Mpa> getMpas() {
