@@ -4,25 +4,16 @@ import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.storage.api.EventStorage;
 
 import java.util.Collection;
+import java.util.Collections;
 
-public class EventInMemoryStorage implements EventStorage {
-    @Override
-    public Collection<Event> findAll(Long userId) {
-        return null;
+public class EventInMemoryStorage extends BaseInMemoryStorage<Event> implements EventStorage {
+
+    public EventInMemoryStorage() {
+        super(Event::getId, Event::setId);
     }
 
     @Override
-    public void save(Event event) {
-
-    }
-
-    @Override
-    public void update(Event event) {
-
-    }
-
-    @Override
-    public void delete(long id) {
-
+    public Collection<Event> findAll(long userId) {
+        return Collections.emptyList();
     }
 }

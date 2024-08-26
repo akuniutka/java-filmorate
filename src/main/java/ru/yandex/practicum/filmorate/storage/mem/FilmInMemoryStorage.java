@@ -132,11 +132,6 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
 
     @Override
     public Collection<Film> getCommonFilms(long id, long friendId) {
-        return null;
-    }
-
-    @Override
-    public void deleteById(long id) {
-
+        return Collections.emptyList();
     }
 }

@@ -15,7 +15,7 @@ public interface DirectorStorage {
 
     Optional<Director> update(Director director);
 
-    void delete(long id);
+    boolean delete(long id);
 
     void deleteAll();
 }
