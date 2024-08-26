@@ -8,9 +8,9 @@ DELETE FROM likes;
 DELETE FROM films;
 DELETE FROM users;
 DELETE FROM genres;
-DELETE FROM mpa;
+DELETE FROM mpas;
 ALTER TABLE genres ALTER COLUMN genre_id RESTART WITH 1;
-ALTER TABLE MPA ALTER COLUMN mpa_id RESTART WITH 1;
+ALTER TABLE MPAS ALTER COLUMN mpa_id RESTART WITH 1;
 ALTER TABLE films ALTER COLUMN film_id RESTART WITH 1;
 ALTER TABLE users ALTER COLUMN user_id RESTART WITH 1;
 ALTER TABLE reviews ALTER COLUMN review_id RESTART WITH 1;
@@ -54,13 +54,13 @@ VALUES (1, 'G'),
        (4, 'R'),
        (5, 'NC-17');
 
-INSERT INTO mpa (mpa_id, mpa_name)
+INSERT INTO mpas (mpa_id, mpa_name)
 SELECT mpa_id,
        mpa_name
 FROM initial_mpa_data_temp
 WHERE mpa_id NOT IN (
   SELECT mpa_id
-  FROM mpa
+  FROM mpas
   );
 
 DROP TABLE initial_mpa_data_temp;

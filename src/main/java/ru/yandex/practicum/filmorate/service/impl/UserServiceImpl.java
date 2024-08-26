@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(long userId) {
-        userStorage.deleteById(userId);
+        userStorage.delete(userId);
     }
 
     @Override

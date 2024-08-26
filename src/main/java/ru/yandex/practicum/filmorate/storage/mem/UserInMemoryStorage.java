@@ -76,9 +76,4 @@ public class UserInMemoryStorage extends BaseInMemoryStorage<User> implements Us
         friends.clear();
         super.deleteAll();
     }
-
-    @Override
-    public void deleteById(long userId) {
-
-    }
 }

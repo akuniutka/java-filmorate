@@ -32,7 +32,7 @@ public interface FilmStorage {
 
     Set<Long> getLikesByUserId(long userId);
 
-    void deleteById(long id);
+    boolean delete(long id);
 
     Collection<Film> searchFilmsByTitle(String query);
 

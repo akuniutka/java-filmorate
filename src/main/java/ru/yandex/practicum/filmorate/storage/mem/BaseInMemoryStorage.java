@@ -53,8 +53,8 @@ public class BaseInMemoryStorage<T> {
         }
     }
 
-    public void delete(final long id) {
-        data.remove(id);
+    public boolean delete(final long id) {
+        return data.remove(id) != null;
     }
 
     public void deleteAll() {

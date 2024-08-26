@@ -140,7 +140,7 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public void deleteFilm(long id) {
-        filmStorage.deleteById(id);
+        filmStorage.delete(id);
     }
 
     @Override

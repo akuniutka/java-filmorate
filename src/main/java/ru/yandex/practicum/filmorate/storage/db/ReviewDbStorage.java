@@ -15,14 +15,17 @@ import java.util.Optional;
 public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStorage {
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM reviews ORDER BY useful DESC;";
-    private static final String FIND_ALL_REVIEW_FOR_FILM = "SELECT * FROM reviews WHERE film_id = :film_id ORDER BY useful DESC LIMIT :count;";
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM reviews WHERE review_id = :id;";
-    private static final String DELETE_QUERY = "DELETE FROM reviews WHERE review_id = :id;";
-    private static final String DELETE_LIKES_DISLIKES_QUERY = "DELETE FROM reviews_likes_dislikes WHERE review_id = :id;";
-
-    private static final String SELECT_LIKE_TO_REVIEW = "SELECT COUNT(*) FROM reviews_likes_dislikes " +
-            "WHERE review_id = :review_id AND user_id = :user_id AND is_like = :is_like;";
-
+    private static final String FIND_ALL_REVIEW_FOR_FILM = """
+            SELECT *
+            FROM reviews
+            WHERE film_id = :film_id
+            ORDER BY useful DESC
+            LIMIT :count;
+            """;
+    private static final String SELECT_LIKE_TO_REVIEW = """
+            SELECT COUNT(*) FROM reviews_likes_dislikes
+            WHERE review_id = :review_id AND user_id = :user_id AND is_like = :is_like;
+            """;
     private static final String DELETE_LIKE_QUERY = """
             DELETE FROM reviews_likes_dislikes
             WHERE review_id = :review_id AND user_id = :user_id;
@@ -30,69 +33,49 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     private static final String SAVE_QUERY = """
             SELECT * FROM FINAL TABLE (
               INSERT INTO reviews ( content, is_positive, user_id, film_id, useful)
-              VALUES (:content, :is_positive, :user_id, :film_id, :useful)
+              VALUES (:content, :isPositive, :userId, :filmId, :useful)
             );
             """;
-
     private static final String UPDATE_QUERY = """
             SELECT * FROM FINAL TABLE (
               UPDATE reviews
               SET content = :content,
-                is_positive = :is_positive
-              WHERE review_id = :review_id
+                is_positive = :isPositive
+              WHERE review_id = :id
             );
             """;
     private static final String ADD_LIKE_QUERY = """
             INSERT INTO reviews_likes_dislikes (user_id, review_id, is_like)
             VALUES (:user_id, :review_id, :is_like);
             """;
-
     private static final String UPDATE_QUERY_USEFUL = """
             UPDATE reviews
               SET useful = :useful
               WHERE review_id = :review_id;
             """;
-
-
     private static final String UPDATE_LIKES = """
             UPDATE reviews_likes_dislikes
               SET is_like = :is_like
               WHERE review_id = :review_id AND user_id = :user_id;
             """;
-
-
     private static final String GET_REWIEW_USEFUL = """
             SELECT useful FROM reviews WHERE review_id = :review_id;
             """;
 
     @Autowired
     public ReviewDbStorage(final NamedParameterJdbcTemplate jdbc, RowMapper<Review> mapper) {
-        super(jdbc, mapper);
+        super(Review.class, jdbc, mapper);
 
     }
 
     @Override
     public Review save(final Review review) {
-        var params = new MapSqlParameterSource()
-                .addValue("review_id", review.getId())
-                .addValue("content", review.getContent())
-                .addValue("is_positive", review.getIsPositive())
-                .addValue("user_id", review.getUserId())
-                .addValue("film_id", review.getFilmId())
-                .addValue("useful", review.getUseful());
-        return findOne(SAVE_QUERY, params).orElseThrow();
+        return save(SAVE_QUERY, review);
     }
 
     @Override
     public Optional<Review> update(final Review review) {
-        var params = new MapSqlParameterSource()
-                .addValue("content", review.getContent())
-                .addValue("is_positive", review.getIsPositive())
-                .addValue("user_id", review.getUserId())
-                .addValue("film_id", review.getFilmId())
-                .addValue("useful", review.getUseful())
-                .addValue("review_id", review.getId());
-        return findOne(UPDATE_QUERY, params);
+        return update(UPDATE_QUERY, review);
     }
 
     @Override
@@ -109,23 +92,8 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public Optional<Review> findById(final long id) {
-        return findById(FIND_BY_ID_QUERY, id);
-    }
-
-    @Override
-    public boolean delete(final long id) {
-        delete(DELETE_LIKES_DISLIKES_QUERY, id);
-//        delete(DELETE_QUERY, id);
-        var params = new MapSqlParameterSource("id", id);
-        return jdbc.update(DELETE_QUERY, params) > 0;
-    }
-
-    @Override
     public Review addLike(long reviewId, long userId) {
         if (isLikeExist(reviewId, userId, false)) {
-
-
             long useful = getUsefulCount(reviewId) + 2;
             var params = new MapSqlParameterSource()
                     .addValue("review_id", reviewId)
@@ -158,14 +126,11 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     public Review addDislike(long reviewId, long userId) {
 
         if (isLikeExist(reviewId, userId, true)) {
-
-
             long useful = getUsefulCount(reviewId) - 2;
             var params = new MapSqlParameterSource()
                     .addValue("review_id", reviewId)
                     .addValue("useful", useful);
             execute(UPDATE_QUERY_USEFUL, params);
-
             params = new MapSqlParameterSource()
                     .addValue("user_id", userId)
                     .addValue("review_id", reviewId)
@@ -191,7 +156,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public Review deleteLike(long reviewId, long userId) {
-
         if (isLikeExist(reviewId, userId, true)) {
             var params = new MapSqlParameterSource()
                     .addValue("review_id", reviewId)
@@ -203,7 +167,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
                     .addValue("review_id", reviewId)
                     .addValue("useful", useful);
             execute(UPDATE_QUERY_USEFUL, params);
-
         }
         return findById(reviewId).get();
     }
@@ -220,7 +183,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
                     .addValue("review_id", reviewId)
                     .addValue("useful", useful);
             execute(UPDATE_QUERY_USEFUL, params);
-
         }
         return findById(reviewId).get();
     }

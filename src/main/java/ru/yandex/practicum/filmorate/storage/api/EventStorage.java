@@ -3,16 +3,15 @@ package ru.yandex.practicum.filmorate.storage.api;
 import ru.yandex.practicum.filmorate.model.Event;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface EventStorage {
 
-    Collection<Event> findAll(Long userId);
+    Collection<Event> findAll(long userId);
 
-    void save(Event event);
+    Event save(Event event);
 
-    void update(Event event);
+    Optional<Event> update(Event event);
 
-    void delete(long id);
-
-
+    boolean delete(long id);
 }

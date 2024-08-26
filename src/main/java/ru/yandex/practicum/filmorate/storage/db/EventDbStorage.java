@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.storage.api.EventStorage;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Optional;
 
 @Repository
 public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage {
@@ -18,67 +19,55 @@ public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage
 
     private static final String SAVE_QUERY = """
             SELECT * FROM FINAL TABLE (
-              INSERT INTO events ( user_id, event_type, operation, entity_id, time_stamp)
-              VALUES (:user_id, :event_type, :operation, :entity_id, :time_stamp)
+              INSERT INTO events (user_id, event_type, operation, entity_id)
+              VALUES (:userId, :eventType, :operation, :entityId)
             );
             """;
 
     private static final String UPDATE_QUERY = """
             SELECT * FROM FINAL TABLE (
               UPDATE events
-              SET user_id = :user_id,
-                event_type = :event_type,
+              SET user_id = :userId,
+                event_type = :eventType,
                 operation = :operation,
-                entity_id = :entity_id,
-                time_stamp = :time_stamp
-              WHERE event_id = :event_id
+                entity_id = :entityId,
+                time_stamp = :timestamp
+              WHERE event_id = :id
             );
-            """;
-
-    private static final String DELETE_QUERY = """
-            DELETE FROM events
-            WHERE event_id = :event_id;
             """;
 
     @Autowired
     public EventDbStorage(final NamedParameterJdbcTemplate jdbc, RowMapper<Event> mapper) {
-        super(jdbc, mapper);
+        super(Event.class, jdbc, mapper);
 
     }
 
     @Override
-    public Collection<Event> findAll(Long userId) {
+    public Collection<Event> findAll(long userId) {
         var params = new MapSqlParameterSource()
                 .addValue("user_id", userId);
         return findMany(FIND_ALL_QUERY, params);
     }
 
     @Override
-    public void save(Event event) {
+    public Event save(final Event event) {
         var params = new MapSqlParameterSource()
-                .addValue("event_id", event.getId())
-                .addValue("user_id", event.getUserId())
-                .addValue("event_type", event.getEventType().name())
+                .addValue("userId", event.getUserId())
+                .addValue("eventType", event.getEventType().name())
                 .addValue("operation", event.getOperation().name())
-                .addValue("entity_id", event.getEntityId())
-                .addValue("time_stamp", Timestamp.from(event.getTimestamp()));
-        Event savedEvent = findOne(SAVE_QUERY, params).orElseThrow();
+                .addValue("entityId", event.getEntityId());
+        return findOne(SAVE_QUERY, params).orElseThrow();
     }
 
     @Override
-    public void update(Event event) {
+    public Optional<Event> update(final Event event) {
         var params = new MapSqlParameterSource()
-                .addValue("event_id", event.getId())
-                .addValue("user_id", event.getUserId())
-                .addValue("event_type", event.getEventType().name())
+                .addValue("id", event.getId())
+                .addValue("userId", event.getUserId())
+                .addValue("eventType", event.getEventType().name())
                 .addValue("operation", event.getOperation().name())
-                .addValue("entity_id", event.getEntityId())
-                .addValue("time_stamp", Timestamp.from(event.getTimestamp()));
-        execute(UPDATE_QUERY, params);
-    }
-
-    @Override
-    public void delete(long id) {
-        delete(DELETE_QUERY, id);
+                .addValue("entityId", event.getEntityId())
+                .addValue("timestamp", Timestamp.from(event.getTimestamp()));
+        return findOne(UPDATE_QUERY, params);
     }
 }
