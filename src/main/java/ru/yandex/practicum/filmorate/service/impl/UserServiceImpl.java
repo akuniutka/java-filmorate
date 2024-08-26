@@ -101,6 +101,12 @@ public class UserServiceImpl implements UserService {
         return eventService.getEvents(id);
     }
 
+    @Override
+    public Collection<Event> getEvents(final long id) {
+        assertUserExists(id);
+        return eventService.getEvents(id);
+    }
+
     public Collection<User> getAllUsers() {
         return userStorage.findAll();
     }
