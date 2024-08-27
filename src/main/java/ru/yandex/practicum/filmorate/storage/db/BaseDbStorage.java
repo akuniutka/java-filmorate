@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -23,7 +24,7 @@ public class BaseDbStorage<T> {
     protected final NamedParameterJdbcTemplate jdbc;
     protected final RowMapper<T> mapper;
     protected final String tableName;
-    protected final String keyName;
+    protected String keyName;
 
     protected BaseDbStorage(Class<T> entityType, NamedParameterJdbcTemplate jdbc, RowMapper<T> mapper) {
         String baseName = entityType.getSimpleName().toLowerCase();
@@ -31,6 +32,10 @@ public class BaseDbStorage<T> {
         this.keyName = baseName + "_id";
         this.jdbc = jdbc;
         this.mapper = mapper;
+    }
+
+    protected BaseDbStorage(Class<T> entityType, NamedParameterJdbcTemplate jdbc) {
+        this(entityType, jdbc, new BeanPropertyRowMapper<>(entityType));
     }
 
     public Collection<T> findAll() {
