@@ -157,17 +157,17 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String FIND_FILM_DIRECTORS_QUERY = """
             SELECT d.*
             FROM directors AS d
-            JOIN film_directors AS fd ON d.director_id = fd.director_id
+            JOIN film_directors AS fd ON d.id = fd.director_id
             WHERE fd.film_id = :id
-            ORDER BY d.director_id
+            ORDER BY d.id
             """;
     private static final String FIND_FILMS_DIRECTORS = """
             SELECT fd.film_id,
               d.*
             FROM directors AS d
-            JOIN film_directors AS fd ON d.director_id = fd.director_id
+            JOIN film_directors AS fd ON d.id = fd.director_id
             WHERE fd.film_id IN (%s)
-            ORDER BY d.director_id;
+            ORDER BY d.id;
             """;
     private static final String SAVE_FILM_DIRECTOR_QUERY = """
             MERGE INTO film_directors
@@ -199,8 +199,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             (
               SELECT fd.film_id
               FROM film_directors AS fd
-              JOIN directors AS d ON fd.director_id = d.director_id
-              WHERE d.director_name ILIKE :query
+              JOIN directors AS d ON fd.director_id = d.id
+              WHERE d.name ILIKE :query
             )
             ORDER BY fr.rating DESC, f.film_id;
             """;
@@ -210,13 +210,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             FROM films AS f
             JOIN film_ratings AS fr ON f.film_id = fr.film_id
             LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id
-            LEFT JOIN directors AS d ON fd.director_id = d.director_id
+            LEFT JOIN directors AS d ON fd.director_id = d.id
             WHERE f.film_name ILIKE :query OR f.film_id IN
             (
               SELECT fd.film_id
               FROM film_directors AS fd
-              JOIN directors AS d ON fd.director_id = d.director_id
-              WHERE d.director_name ILIKE :query
+              JOIN directors AS d ON fd.director_id = d.id
+              WHERE d.name ILIKE :query
             )
             ORDER BY fr.rating DESC, f.film_id;
             """;
@@ -252,12 +252,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public FilmDbStorage(
             final NamedParameterJdbcTemplate jdbc,
             final RowMapper<Film> mapper,
-            final RowMapper<Genre> genreMapper,
-            final RowMapper<Director> directorMapper) {
+            final RowMapper<Genre> genreMapper) {
         super(Film.class, jdbc, mapper);
         this.mpaMapper = new BeanPropertyRowMapper<>(Mpa.class);
         this.genreMapper = genreMapper;
-        this.directorMapper = directorMapper;
+        this.directorMapper = new BeanPropertyRowMapper<>(Director.class);
     }
 
     @Override
@@ -401,7 +400,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         return Optional.of(film)
                 .map(this::fetchMpa)
                 .map(this::supplementWithGenres)
-                .map(this::supplementWithDirectors)
+                .map(this::fetchDirectors)
                 .orElseThrow();
     }
 
@@ -409,7 +408,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         return Optional.of(films)
                 .map(this::fetchMpa)
                 .map(this::supplementWithGenres)
-                .map(this::supplementWithDirectors)
+                .map(this::fetchDirectors)
                 .orElseThrow();
     }
 
@@ -492,14 +491,14 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         }
     }
 
-    private Film supplementWithDirectors(final Film film) {
+    private Film fetchDirectors(final Film film) {
         var params = new MapSqlParameterSource("id", film.getId());
         Collection<Director> directors = jdbc.query(FIND_FILM_DIRECTORS_QUERY, params, directorMapper);
         film.setDirectors(directors);
         return film;
     }
 
-    private Collection<Film> supplementWithDirectors(final Collection<Film> films) {
+    private Collection<Film> fetchDirectors(final Collection<Film> films) {
         final String filmIds = films.stream()
                 .map(Film::getId)
                 .map(Object::toString)

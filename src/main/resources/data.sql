@@ -1,21 +1,3 @@
-DELETE FROM events;
-DELETE FROM reviews_likes_dislikes;
-DELETE FROM film_genres;
-DELETE FROM reviews;
-DELETE FROM friends;
-DELETE FROM friend_statuses;
-DELETE FROM likes;
-DELETE FROM films;
-DELETE FROM users;
-DELETE FROM genres;
-DELETE FROM mpas;
-ALTER TABLE genres ALTER COLUMN genre_id RESTART WITH 1;
-ALTER TABLE MPAS ALTER COLUMN id RESTART WITH 1;
-ALTER TABLE films ALTER COLUMN film_id RESTART WITH 1;
-ALTER TABLE users ALTER COLUMN user_id RESTART WITH 1;
-ALTER TABLE reviews ALTER COLUMN review_id RESTART WITH 1;
-ALTER TABLE events ALTER COLUMN event_id RESTART WITH 1;
-
 CREATE TABLE initial_genres_data_temp
 (
   genre_id BIGINT,
