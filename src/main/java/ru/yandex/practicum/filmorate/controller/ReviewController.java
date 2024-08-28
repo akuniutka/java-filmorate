@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.NewReviewDto;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.UpdateReviewDto;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.api.ReviewService;
@@ -26,12 +25,17 @@ public class ReviewController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Collection<ReviewDto> getReviews(@RequestParam(name = "filmId", required = false) Long filmId, @RequestParam(name = "count", defaultValue = "10", required = false) Integer count) {
-        log.info("Received GET at /reviews");
-        if (filmId == null)
-            return mapper.mapToDto(reviewService.getReviews());
-        Collection<ReviewDto> dtos = mapper.mapToDto(reviewService.getReviewsForFilm(filmId, count));
-        log.info("Responded to GET /reviews: {}", dtos);
+    public Collection<ReviewDto> getReviews(
+            @RequestParam(name = "filmId", required = false) Long filmId,
+            @RequestParam(name = "count", defaultValue = "10", required = false) Integer count) {
+        log.info("Received GET at /reviews?filmId={}&count={}", filmId, count);
+        Collection<ReviewDto> dtos;
+        if (filmId == null) {
+            dtos = mapper.mapToDto(reviewService.getReviews());
+        } else {
+            dtos = mapper.mapToDto(reviewService.getReviewsForFilm(filmId, count));
+        }
+        log.info("Responded to GET /reviews?filmId={}&count={}: {}", filmId, count, dtos);
         return dtos;
     }
 
@@ -47,21 +51,17 @@ public class ReviewController {
 
     @PutMapping
     public ReviewDto updateReview(@Valid @RequestBody final UpdateReviewDto updateReviewDto) {
-        log.info("Received PUT at /reviews");
+        log.info("Received PUT at /reviews: {}", updateReviewDto);
         final Review review = mapper.mapToReview(updateReviewDto);
-        final ReviewDto reviewDto = reviewService.updateReview(review).map(mapper::mapToDto).orElseThrow(
-                () -> new NotFoundException(Review.class, updateReviewDto.getReviewId())
-        );
-        log.info("Responded to PUT at /reviews: {}", reviewDto);
+        final ReviewDto reviewDto = mapper.mapToDto(reviewService.updateReview(review));
+        log.info("Responded to PUT /reviews: {}", reviewDto);
         return reviewDto;
     }
 
     @GetMapping("/{id}")
     public ReviewDto getReview(@PathVariable final long id) {
         log.info("Received GET at /reviews/{}", id);
-        final ReviewDto dto = reviewService.getReview(id).map(mapper::mapToDto).orElseThrow(
-                () -> new NotFoundException(Review.class, id)
-        );
+        final ReviewDto dto = mapper.mapToDto(reviewService.getReview(id));
         log.info("Responded to GET /reviews/{}: {}", id, dto);
         return dto;
     }
@@ -70,38 +70,38 @@ public class ReviewController {
     public void deleteReview(@PathVariable final long id) {
         log.info("Received DELETE at /reviews/{}", id);
         reviewService.deleteReview(id);
-        log.info("Responded to DELETE /reviews/{}", id);
+        log.info("Responded to DELETE /reviews/{} with no body", id);
     }
 
     @PutMapping("/{id}/like/{userId}")
     public ReviewDto addLike(@PathVariable final long id, @PathVariable final long userId) {
         log.info("Received PUT at /reviews/{}/like/{}", id, userId);
-        final ReviewDto reviewDto = mapper.mapToDto(reviewService.addLike(id, userId));
-        log.info("Responded to PUT /reviews/{}/like/{}", id, userId);
-        return reviewDto;
+        final ReviewDto dto = mapper.mapToDto(reviewService.addLike(id, userId));
+        log.info("Responded to PUT /reviews/{}/like/{}: {}", id, userId, dto);
+        return dto;
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public ReviewDto deleteLike(@PathVariable final long id, @PathVariable final long userId) {
         log.info("Received DELETE at /reviews/{}/like/{}", id, userId);
-        final ReviewDto reviewDto = mapper.mapToDto(reviewService.deleteLike(id, userId));
-        log.info("Responded to DELETE /reviews/{}/like/{}", id, userId);
-        return reviewDto;
+        final ReviewDto dto = mapper.mapToDto(reviewService.deleteLike(id, userId));
+        log.info("Responded to DELETE /reviews/{}/like/{}: {}", id, userId, dto);
+        return dto;
     }
 
     @PutMapping("/{id}/dislike/{userId}")
     public ReviewDto addDislike(@PathVariable final long id, @PathVariable final long userId) {
         log.info("Received PUT at /reviews/{}/dislike/{}", id, userId);
-        final ReviewDto reviewDto = mapper.mapToDto(reviewService.addDislike(id, userId));
-        log.info("Responded to PUT /reviews/{}/dislike/{}", id, userId);
-        return reviewDto;
+        final ReviewDto dto = mapper.mapToDto(reviewService.addDislike(id, userId));
+        log.info("Responded to PUT /reviews/{}/dislike/{}: {}", id, userId, dto);
+        return dto;
     }
 
     @DeleteMapping("/{id}/dislike/{userId}")
     public ReviewDto deleteDislike(@PathVariable final long id, @PathVariable final long userId) {
         log.info("Received DELETE at /reviews/{}/dislike/{}", id, userId);
-        final ReviewDto reviewDto = mapper.mapToDto(reviewService.deleteDislike(id, userId));
-        log.info("Responded to DELETE /reviews/{}/dislike/{}", id, userId);
-        return reviewDto;
+        final ReviewDto dto = mapper.mapToDto(reviewService.deleteDislike(id, userId));
+        log.info("Responded to DELETE /reviews/{}/dislike/{}: {}", id, userId, dto);
+        return dto;
     }
 }

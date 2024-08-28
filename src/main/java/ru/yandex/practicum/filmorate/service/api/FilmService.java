@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service.api;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
-import java.util.Optional;
 
 public interface FilmService {
 
@@ -17,11 +16,11 @@ public interface FilmService {
 
     Collection<Film> getFilmsByDirectorIdOrderByLikes(long directorId);
 
-    Optional<Film> getFilm(long id);
+    Film getFilm(long id);
 
     Film createFilm(Film film);
 
-    Optional<Film> updateFilm(Film film);
+    Film updateFilm(Film film);
 
     void addLike(long id, long userId);
 

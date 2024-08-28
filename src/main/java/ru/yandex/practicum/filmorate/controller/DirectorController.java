@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.NewDirectorDto;
 import ru.yandex.practicum.filmorate.dto.UpdateDirectorDto;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.DirectorMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.api.DirectorService;
@@ -33,9 +32,7 @@ public class DirectorController {
     @GetMapping("/{id}")
     public DirectorDto getDirector(@PathVariable final long id) {
         log.info("Received GET at /directors/{}", id);
-        final DirectorDto dto = directorService.getDirector(id).map(mapper::mapToDto).orElseThrow(
-                () -> new NotFoundException(Director.class, id)
-        );
+        final DirectorDto dto = mapper.mapToDto(directorService.getDirector(id));
         log.info("Responded to GET /directors/{}: {}", id, dto);
         return dto;
     }
@@ -60,9 +57,7 @@ public class DirectorController {
     public DirectorDto updateDirector(@Valid @RequestBody final UpdateDirectorDto updateDirectorDto) {
         log.info("Received PUT at /directors: {}", updateDirectorDto);
         final Director director = mapper.mapToDirector(updateDirectorDto);
-        final DirectorDto directorDto = directorService.updateDirector(director).map(mapper::mapToDto).orElseThrow(
-                () -> new NotFoundException(Director.class, updateDirectorDto.getId())
-        );
+        final DirectorDto directorDto = mapper.mapToDto(directorService.updateDirector(director));
         log.info("Responded to PUT /directors: {}", directorDto);
         return directorDto;
     }

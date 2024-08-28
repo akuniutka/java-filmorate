@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.GenreMapper;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.api.GenreService;
 
 import java.util.Collection;
@@ -26,9 +24,7 @@ public class GenreController {
     @GetMapping("/{id}")
     public GenreDto getGenre(@PathVariable final long id) {
         log.info("Received GET at /genres/{}", id);
-        final GenreDto dto = genreService.getGenre(id).map(mapper::mapToDto).orElseThrow(
-                () -> new NotFoundException(Genre.class, id)
-        );
+        final GenreDto dto = mapper.mapToDto(genreService.getGenre(id));
         log.info("Responded to GET /genres/{}: {}", id, dto);
         return dto;
     }
@@ -37,7 +33,7 @@ public class GenreController {
     public Collection<GenreDto> getGenres() {
         log.info("Received GET at /genres");
         final Collection<GenreDto> dtos = mapper.mapToDto(genreService.getGenres());
-        log.info("Responded to GET /genres");
+        log.info("Responded to GET /genres: {}", dtos);
         return dtos;
     }
 }

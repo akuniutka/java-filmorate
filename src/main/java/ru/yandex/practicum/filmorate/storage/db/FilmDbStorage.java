@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 
 import java.util.*;
@@ -24,26 +27,20 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     """;
 
     private static final String FIND_ALL_QUERY = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             ORDER BY film_id;
             """;
     private static final String FIND_ALL_ORDER_BY_LIKES_DESC = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             JOIN film_ratings AS fr ON f.film_id = fr.film_id
             ORDER BY fr.rating DESC, f.film_id
             LIMIT :limit;
             """;
     private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE_AND_YEAR = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             JOIN film_genres fg ON f.film_id = fg.film_id
             JOIN film_ratings fr ON f.film_id = fr.film_id
             WHERE genre_id = :genreId
@@ -52,10 +49,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             LIMIT :limit;
             """;
     private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_GENRE = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             JOIN film_genres fg ON f.film_id = fg.film_id
             JOIN film_ratings AS fr ON f.film_id = fr.film_id
             WHERE genre_id = :genreId
@@ -63,65 +58,52 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             LIMIT :limit;
             """;
     private static final String FIND_ALL_ORDER_BY_LIKES_DESC_FILTER_BY_YEAR = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             JOIN film_ratings AS fr ON f.film_id = fr.film_id
             WHERE EXTRACT (YEAR FROM release_date) = :year
             ORDER BY fr.rating DESC, f.film_id
             LIMIT :limit;
             """;
     private static final String FIND_ALL_BY_DIRECTOR_ID_QUERY = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
             JOIN film_directors AS fd ON f.film_id = fd.film_id
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             WHERE fd.director_id = :directorId
             ORDER BY f.film_id;
             """;
     private static final String FIND_ALL_BY_DIRECTOR_ID_ORDER_BY_YEAR_QUERY = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
             JOIN film_directors AS fd ON f.film_id = fd.film_id
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             WHERE fd.director_id = :directorId
             ORDER BY EXTRACT(YEAR FROM f.release_date), f.film_id;
             """;
     private static final String FIND_ALL_BY_DIRECTOR_ID_ORDER_BY_LIKES_QUERY = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
             JOIN film_directors AS fd ON f.film_id = fd.film_id
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             JOIN film_ratings AS fr ON fr.film_id = f.film_id
             WHERE fd.director_id = :directorId
             ORDER BY fr.rating DESC, f.film_id;
             """;
     private static final String FIND_BY_ID_QUERY = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             WHERE film_id = :id;
             """;
     private static final String SAVE_QUERY = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT *
             FROM (
               SELECT *
               FROM FINAL TABLE (
                 INSERT INTO films (film_name, description, release_date, duration, mpa_id)
                 VALUES (:name, :description, :releaseDate, :duration, :mpaId)
               )
-            ) AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id;
+            );
             """;
     private static final String UPDATE_QUERY = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT *
             FROM (
               SELECT *
               FROM FINAL TABLE (
@@ -133,8 +115,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                   mpa_id = :mpaId
                 WHERE film_id = :id
               )
-            ) AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id;
+            );
             """;
     private static final String ADD_LIKE_QUERY = """
             MERGE INTO likes
@@ -145,14 +126,14 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             DELETE FROM likes
             WHERE film_id = :id AND user_id = :userId;
             """;
-    private static final String FIND_GENRES_BY_FILM_ID_QUERY = """
+    private static final String FIND_FILM_GENRES_QUERY = """
             SELECT g.*
             FROM genres AS g
             JOIN film_genres AS fg ON g.genre_id = fg.genre_id
             WHERE fg.film_id = :id
             ORDER BY g.genre_id;
             """;
-    private static final String FIND_GENRES_BY_FILM_IDS_QUERY = """
+    private static final String FIND_FILMS_GENRES_QUERY = """
             SELECT fg.film_id,
               g.*
             FROM genres AS g
@@ -173,20 +154,20 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             DELETE FROM film_genres
             WHERE film_id = :id;
             """;
-    private static final String FIND_DIRECTORS_BY_FILM_ID_QUERY = """
+    private static final String FIND_FILM_DIRECTORS_QUERY = """
             SELECT d.*
             FROM directors AS d
-            JOIN film_directors AS fd ON d.director_id = fd.director_id
+            JOIN film_directors AS fd ON d.id = fd.director_id
             WHERE fd.film_id = :id
-            ORDER BY d.director_id
+            ORDER BY d.id
             """;
-    private static final String FIND_DIRECTORS_BY_FILM_IDS_QUERY = """
+    private static final String FIND_FILMS_DIRECTORS = """
             SELECT fd.film_id,
               d.*
             FROM directors AS d
-            JOIN film_directors AS fd ON d.director_id = fd.director_id
+            JOIN film_directors AS fd ON d.id = fd.director_id
             WHERE fd.film_id IN (%s)
-            ORDER BY d.director_id;
+            ORDER BY d.id;
             """;
     private static final String SAVE_FILM_DIRECTOR_QUERY = """
             MERGE INTO film_directors
@@ -203,61 +184,67 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             """;
 
     private static final String SEARCH_FILMS_BY_TITLE_QUERY = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             JOIN film_ratings AS fr ON f.film_id = fr.film_id
             WHERE film_name ILIKE :query
             ORDER BY fr.rating DESC, f.film_id;
             """;
 
     private static final String SEARCH_FILMS_BY_DIRECTORY_NAME_QUERY = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             JOIN film_ratings AS fr ON f.film_id = fr.film_id
             WHERE f.film_id IN
             (
               SELECT fd.film_id
               FROM film_directors AS fd
-              JOIN directors AS d ON fd.director_id = d.director_id
-              WHERE d.director_name ILIKE :query
+              JOIN directors AS d ON fd.director_id = d.id
+              WHERE d.name ILIKE :query
             )
             ORDER BY fr.rating DESC, f.film_id;
             """;
 
     private static final String SEARCH_FILMS_BY_TITLE_AND_DIRECTORY_NAME_QUERY = """
-            SELECT f.*,
-               m.mpa_name
+            SELECT f.*
             FROM films AS f
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             JOIN film_ratings AS fr ON f.film_id = fr.film_id
             LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id
-            LEFT JOIN directors AS d ON fd.director_id = d.director_id
+            LEFT JOIN directors AS d ON fd.director_id = d.id
             WHERE f.film_name ILIKE :query OR f.film_id IN
             (
               SELECT fd.film_id
               FROM film_directors AS fd
-              JOIN directors AS d ON fd.director_id = d.director_id
-              WHERE d.director_name ILIKE :query
+              JOIN directors AS d ON fd.director_id = d.id
+              WHERE d.name ILIKE :query
             )
             ORDER BY fr.rating DESC, f.film_id;
             """;
 
     private static final String FIND_COMMON_FILMS_QUERY = """
-            SELECT f.*,
-              m.mpa_name
+            SELECT f.*
             FROM films AS f
             JOIN likes AS l1 ON f.film_id = l1.film_id
             JOIN likes AS l2 ON f.film_id = l2.film_id
-            LEFT JOIN mpas AS m ON f.mpa_id = m.mpa_id
             JOIN film_ratings AS fr ON f.film_id = fr.film_id
             WHERE l1.user_id = :id AND l2.user_id = :friendId
             ORDER BY fr.rating DESC, f.film_id;
             """;
+    private static final String FIND_FILM_MPA_QUERY = """
+            SELECT m.*
+            FROM mpas AS m
+            JOIN films AS f ON m.id = f.mpa_id
+            WHERE f.film_id = :id
+            """;
+    private static final String FIND_FILMS_MPA_QUERY = """
+            SELECT f.film_id,
+              m.*
+            FROM mpas AS m
+            JOIN films AS f ON m.id = f.mpa_id
+            WHERE f.film_id IN (%s);
+            """;
 
+    private final RowMapper<Mpa> mpaMapper;
     private final RowMapper<Genre> genreMapper;
     private final RowMapper<Director> directorMapper;
 
@@ -265,11 +252,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public FilmDbStorage(
             final NamedParameterJdbcTemplate jdbc,
             final RowMapper<Film> mapper,
-            final RowMapper<Genre> genreMapper,
-            final RowMapper<Director> directorMapper) {
+            final RowMapper<Genre> genreMapper) {
         super(Film.class, jdbc, mapper);
+        this.mpaMapper = new BeanPropertyRowMapper<>(Mpa.class);
         this.genreMapper = genreMapper;
-        this.directorMapper = directorMapper;
+        this.directorMapper = new BeanPropertyRowMapper<>(Director.class);
     }
 
     @Override
@@ -411,21 +398,52 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     private Film fetchCollections(final Film film) {
         return Optional.of(film)
+                .map(this::fetchMpa)
                 .map(this::supplementWithGenres)
-                .map(this::supplementWithDirectors)
+                .map(this::fetchDirectors)
                 .orElseThrow();
     }
 
     private Collection<Film> fetchCollections(final Collection<Film> films) {
         return Optional.of(films)
+                .map(this::fetchMpa)
                 .map(this::supplementWithGenres)
-                .map(this::supplementWithDirectors)
+                .map(this::fetchDirectors)
                 .orElseThrow();
+    }
+
+    private Film fetchMpa(final Film film) {
+        SqlParameterSource params = new MapSqlParameterSource("id", film.getId());
+        try {
+            Mpa mpa = jdbc.queryForObject(FIND_FILM_MPA_QUERY, params, mpaMapper);
+            film.setMpa(mpa);
+        } catch (EmptyResultDataAccessException ignored) {
+            film.setMpa(null);
+        }
+        return film;
+    }
+
+    private Collection<Film> fetchMpa(final Collection<Film> films) {
+        final String filmIds = films.stream()
+                .map(Film::getId)
+                .map(Object::toString)
+                .collect(Collectors.joining(", "));
+        final Map<Long, Mpa> mpas = new HashMap<>();
+        jdbc.getJdbcOperations().query(FIND_FILMS_MPA_QUERY.formatted(filmIds),
+                rs -> {
+                    Long filmId = rs.getLong("film_id");
+                    Mpa mpa = mpaMapper.mapRow(rs, 0);
+                    mpas.put(filmId, mpa);
+                }
+        );
+        return films.stream()
+                .peek(film -> film.setMpa(mpas.get(film.getId())))
+                .toList();
     }
 
     private Film supplementWithGenres(final Film film) {
         var params = new MapSqlParameterSource("id", film.getId());
-        Collection<Genre> genres = jdbc.query(FIND_GENRES_BY_FILM_ID_QUERY, params, genreMapper);
+        Collection<Genre> genres = jdbc.query(FIND_FILM_GENRES_QUERY, params, genreMapper);
         film.setGenres(genres);
         return film;
     }
@@ -436,7 +454,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 .map(Object::toString)
                 .collect(Collectors.joining(", "));
         final Map<Long, Collection<Genre>> genresByFilmId = new HashMap<>();
-        jdbc.getJdbcOperations().query(FIND_GENRES_BY_FILM_IDS_QUERY.formatted(filmIds),
+        jdbc.getJdbcOperations().query(FIND_FILMS_GENRES_QUERY.formatted(filmIds),
                 rs -> {
                     Long filmId = rs.getLong("film_id");
                     Genre genre = genreMapper.mapRow(rs, 0);
@@ -473,20 +491,20 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         }
     }
 
-    private Film supplementWithDirectors(final Film film) {
+    private Film fetchDirectors(final Film film) {
         var params = new MapSqlParameterSource("id", film.getId());
-        Collection<Director> directors = jdbc.query(FIND_DIRECTORS_BY_FILM_ID_QUERY, params, directorMapper);
+        Collection<Director> directors = jdbc.query(FIND_FILM_DIRECTORS_QUERY, params, directorMapper);
         film.setDirectors(directors);
         return film;
     }
 
-    private Collection<Film> supplementWithDirectors(final Collection<Film> films) {
+    private Collection<Film> fetchDirectors(final Collection<Film> films) {
         final String filmIds = films.stream()
                 .map(Film::getId)
                 .map(Object::toString)
                 .collect(Collectors.joining(", "));
         final Map<Long, Collection<Director>> directorsByFilmId = new HashMap<>();
-        jdbc.getJdbcOperations().query(FIND_DIRECTORS_BY_FILM_IDS_QUERY.formatted(filmIds),
+        jdbc.getJdbcOperations().query(FIND_FILMS_DIRECTORS.formatted(filmIds),
                 rs -> {
                     Long filmId = rs.getLong("film_id");
                     Director director = directorMapper.mapRow(rs, 0);

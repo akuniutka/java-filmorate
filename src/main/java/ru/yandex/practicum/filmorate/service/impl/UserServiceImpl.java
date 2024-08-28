@@ -28,10 +28,11 @@ public class UserServiceImpl implements UserService {
         return userStorage.findAll();
     }
 
-
     @Override
-    public Optional<User> getUser(final long id) {
-        return userStorage.findById(id);
+    public User getUser(final long id) {
+        return userStorage.findById(id).orElseThrow(
+                () -> new NotFoundException(User.class, id)
+        );
     }
 
     @Override
@@ -44,18 +45,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> updateUser(final User user) {
+    public User updateUser(final User user) {
         Objects.requireNonNull(user, "Cannot update user: is null");
         resetNameToLoginIfBlank(user);
-        final Optional<User> userStored = userStorage.update(user);
-        userStored.ifPresent(u -> log.info("Updated user: {}", u));
+        final User userStored = userStorage.update(user).orElseThrow(
+                () -> new NotFoundException(User.class, user.getId())
+        );
+        log.info("Updated user: {}", userStored);
         return userStored;
     }
 
     @Override
     public void addFriend(final long id, final long friendId) {
-        assertUserExists(id);
-        assertUserExists(friendId);
+        getUser(id);
+        getUser(friendId);
         if (Objects.equals(id, friendId)) {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
@@ -66,8 +69,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteFriend(final long id, final long friendId) {
-        assertUserExists(id);
-        assertUserExists(friendId);
+        getUser(id);
+        getUser(friendId);
         if (Objects.equals(id, friendId)) {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
@@ -78,35 +81,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<User> getFriends(long id) {
-        assertUserExists(id);
+    public Collection<User> getFriends(final long id) {
+        getUser(id);
         return userStorage.findFriends(id);
     }
 
     @Override
-    public Collection<User> getCommonFriends(long id, long friendId) {
-        assertUserExists(id);
-        assertUserExists(friendId);
+    public Collection<User> getCommonFriends(final long id, final long friendId) {
+        getUser(id);
+        getUser(friendId);
         return userStorage.findCommonFriends(id, friendId);
     }
 
     @Override
-    public void deleteUserById(long userId) {
+    public void deleteUserById(final long userId) {
         userStorage.delete(userId);
     }
 
     @Override
     public Collection<Event> getEvents(final long id) {
-        assertUserExists(id);
+        getUser(id);
         return eventService.getEvents(id);
-    }
-
-    public Collection<User> getAllUsers() {
-        return userStorage.findAll();
-    }
-
-    private void assertUserExists(final long id) {
-        userStorage.findById(id).orElseThrow(() -> new NotFoundException(User.class, id));
     }
 
     private void resetNameToLoginIfBlank(final User user) {
@@ -114,5 +109,4 @@ public class UserServiceImpl implements UserService {
             user.setName(user.getLogin());
         }
     }
-
 }

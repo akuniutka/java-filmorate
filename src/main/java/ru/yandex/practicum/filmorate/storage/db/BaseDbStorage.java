@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,18 +13,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class BaseDbStorage<T> {
 
     protected static final String FIND_ALL_QUERY = "SELECT * FROM %s ORDER BY %s;";
     protected static final String FIND_BY_ID_QUERY = "SELECT * FROM %s WHERE %s = :id;";
+    protected static final String FIND_BY_IDS_QUERY = "SELECT * FROM %s WHERE %s IN (%s);";
     protected static final String DELETE_QUERY = "DELETE FROM %s WHERE %S = :id;";
     protected static final String DELETE_ALL_QUERY = "DELETE FROM %s;";
 
     protected final NamedParameterJdbcTemplate jdbc;
     protected final RowMapper<T> mapper;
     protected final String tableName;
-    protected final String keyName;
+    protected String keyName;
 
     protected BaseDbStorage(Class<T> entityType, NamedParameterJdbcTemplate jdbc, RowMapper<T> mapper) {
         String baseName = entityType.getSimpleName().toLowerCase();
@@ -33,6 +36,10 @@ public class BaseDbStorage<T> {
         this.mapper = mapper;
     }
 
+    protected BaseDbStorage(Class<T> entityType, NamedParameterJdbcTemplate jdbc) {
+        this(entityType, jdbc, new BeanPropertyRowMapper<>(entityType));
+    }
+
     public Collection<T> findAll() {
         return jdbc.query(FIND_ALL_QUERY.formatted(tableName, keyName), mapper);
     }
@@ -40,6 +47,13 @@ public class BaseDbStorage<T> {
     public Optional<T> findById(final long id) {
         SqlParameterSource params = new MapSqlParameterSource("id", id);
         return findOne(FIND_BY_ID_QUERY.formatted(tableName, keyName), params);
+    }
+
+    public Collection<T> findById(final Collection<Long> ids) {
+        String idsStr = ids.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(", "));
+        return jdbc.query(FIND_BY_IDS_QUERY.formatted(tableName, keyName, idsStr), mapper);
     }
 
     public T save(String query, T entity) {

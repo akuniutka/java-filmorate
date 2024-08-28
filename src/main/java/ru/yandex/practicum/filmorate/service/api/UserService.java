@@ -4,17 +4,16 @@ import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
-import java.util.Optional;
 
 public interface UserService {
 
     Collection<User> getUsers();
 
-    Optional<User> getUser(long id);
+    User getUser(long id);
 
     User createUser(User user);
 
-    Optional<User> updateUser(User user);
+    User updateUser(User user);
 
     void addFriend(long id, long friendId);
 

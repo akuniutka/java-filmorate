@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -13,20 +12,22 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
 
     private static final String SAVE_QUERY = """
             SELECT * FROM FINAL TABLE (
-              INSERT INTO directors (director_name)
+              INSERT INTO directors (name)
               VALUES (:name)
             );
             """;
     private static final String UPDATE_QUERY = """
             SELECT * FROM FINAL TABLE (
               UPDATE directors
-              SET director_name = :name
-              WHERE director_id = :id
+              SET name = :name
+              WHERE id = :id
             );
             """;
 
-    public DirectorDbStorage(final NamedParameterJdbcTemplate jdbc, final RowMapper<Director> mapper) {
-        super(Director.class, jdbc, mapper);
+    public DirectorDbStorage(final NamedParameterJdbcTemplate jdbc) {
+        super(Director.class, jdbc);
+        // TODO: удалить, когда базовый класс тоже перейдёт на id
+        this.keyName = "id";
     }
 
     @Override

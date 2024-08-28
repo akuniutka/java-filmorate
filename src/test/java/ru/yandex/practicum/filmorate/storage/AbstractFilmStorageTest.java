@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.TestModels.assertFilmEquals;
 import static ru.yandex.practicum.filmorate.TestModels.assertFilmListEquals;
@@ -77,6 +78,29 @@ public abstract class AbstractFilmStorageTest {
         final Optional<Film> savedFilm = filmStorage.update(cloneFilm(expectedFilm));
 
         assertTrue(savedFilm.isEmpty(), "should find no film to update with id = " + expectedFilm.getId());
+    }
+
+    @Test
+    void shouldReturnTrueWhenDeleteFilm() {
+        final List<Film> expectedFilms = preloadData();
+        final long id = expectedFilms.get(1).getId();
+        expectedFilms.remove(1);
+
+        assertTrue(filmStorage.delete(id));
+        final List<Film> actualUsers = new ArrayList<>(filmStorage.findAll());
+
+        assertFilmListEquals(expectedFilms, actualUsers);
+    }
+
+    @Test
+    void shouldReturnFalseWhenDeleteUnknownFilm() {
+        final List<Film> expectedFilms = preloadData();
+        final long id = expectedFilms.getFirst().getId() - 1;
+
+        assertFalse(filmStorage.delete(id));
+        final List<Film> actualUsers = new ArrayList<>(filmStorage.findAll());
+
+        assertFilmListEquals(expectedFilms, actualUsers);
     }
 
     @Test
