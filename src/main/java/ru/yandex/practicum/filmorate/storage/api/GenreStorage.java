@@ -10,4 +10,6 @@ public interface GenreStorage {
     Collection<Genre> findAll();
 
     Optional<Genre> findById(long id);
+
+    Collection<Genre> findById(Collection<Long> ids);
 }

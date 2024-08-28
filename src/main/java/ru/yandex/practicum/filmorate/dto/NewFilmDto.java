@@ -9,7 +9,7 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.validator.IsAfter;
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.Set;
 
 @Data
 public class NewFilmDto {
@@ -30,6 +30,6 @@ public class NewFilmDto {
     private Integer duration;
 
     private FilmMpa mpa;
-    private Collection<FilmGenre> genres;
-    private Collection<FilmDirector> directors;
+    private Set<FilmGenre> genres;
+    private Set<FilmDirector> directors;
 }

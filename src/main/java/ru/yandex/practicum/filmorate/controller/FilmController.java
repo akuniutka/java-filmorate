@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -43,18 +42,16 @@ public class FilmController {
     public Collection<FilmDto> getTopLiked(@RequestParam(defaultValue = "10000", required = false) @Valid @Positive final long count,
                                            @RequestParam(defaultValue = "0", required = false) @Valid final Long genreId,
                                            @RequestParam(defaultValue = "0", required = false) @Valid final Integer year) {
-        log.info("Received GET at /films/popular (count = {}, genreId = {}, year = {})", count, genreId, year);
+        log.info("Received GET at /films/popular?count={}&genreId={}&year{}", count, genreId, year);
         final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getTopFilmsByLikes(count, genreId, year));
-        log.info("Responded to GET /films/popular (count = {},genreId = {}, year = {} ): {}", count, genreId, year, dtos);
+        log.info("Responded to GET /films/popular?count={}&genreId={}&year={}: {}", count, genreId, year, dtos);
         return dtos;
     }
 
     @GetMapping("/{id}")
     public FilmDto getFilm(@PathVariable final long id) {
         log.info("Received GET at /films/{}", id);
-        final FilmDto dto = filmService.getFilm(id).map(mapper::mapToDto).orElseThrow(
-                () -> new NotFoundException(Film.class, id)
-        );
+        final FilmDto dto = mapper.mapToDto(filmService.getFilm(id));
         log.info("Responded to GET /films/{}: {}", id, dto);
         return dto;
     }
@@ -80,18 +77,16 @@ public class FilmController {
     public FilmDto updateFilm(@Valid @RequestBody final UpdateFilmDto updateFilmDto) {
         log.info("Received PUT at /films: {}", updateFilmDto);
         final Film film = mapper.mapToFilm(updateFilmDto);
-        final FilmDto filmDto = filmService.updateFilm(film).map(mapper::mapToDto).orElseThrow(
-                () -> new NotFoundException(Film.class, updateFilmDto.getId())
-        );
+        final FilmDto filmDto = mapper.mapToDto(filmService.updateFilm(film));
         log.info("Responded to PUT /films: {}", filmDto);
         return filmDto;
     }
 
     @DeleteMapping("/{filmId}")
     public void deleteFilm(@PathVariable long filmId) {
-        log.info("Received DELETE request at /films/{}", filmId);
+        log.info("Received DELETE at /films/{}", filmId);
         filmService.deleteFilm(filmId);
-        log.info("Film with id {} deleted successfully", filmId);
+        log.info("Responded to DELETE /films/{} with no body", filmId);
     }
 
     @GetMapping("/common")

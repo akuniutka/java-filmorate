@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class BaseInMemoryStorage<T> {
 
@@ -33,6 +34,12 @@ public class BaseInMemoryStorage<T> {
 
     public Optional<T> findById(final long id) {
         return Optional.ofNullable(data.get(id));
+    }
+
+    public Collection<T> findById(final Collection<Long> ids) {
+        return ids.stream()
+                .map(data::get)
+                .collect(Collectors.toSet());
     }
 
     public T save(final T entity) {

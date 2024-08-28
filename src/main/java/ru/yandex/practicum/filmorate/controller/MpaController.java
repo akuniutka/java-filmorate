@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.MpaMapper;
-import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.api.MpaService;
 
 import java.util.Collection;
@@ -26,9 +24,7 @@ public class MpaController {
     @GetMapping("/{id}")
     public MpaDto getMpa(@PathVariable final long id) {
         log.info("Received GET at /mpa/{}", id);
-        final MpaDto dto = mpaService.getMpa(id).map(mapper::mapToDto).orElseThrow(
-                () -> new NotFoundException(Mpa.class, id)
-        );
+        final MpaDto dto = mapper.mapToDto(mpaService.getMpa(id));
         log.info("Responded to GET /mpa/{}: {}", id, dto);
         return dto;
     }

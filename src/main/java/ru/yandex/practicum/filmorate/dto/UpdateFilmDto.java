@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 import ru.yandex.practicum.filmorate.validator.IsAfter;
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(of = {"id"})
@@ -35,6 +35,6 @@ public class UpdateFilmDto {
     private Integer duration;
 
     private FilmMpa mpa;
-    private Collection<FilmGenre> genres;
-    private Collection<FilmDirector> directors;
+    private Set<FilmGenre> genres;
+    private Set<FilmDirector> directors;
 }

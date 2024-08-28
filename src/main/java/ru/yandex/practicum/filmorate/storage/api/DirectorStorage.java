@@ -11,6 +11,8 @@ public interface DirectorStorage {
 
     Optional<Director> findById(long id);
 
+    Collection<Director> findById(Collection<Long> ids);
+
     Director save(Director director);
 
     Optional<Director> update(Director director);

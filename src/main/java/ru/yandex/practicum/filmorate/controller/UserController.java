@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.NewUserDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.EventMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -85,16 +84,14 @@ public class UserController {
     @GetMapping("/{id}")
     public UserDto getUser(@PathVariable final long id) {
         log.info("Received GET at /users/{}", id);
-        final UserDto dto = userService.getUser(id).map(mapper::mapToDto).orElseThrow(
-                () -> new NotFoundException(User.class, id)
-        );
+        final UserDto dto = mapper.mapToDto(userService.getUser(id));
         log.info("Responded to GET /users/{}: {}", id, dto);
         return dto;
     }
 
     @PostMapping
     public UserDto createUser(@Valid @RequestBody final NewUserDto newUserDto) {
-        log.info("Received POST at /users");
+        log.info("Received POST at /users: {}", newUserDto);
         final User user = mapper.mapToUser(newUserDto);
         final UserDto userDto = mapper.mapToDto(userService.createUser(user));
         log.info("Responded to POST /users: {}", userDto);
@@ -103,28 +100,25 @@ public class UserController {
 
     @PutMapping
     public UserDto updateUser(@Valid @RequestBody final UpdateUserDto updateUserDto) {
-        log.info("Received PUT at /users");
+        log.info("Received PUT at /users: {}", updateUserDto);
         final User user = mapper.mapToUser(updateUserDto);
-        final UserDto userDto = userService.updateUser(user).map(mapper::mapToDto).orElseThrow(
-                () -> new NotFoundException(User.class, updateUserDto.getId())
-        );
-        log.info("Responded to PUT at /users: {}", userDto);
+        final UserDto userDto = mapper.mapToDto(userService.updateUser(user));
+        log.info("Responded to PUT /users: {}", userDto);
         return userDto;
     }
 
     @GetMapping("/{id}/recommendations")
-    public Collection<Film> getRecommendations(@PathVariable long id) {
-        log.info("Received GET request at /film/{}", id);
+    public Collection<Film> getRecommendations(@PathVariable final long id) {
+        log.info("Received GET at /users/{}/recommendations", id);
         Collection<Film> dtos = filmService.getRecommendations(id);
-        log.info("Responded to GET /film: {}", id);
+        log.info("Responded to GET /users/{}/recommendations: {}", id, dtos);
         return dtos;
     }
 
-    @DeleteMapping("/{userId}")
-    public void deleteUser(@PathVariable long userId) {
-        log.info("Received DELETE request at /Users/{}", userId);
-        userService.deleteUserById(userId);
-        log.info("User with id {} deleted successfully", userId);
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable final long id) {
+        log.info("Received DELETE at /users/{}", id);
+        userService.deleteUserById(id);
+        log.info("Responded to DELETE at /users/{} with no body", id);
     }
-
 }
