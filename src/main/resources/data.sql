@@ -1,10 +1,10 @@
 CREATE TABLE initial_genres_data_temp
 (
-  genre_id BIGINT,
-  genre_name VARCHAR
+  id BIGINT,
+  name VARCHAR
 );
 
-INSERT INTO initial_genres_data_temp (genre_id, genre_name)
+INSERT INTO initial_genres_data_temp (id, name)
 VALUES (1, 'Комедия'),
        (2, 'Драма'),
        (3, 'Мультфильм'),
@@ -12,12 +12,12 @@ VALUES (1, 'Комедия'),
        (5, 'Документальный'),
        (6, 'Боевик');
 
-INSERT INTO genres (genre_id, genre_name)
-SELECT genre_id,
-       genre_name
+INSERT INTO genres (id, name)
+SELECT id,
+       name
 FROM initial_genres_data_temp
-WHERE genre_id NOT IN (
-  SELECT genre_id
+WHERE id NOT IN (
+  SELECT id
   FROM genres
   );
 

@@ -43,7 +43,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             FROM films AS f
             JOIN film_genres fg ON f.film_id = fg.film_id
             JOIN film_ratings fr ON f.film_id = fr.film_id
-            WHERE genre_id = :genreId
+            WHERE fg.genre_id = :genreId
               AND EXTRACT (YEAR FROM release_date) = :year
             ORDER BY fr.rating DESC, f.film_id
             LIMIT :limit;
@@ -53,7 +53,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             FROM films AS f
             JOIN film_genres fg ON f.film_id = fg.film_id
             JOIN film_ratings AS fr ON f.film_id = fr.film_id
-            WHERE genre_id = :genreId
+            WHERE fg.genre_id = :genreId
             ORDER BY fr.rating DESC, film_id
             LIMIT :limit;
             """;
@@ -129,17 +129,17 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String FIND_FILM_GENRES_QUERY = """
             SELECT g.*
             FROM genres AS g
-            JOIN film_genres AS fg ON g.genre_id = fg.genre_id
+            JOIN film_genres AS fg ON g.id = fg.genre_id
             WHERE fg.film_id = :id
-            ORDER BY g.genre_id;
+            ORDER BY g.id;
             """;
     private static final String FIND_FILMS_GENRES_QUERY = """
             SELECT fg.film_id,
               g.*
             FROM genres AS g
-            JOIN film_genres AS fg ON g.genre_id = fg.genre_id
+            JOIN film_genres AS fg ON g.id = fg.genre_id
             WHERE fg.film_id IN (%s)
-            ORDER BY g.genre_id;
+            ORDER BY g.id;
             """;
     private static final String SAVE_FILM_GENRE_QUERY = """
             MERGE INTO film_genres
@@ -251,11 +251,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Autowired
     public FilmDbStorage(
             final NamedParameterJdbcTemplate jdbc,
-            final RowMapper<Film> mapper,
-            final RowMapper<Genre> genreMapper) {
+            final RowMapper<Film> mapper) {
         super(Film.class, jdbc, mapper);
         this.mpaMapper = new BeanPropertyRowMapper<>(Mpa.class);
-        this.genreMapper = genreMapper;
+        this.genreMapper = new BeanPropertyRowMapper<>(Genre.class);
         this.directorMapper = new BeanPropertyRowMapper<>(Director.class);
     }
 
