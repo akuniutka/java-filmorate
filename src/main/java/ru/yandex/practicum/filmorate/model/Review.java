@@ -9,7 +9,7 @@ public class Review {
     private Long id;
     private String content;
     private Boolean isPositive;
-    private Integer useful;
     private Long filmId;
     private Long userId;
+    private Long useful;
 }

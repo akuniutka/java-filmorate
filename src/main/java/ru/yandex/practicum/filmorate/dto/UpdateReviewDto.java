@@ -13,10 +13,10 @@ public class UpdateReviewDto {
     private String content;
     @NotNull
     private Boolean isPositive;
-    private Integer useful;
     @NotNull
     private Long filmId;
     @NotNull
     private Long userId;
+    private Long useful;
 }
 

@@ -100,12 +100,12 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             );
             """;
     private static final String ADD_LIKE_QUERY = """
-            MERGE INTO likes
+            MERGE INTO film_likes
             KEY (film_id, user_id)
             VALUES (:id, :userId);
             """;
     private static final String DELETE_LIKE_QUERY = """
-            DELETE FROM likes
+            DELETE FROM film_likes
             WHERE film_id = :id AND user_id = :userId;
             """;
     private static final String SAVE_FILM_MPA_QUERY = """
