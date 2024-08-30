@@ -22,7 +22,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     private static final String GET_LIKES_BY_USER_ID_QUERY = """
         SELECT film_id
-        FROM likes
+        FROM film_likes
         WHERE user_id = :userId;
     """;
     private static final String FIND_ALL_ORDER_BY_LIKES_DESC = """
@@ -209,10 +209,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String FIND_COMMON_FILMS_QUERY = """
             SELECT f.*
             FROM films AS f
-            JOIN likes AS l1 ON f.id = l1.film_id
-            JOIN likes AS l2 ON f.id = l2.film_id
+            JOIN film_likes AS fl1 ON f.id = fl1.film_id
+            JOIN film_likes AS fl2 ON f.id = fl2.film_id
             JOIN film_ratings AS fr ON f.id = fr.film_id
-            WHERE l1.user_id = :id AND l2.user_id = :friendId
+            WHERE fl1.user_id = :id AND fl2.user_id = :friendId
             ORDER BY fr.rating DESC, f.id;
             """;
     private static final String FIND_FILM_MPA_QUERY = """
