@@ -9,7 +9,7 @@ public class ReviewDto {
     private Long reviewId;
     private String content;
     private Boolean isPositive;
-    private Integer useful;
     private Long filmId;
     private Long userId;
+    private Long useful;
 }

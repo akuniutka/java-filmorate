@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -16,7 +15,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     private static final String SAVE_QUERY = """
             SELECT * FROM FINAL TABLE (
-              INSERT INTO users (email, login, user_name, birthday)
+              INSERT INTO users (email, login, name, birthday)
               VALUES (:email, :login, :name, :birthday)
             );
             """;
@@ -25,9 +24,9 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
               UPDATE users
               SET email = :email,
                 login = :login,
-                user_name = :name,
+                name = :name,
                 birthday = :birthday
-              WHERE user_id = :id
+              WHERE id = :id
             );
             """;
     private static final String ADD_FRIEND_QUERY = """
@@ -41,24 +40,23 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             """;
     private static final String FIND_FRIENDS_QUERY = """
             SELECT u.*
-            FROM users AS u
-            JOIN friends AS f ON u.user_id = f.friend_id
+            FROM friends AS f
+            JOIN users AS u ON f.friend_id = u.id
             WHERE f.user_id = :id
             ORDER BY f.friend_id;
             """;
     private static final String FIND_COMMON_FRIENDS_QUERY = """
             SELECT u.*
             FROM friends AS f1
-            JOIN friends AS f2
-            ON f1.friend_id = f2.friend_id
-            JOIN users AS u ON f1.friend_id = u.user_id
+            JOIN friends AS f2 ON f1.friend_id = f2.friend_id
+            JOIN users AS u ON f1.friend_id = u.id
             WHERE f1.user_id = :id AND f2.user_id = :friendId
             ORDER BY f1.friend_id;
             """;
 
     @Autowired
-    public UserDbStorage(final NamedParameterJdbcTemplate jdbc, final RowMapper<User> mapper) {
-        super(User.class, jdbc, mapper);
+    public UserDbStorage(final NamedParameterJdbcTemplate jdbc) {
+        super(User.class, jdbc);
     }
 
     @Override

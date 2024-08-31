@@ -12,7 +12,5 @@ public class MpaDbStorage extends BaseDbStorage<Mpa> implements MpaStorage {
     @Autowired
     public MpaDbStorage(final NamedParameterJdbcTemplate jdbc) {
         super(Mpa.class, jdbc);
-        // TODO: удалить, когда базовый класс тоже перейдёт на id
-        this.keyName = "id";
     }
 }

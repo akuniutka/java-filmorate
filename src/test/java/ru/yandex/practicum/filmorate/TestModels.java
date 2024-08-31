@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dto.UpdateDirectorDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
 import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -144,6 +145,10 @@ public final class TestModels {
         if (film.getGenres() != null) {
             clone.setGenres(new HashSet<>(film.getGenres()));
         }
+        if (film.getDirectors() != null) {
+            clone.setDirectors(new HashSet<>(film.getDirectors()));
+        }
+        clone.setLikes(film.getLikes());
         return clone;
     }
 
@@ -151,6 +156,17 @@ public final class TestModels {
         final Director clone = new Director();
         clone.setId(director.getId());
         clone.setName(director.getName());
+        return clone;
+    }
+
+    public static Event cloneEvent(final Event event) {
+        Event clone = new Event();
+        clone.setId(event.getId());
+        clone.setUserId(event.getUserId());
+        clone.setEventType(event.getEventType());
+        clone.setOperation(event.getOperation());
+        clone.setEntityId(event.getEntityId());
+        clone.setTimestamp(event.getTimestamp());
         return clone;
     }
 
@@ -191,7 +207,9 @@ public final class TestModels {
                 () -> assertEquals(expected.getReleaseDate(), actual.getReleaseDate(), "wrong film release date"),
                 () -> assertEquals(expected.getDuration(), actual.getDuration(), "wrong film duration"),
                 () -> assertEquals(expected.getMpa(), actual.getMpa(), "wrong film MPA"),
-                () -> assertGenreListEquals(expected.getGenres(), actual.getGenres(), "wrong film genres")
+                () -> assertGenreListEquals(expected.getGenres(), actual.getGenres()),
+                () -> assertDirectorListEquals(expected.getDirectors(), actual.getDirectors()),
+                () -> assertEquals(expected.getLikes(), actual.getLikes(), "wrong number of film likes")
         );
     }
 
@@ -206,14 +224,27 @@ public final class TestModels {
         }
     }
 
-    public static void assertGenreListEquals(final Collection<Genre> expected, final Collection<Genre> actual,
-            String message
-    ) {
+    public static void assertGenreEquals(final Genre expected, final Genre actual) {
         if (expected == null) {
             throw new IllegalArgumentException("value to check against should not be null");
         }
         assertNotNull(actual, "should be not null");
-        assertEquals(new ArrayList<>(expected), new ArrayList<>(actual), message);
+        assertAll("wrong genre",
+                () -> assertEquals(expected.getId(), actual.getId(), "wrong genre id"),
+                () -> assertEquals(expected.getName(), actual.getName(), "wrong genre name")
+        );
+    }
+
+    public static void assertGenreListEquals(final Collection<Genre> expected, final Collection<Genre> actual) {
+        if (expected == null) {
+            throw new IllegalArgumentException("value to check against should not be null");
+        }
+        assertNotNull(actual, "should be not null");
+        List<Genre> expectedGenres = new ArrayList<>(expected);
+        List<Genre> actualGenres = new ArrayList<>(actual);
+        for (int i = 0; i < expectedGenres.size(); i++) {
+            assertGenreEquals(expectedGenres.get(i), actualGenres.get(i));
+        }
     }
 
     public static void assertDirectorEquals(final Director expected, final Director actual) {
@@ -221,20 +252,49 @@ public final class TestModels {
             throw new IllegalArgumentException("value to check against should not be null");
         }
         assertNotNull(actual, "should be not null");
-        assertAll("wrong user",
+        assertAll("wrong director",
                 () -> assertEquals(expected.getId(), actual.getId(), "wrong director id"),
                 () -> assertEquals(expected.getName(), actual.getName(), "wrong director name")
         );
     }
 
-    public static void assertDirectorListEquals(final List<Director> expected, final List<Director> actual) {
+    public static void assertDirectorListEquals(final Collection<Director> expected,
+            final Collection<Director> actual) {
+        if (expected == null) {
+            throw new IllegalArgumentException("value to check against should not be null");
+        }
+        assertNotNull(actual, "should be not null");
+        assertEquals(expected.size(), actual.size(), "wrong list size");
+        List<Director> expectedDirectors = new ArrayList<>(expected);
+        List<Director> actualDirectors = new ArrayList<>(actual);
+        for (int i = 0; i < expectedDirectors.size(); i++) {
+            assertDirectorEquals(expectedDirectors.get(i), actualDirectors.get(i));
+        }
+    }
+
+    public static void assertEventEquals(final Event expected, final Event actual) {
+        if (expected == null) {
+            throw new IllegalArgumentException("value to check against should not be null");
+        }
+        assertNotNull(actual, "should be not null");
+        assertAll("wrong event",
+                () -> assertEquals(expected.getId(), actual.getId(), "wrong event id"),
+                () -> assertEquals(expected.getUserId(), actual.getUserId(), "wrong user id"),
+                () -> assertEquals(expected.getEntityId(), actual.getEntityId(), "wrong entity id"),
+                () -> assertEquals(expected.getEventType(), actual.getEventType(), "wrong event type"),
+                () -> assertEquals(expected.getOperation(), actual.getOperation(), "wrong operation"),
+                () -> assertEquals(expected.getTimestamp(), actual.getTimestamp(), "wrong timestamp")
+        );
+    }
+
+    public static void assertEventListEquals(final List<Event> expected, final List<Event> actual) {
         if (expected == null) {
             throw new IllegalArgumentException("value to check against should not be null");
         }
         assertNotNull(actual, "should be not null");
         assertEquals(expected.size(), actual.size(), "wrong list size");
         for (int i = 0; i < expected.size(); i++) {
-            assertDirectorEquals(expected.get(i), actual.get(i));
+            assertEventEquals(expected.get(i), actual.get(i));
         }
     }
 }

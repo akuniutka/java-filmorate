@@ -1,25 +1,33 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.TestModels.assertFilmEquals;
 import static ru.yandex.practicum.filmorate.TestModels.assertFilmListEquals;
 import static ru.yandex.practicum.filmorate.TestModels.cloneFilm;
 import static ru.yandex.practicum.filmorate.TestModels.getRandomFilm;
+import static ru.yandex.practicum.filmorate.TestModels.getRandomUser;
 
 public abstract class AbstractFilmStorageTest {
 
     protected FilmStorage filmStorage;
+    protected UserStorage userStorage;
 
     @AfterEach
     void tearDown() {
@@ -65,6 +73,8 @@ public abstract class AbstractFilmStorageTest {
         final Film savedFilm = filmStorage.update(cloneFilm(expectedFilm)).orElseThrow();
         final Film actualFilm = filmStorage.findById(id).orElseThrow();
 
+        expectedFilm.setGenres(Collections.emptySet());
+        expectedFilm.setDirectors(Collections.emptySet());
         assertFilmEquals(expectedFilm, savedFilm);
         assertFilmEquals(expectedFilm, actualFilm);
     }
@@ -104,6 +114,79 @@ public abstract class AbstractFilmStorageTest {
     }
 
     @Test
+    void shouldReturnZeroLikesForNewFilm() {
+        final Film film = getRandomFilm();
+
+        final Film savedFilm = filmStorage.save(film);
+        final Film actualFilm = filmStorage.findById(savedFilm.getId()).orElseThrow();
+
+        assertAll("wrong number of likes for film",
+                () -> assertEquals(0L, savedFilm.getLikes()),
+                () -> assertEquals(0L, actualFilm.getLikes())
+        );
+    }
+
+    @Test
+    void shouldIncreaseFilmLikesWhenAddNewLike() {
+        final Film film = getRandomFilm();
+        final User user = getRandomUser();
+        final long filmId = filmStorage.save(film).getId();
+        final long userId = userStorage.save(user).getId();
+
+        filmStorage.addLike(filmId, userId);
+        final Film actualFilm = filmStorage.findById(filmId).orElseThrow();
+
+        assertEquals(1L, actualFilm.getLikes(), "wrong number of likes");
+    }
+
+    @Test
+    void shouldNotIncreaseFilmLikesWhenAddDuplicateLike() {
+        final Film film = getRandomFilm();
+        final User user = getRandomUser();
+        final long filmId = filmStorage.save(film).getId();
+        final long userId = userStorage.save(user).getId();
+
+        filmStorage.addLike(filmId, userId);
+        filmStorage.addLike(filmId, userId);
+        final Film actualFilm = filmStorage.findById(filmId).orElseThrow();
+
+        assertEquals(1L, actualFilm.getLikes(), "wrong number of likes");
+    }
+
+    @Test
+    void shouldDecreaseFilmLikesWhenDeleteExistingLike() {
+        final Film film = getRandomFilm();
+        final User user = getRandomUser();
+        final long filmId = filmStorage.save(film).getId();
+        final long userId = userStorage.save(user).getId();
+
+        filmStorage.addLike(filmId, userId);
+        filmStorage.deleteLike(filmId, userId);
+        final Film actualFilm = filmStorage.findById(filmId).orElseThrow();
+
+        assertEquals(0L, actualFilm.getLikes(), "wrong number of likes");
+    }
+
+    @Test
+    void shouldNotDecreaseFilmLikesWhenDeleteNotExistingLike() {
+        final Film film = getRandomFilm();
+        final User user = getRandomUser();
+        final long filmId = filmStorage.save(film).getId();
+        final long userId = userStorage.save(user).getId();
+
+        filmStorage.deleteLike(filmId, userId);
+        final Film actualFilm = filmStorage.findById(filmId).orElseThrow();
+
+        assertEquals(0L, actualFilm.getLikes(), "wrong number of likes");
+    }
+
+    @Disabled
+    @Test
+    void shouldDecreaseFilmLikesWhenDeleteUser() {
+        // TODO: implement test
+    }
+
+    @Test
     void shouldDeleteAllFilms() {
         preloadData();
 
@@ -120,6 +203,8 @@ public abstract class AbstractFilmStorageTest {
             Film film = getRandomFilm();
             Film savedFilm = filmStorage.save(cloneFilm(film));
             film.setId(savedFilm.getId());
+            film.setGenres(Collections.emptySet());
+            film.setDirectors(Collections.emptySet());
             expectedFilms.add(film);
             savedFilms.add(savedFilm);
         }

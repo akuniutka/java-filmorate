@@ -19,6 +19,7 @@ import ru.yandex.practicum.filmorate.storage.db.MpaDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.ReviewDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.UserDbStorage;
 import ru.yandex.practicum.filmorate.storage.mem.DirectorInMemoryStorage;
+import ru.yandex.practicum.filmorate.storage.mem.EventInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.FilmInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.GenreInMemoryStorage;
 import ru.yandex.practicum.filmorate.storage.mem.MpaInMemoryStorage;
@@ -46,6 +47,8 @@ public class FilmorateConfiguration {
     private final DirectorDbStorage directorDbStorage;
 
     private final ReviewDbStorage reviewDbStorage;
+
+    private final EventInMemoryStorage eventInMemoryStorage;
     private final EventDbStorage eventDbStorage;
 
     @Bean
@@ -65,12 +68,12 @@ public class FilmorateConfiguration {
     @Primary
     public EventStorage eventStorage() {
         if (props.getStorage() == null) {
-            return eventDbStorage;
+            return eventInMemoryStorage;
         }
         return switch (props.getStorage().getMode()) {
             case DATABASE -> eventDbStorage;
-            case MEMORY -> eventDbStorage;
-            case null -> eventDbStorage;
+            case MEMORY -> eventInMemoryStorage;
+            case null -> eventInMemoryStorage;
         };
     }
 
