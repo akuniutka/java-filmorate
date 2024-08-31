@@ -98,11 +98,11 @@ CREATE TABLE IF NOT EXISTS film_likes
   CONSTRAINT film_likes_ux UNIQUE (film_id, user_id)
 );
 
-CREATE TRIGGER IF NOT EXISTS insert_film_like_trigger
+CREATE TRIGGER IF NOT EXISTS film_likes_trigger
 AFTER INSERT, DELETE ON film_likes
 FOR EACH ROW CALL 'ru.yandex.practicum.filmorate.storage.db.trigger.FilmLikeTrigger';
 
-CREATE TABLE IF NOT EXISTS reviews_likes
+CREATE TABLE IF NOT EXISTS review_likes
 (
   review_id BIGINT  NOT NULL REFERENCES reviews (id) ON DELETE CASCADE,
   user_id   BIGINT  NOT NULL REFERENCES users (id) ON DELETE CASCADE,
@@ -110,18 +110,6 @@ CREATE TABLE IF NOT EXISTS reviews_likes
   CONSTRAINT reviews_likes_ux UNIQUE (review_id, user_id)
 );
 
--- Supplementary views
-
-CREATE VIEW IF NOT EXISTS review_ratings
-AS
-SELECT r.id AS review_id,
-       SUM(
-           CASE rl.is_like
-             WHEN TRUE THEN 1
-             WHEN FALSE THEN -1
-             ELSE 0
-             END
-       )    AS rating
-FROM reviews AS r
-       LEFT JOIN reviews_likes AS rl ON r.id = rl.review_id
-GROUP BY r.id;
+CREATE TRIGGER IF NOT EXISTS review_likes_trigger
+AFTER INSERT, UPDATE, DELETE ON review_likes
+FOR EACH ROW CALL 'ru.yandex.practicum.filmorate.storage.db.trigger.ReviewLikeTrigger';

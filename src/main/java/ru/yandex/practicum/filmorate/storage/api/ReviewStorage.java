@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface ReviewStorage {
     Collection<Review> findAll();
 
-    Collection<Review> getReviewsForFilm(long filmId, long count);
+    Collection<Review> findAllByFilmId(long filmId, long count);
 
     Optional<Review> findById(long id);
 
