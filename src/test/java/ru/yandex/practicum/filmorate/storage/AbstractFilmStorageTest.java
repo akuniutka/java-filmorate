@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.TestModels.assertFilmEquals;
 import static ru.yandex.practicum.filmorate.TestModels.assertFilmListEquals;
@@ -47,7 +48,7 @@ public abstract class AbstractFilmStorageTest {
     @Test
     void shouldReturnEmptyOptionalForUnknownId() {
         final List<Film> expectedFilms = preloadData();
-        final Long id = expectedFilms.getFirst().getId() - 1;
+        final long id = expectedFilms.getFirst().getId() - 1;
 
         final Optional<Film> actual = filmStorage.findById(id);
 
@@ -57,7 +58,7 @@ public abstract class AbstractFilmStorageTest {
     @Test
     void shouldUpdateFilm() {
         final List<Film> expectedFilms = preloadData();
-        final Long id = expectedFilms.get(1).getId();
+        final long id = expectedFilms.get(1).getId();
         final Film expectedFilm = getRandomFilm();
         expectedFilm.setId(id);
 
@@ -80,12 +81,23 @@ public abstract class AbstractFilmStorageTest {
     }
 
     @Test
-    void shouldDeleteFilm() {
+    void shouldReturnTrueWhenDeleteFilm() {
         final List<Film> expectedFilms = preloadData();
-        final Long id = expectedFilms.get(1).getId();
+        final long id = expectedFilms.get(1).getId();
         expectedFilms.remove(1);
 
-        filmStorage.delete(id);
+        assertTrue(filmStorage.delete(id));
+        final List<Film> actualUsers = new ArrayList<>(filmStorage.findAll());
+
+        assertFilmListEquals(expectedFilms, actualUsers);
+    }
+
+    @Test
+    void shouldReturnFalseWhenDeleteUnknownFilm() {
+        final List<Film> expectedFilms = preloadData();
+        final long id = expectedFilms.getFirst().getId() - 1;
+
+        assertFalse(filmStorage.delete(id));
         final List<Film> actualUsers = new ArrayList<>(filmStorage.findAll());
 
         assertFilmListEquals(expectedFilms, actualUsers);

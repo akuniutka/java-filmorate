@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.TestModels.assertUserEquals;
@@ -198,12 +199,23 @@ public abstract class AbstractUserStorageTest {
     }
 
     @Test
-    void shouldDeleteUser() {
+    void shouldReturnTrueWhenDeleteUser() {
         final List<User> expectedUsers = preloadData();
         final long id = expectedUsers.get(1).getId();
         expectedUsers.remove(1);
 
-        userStorage.delete(id);
+        assertTrue(userStorage.delete(id));
+        final List<User> actualUsers = new ArrayList<>(userStorage.findAll());
+
+        assertUserListEquals(expectedUsers, actualUsers);
+    }
+
+    @Test
+    void shouldReturnFalseWhenDeleteUnknownUser() {
+        final List<User> expectedUsers = preloadData();
+        final long id = expectedUsers.getFirst().getId() - 1;
+
+        assertFalse(userStorage.delete(id));
         final List<User> actualUsers = new ArrayList<>(userStorage.findAll());
 
         assertUserListEquals(expectedUsers, actualUsers);

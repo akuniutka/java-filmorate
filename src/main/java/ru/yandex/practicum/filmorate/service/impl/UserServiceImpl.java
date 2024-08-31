@@ -5,13 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +21,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserStorage userStorage;
+    private final EventService eventService;
 
     @Override
     public Collection<User> getUsers() {
@@ -26,8 +29,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUser(final long userId) {
-        return userStorage.findById(userId);
+    public User getUser(final long id) {
+        return userStorage.findById(id).orElseThrow(
+                () -> new NotFoundException(User.class, id)
+        );
     }
 
     @Override
@@ -40,49 +45,63 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> updateUser(final User user) {
+    public User updateUser(final User user) {
         Objects.requireNonNull(user, "Cannot update user: is null");
         resetNameToLoginIfBlank(user);
-        final Optional<User> userStored = userStorage.update(user);
-        userStored.ifPresent(u -> log.info("Updated user: {}", u));
+        final User userStored = userStorage.update(user).orElseThrow(
+                () -> new NotFoundException(User.class, user.getId())
+        );
+        log.info("Updated user: {}", userStored);
         return userStored;
     }
 
     @Override
     public void addFriend(final long id, final long friendId) {
-        assertUserExists(id);
-        assertUserExists(friendId);
+        getUser(id);
+        getUser(friendId);
         if (Objects.equals(id, friendId)) {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
         userStorage.addFriend(id, friendId);
+        // добавление события добавления друга в таблицу events
+        eventService.create(EventType.FRIEND, id, Operation.ADD, friendId);
     }
 
     @Override
     public void deleteFriend(final long id, final long friendId) {
-        assertUserExists(id);
-        assertUserExists(friendId);
+        getUser(id);
+        getUser(friendId);
         if (Objects.equals(id, friendId)) {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
-        userStorage.deleteFriend(id, friendId);
+        if (userStorage.deleteFriend(id, friendId)) {
+            // добавление события удаления друга в таблице events
+            eventService.create(EventType.FRIEND, id, Operation.REMOVE, friendId);
+        }
     }
 
     @Override
-    public Collection<User> getFriends(long id) {
-        assertUserExists(id);
+    public Collection<User> getFriends(final long id) {
+        getUser(id);
         return userStorage.findFriends(id);
     }
 
     @Override
-    public Collection<User> getCommonFriends(long id, long friendId) {
-        assertUserExists(id);
-        assertUserExists(friendId);
+    public Collection<User> getCommonFriends(final long id, final long friendId) {
+        getUser(id);
+        getUser(friendId);
         return userStorage.findCommonFriends(id, friendId);
     }
 
-    private void assertUserExists(final long id) {
-        userStorage.findById(id).orElseThrow(() -> new NotFoundException(User.class, id));
+    @Override
+    public void deleteUserById(final long userId) {
+        userStorage.delete(userId);
+    }
+
+    @Override
+    public Collection<Event> getEvents(final long id) {
+        getUser(id);
+        return eventService.getEvents(id);
     }
 
     private void resetNameToLoginIfBlank(final User user) {

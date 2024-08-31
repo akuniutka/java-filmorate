@@ -1,19 +1,19 @@
 package ru.yandex.practicum.filmorate.service.api;
 
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
-import java.util.Optional;
 
 public interface UserService {
 
     Collection<User> getUsers();
 
-    Optional<User> getUser(long id);
+    User getUser(long id);
 
     User createUser(User user);
 
-    Optional<User> updateUser(User user);
+    User updateUser(User user);
 
     void addFriend(long id, long friendId);
 
@@ -22,4 +22,8 @@ public interface UserService {
     Collection<User> getFriends(long id);
 
     Collection<User> getCommonFriends(long id, long friendId);
+
+    void deleteUserById(long userId);
+
+    Collection<Event> getEvents(long id);
 }

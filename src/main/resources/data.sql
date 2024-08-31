@@ -25,24 +25,27 @@ DROP TABLE initial_genres_data_temp;
 
 CREATE TABLE initial_mpa_data_temp
 (
-  mpa_id   BIGINT,
-  mpa_name VARCHAR
+  id   BIGINT,
+  name VARCHAR
 );
 
-INSERT INTO initial_mpa_data_temp (mpa_id, mpa_name)
+INSERT INTO initial_mpa_data_temp (id, name)
 VALUES (1, 'G'),
        (2, 'PG'),
        (3, 'PG-13'),
        (4, 'R'),
        (5, 'NC-17');
 
-INSERT INTO mpa (mpa_id, mpa_name)
-SELECT mpa_id,
-       mpa_name
+INSERT INTO mpas (id, name)
+SELECT id,
+       name
 FROM initial_mpa_data_temp
-WHERE mpa_id NOT IN (
-  SELECT mpa_id
-  FROM mpa
+WHERE id NOT IN (
+  SELECT id
+  FROM mpas
   );
 
 DROP TABLE initial_mpa_data_temp;
+
+
+
