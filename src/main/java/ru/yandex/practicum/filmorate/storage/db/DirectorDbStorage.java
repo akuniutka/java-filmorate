@@ -26,8 +26,6 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
 
     public DirectorDbStorage(final NamedParameterJdbcTemplate jdbc) {
         super(Director.class, jdbc);
-        // TODO: удалить, когда базовый класс тоже перейдёт на id
-        this.keyName = "id";
     }
 
     @Override

@@ -87,8 +87,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     @Autowired
     public ReviewDbStorage(final NamedParameterJdbcTemplate jdbc, final RowMapper<Review> mapper) {
         super(Review.class, jdbc, mapper);
-        // TODO: удалить, когда базовый класс тоже перейдёт на id
-        this.keyName = "id";
     }
 
     @Override

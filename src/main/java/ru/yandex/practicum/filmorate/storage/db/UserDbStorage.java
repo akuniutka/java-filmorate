@@ -57,8 +57,6 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Autowired
     public UserDbStorage(final NamedParameterJdbcTemplate jdbc) {
         super(User.class, jdbc);
-        // TODO: удалить, когда базовый класс тоже перейдёт на id
-        this.keyName = "id";
     }
 
     @Override

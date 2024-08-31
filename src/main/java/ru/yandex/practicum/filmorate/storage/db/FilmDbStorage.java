@@ -14,7 +14,14 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Repository
@@ -239,8 +246,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         this.mpaMapper = new BeanPropertyRowMapper<>(Mpa.class);
         this.genreMapper = new BeanPropertyRowMapper<>(Genre.class);
         this.directorMapper = new BeanPropertyRowMapper<>(Director.class);
-        // TODO: удалить, когда базовый класс тоже перейдёт на id
-        this.keyName = "id";
     }
 
     @Override

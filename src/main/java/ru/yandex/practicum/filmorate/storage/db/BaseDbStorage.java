@@ -7,6 +7,8 @@ import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -17,21 +19,18 @@ import java.util.stream.Collectors;
 
 public class BaseDbStorage<T> {
 
-    protected static final String FIND_ALL_QUERY = "SELECT * FROM %s ORDER BY %s;";
-    protected static final String FIND_BY_ID_QUERY = "SELECT * FROM %s WHERE %s = :id;";
-    protected static final String FIND_BY_IDS_QUERY = "SELECT * FROM %s WHERE %s IN (%s);";
-    protected static final String DELETE_QUERY = "DELETE FROM %s WHERE %S = :id;";
+    protected static final String FIND_ALL_QUERY = "SELECT * FROM %s ORDER BY id;";
+    protected static final String FIND_BY_ID_QUERY = "SELECT * FROM %s WHERE id = :id;";
+    protected static final String FIND_BY_IDS_QUERY = "SELECT * FROM %s WHERE id IN (%s);";
+    protected static final String DELETE_QUERY = "DELETE FROM %s WHERE id = :id;";
     protected static final String DELETE_ALL_QUERY = "DELETE FROM %s;";
 
     protected final NamedParameterJdbcTemplate jdbc;
     protected final RowMapper<T> mapper;
     protected final String tableName;
-    protected String keyName;
 
     protected BaseDbStorage(Class<T> entityType, NamedParameterJdbcTemplate jdbc, RowMapper<T> mapper) {
-        String baseName = entityType.getSimpleName().toLowerCase();
-        this.tableName = baseName + "s";
-        this.keyName = baseName + "_id";
+        this.tableName = entityType.getSimpleName().toLowerCase() + "s";
         this.jdbc = jdbc;
         this.mapper = mapper;
     }
@@ -41,19 +40,19 @@ public class BaseDbStorage<T> {
     }
 
     public Collection<T> findAll() {
-        return jdbc.query(FIND_ALL_QUERY.formatted(tableName, keyName), mapper);
+        return jdbc.query(FIND_ALL_QUERY.formatted(tableName), mapper);
     }
 
     public Optional<T> findById(final long id) {
         SqlParameterSource params = new MapSqlParameterSource("id", id);
-        return findOne(FIND_BY_ID_QUERY.formatted(tableName, keyName), params);
+        return findOne(FIND_BY_ID_QUERY.formatted(tableName), params);
     }
 
     public Collection<T> findById(final Collection<Long> ids) {
         String idsStr = ids.stream()
                 .map(Object::toString)
                 .collect(Collectors.joining(", "));
-        return jdbc.query(FIND_BY_IDS_QUERY.formatted(tableName, keyName, idsStr), mapper);
+        return jdbc.query(FIND_BY_IDS_QUERY.formatted(tableName, idsStr), mapper);
     }
 
     public T save(String query, T entity) {
@@ -61,13 +60,25 @@ public class BaseDbStorage<T> {
     }
 
     public Optional<T> update(String query, T entity) {
-        SqlParameterSource params = new BeanPropertySqlParameterSource(entity);
+        SqlParameterSource params = new BeanPropertySqlParameterSource(entity) {
+            @Override
+            public Object getValue(String paramName) throws IllegalArgumentException {
+                Object value = super.getValue(paramName);
+                if (value instanceof EventType) {
+                    return value.toString();
+                }
+                if (value instanceof Operation) {
+                    return value.toString();
+                }
+                return value;
+            }
+        };
         return findOne(query, params);
     }
 
     public boolean delete(final long id) {
         SqlParameterSource params = new MapSqlParameterSource("id", id);
-        return jdbc.update(DELETE_QUERY.formatted(tableName, keyName), params) > 0;
+        return jdbc.update(DELETE_QUERY.formatted(tableName), params) > 0;
     }
 
     public void deleteAll() {

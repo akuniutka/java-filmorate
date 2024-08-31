@@ -12,7 +12,5 @@ public class GenreDbStorage extends BaseDbStorage<Genre> implements GenreStorage
     @Autowired
     public GenreDbStorage(final NamedParameterJdbcTemplate jdbc) {
         super(Genre.class, jdbc);
-        // TODO: удалить, когда базовый класс тоже перейдёт на id
-        this.keyName = "id";
     }
 }
