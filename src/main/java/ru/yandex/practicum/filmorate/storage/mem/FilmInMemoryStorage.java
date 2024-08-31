@@ -21,85 +21,133 @@ import java.util.Set;
 @Slf4j
 public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements FilmStorage {
 
-    private final Map<Long, Set<Long>> likes;
+    private final Map<Long, Set<Long>> likesByFilm;
+    private final Map<Long, Set<Long>> likesByUser;
 
     public FilmInMemoryStorage() {
         super(Film::getId, Film::setId);
-        this.likes = new HashMap<>();
+        this.likesByFilm = new HashMap<>();
+        this.likesByUser = new HashMap<>();
+    }
+
+    @Override
+    public Film save(final Film film) {
+        return enrichFields(super.save(film));
+    }
+
+    @Override
+    public Optional<Film> findById(final long id) {
+        return super.findById(id).map(this::enrichFields);
+    }
+
+    @Override
+    public Optional<Film> update(final Film film) {
+        return super.update(film).map(this::enrichFields);
+    }
+
+    @Override
+    public boolean delete(final long id) {
+        Set<Long> filmLikes = likesByFilm.remove(id);
+        if (filmLikes != null) {
+            filmLikes.forEach(userId -> likesByUser.get(userId).remove(id));
+        }
+        return super.delete(id);
+    }
+
+    @Override
+    public void addLike(final long id, final long userId) {
+        if (!data.containsKey(id)) {
+            throw new RuntimeException("Cannot add like: film with id = %d does not exist".formatted(id));
+        }
+        likesByFilm.computeIfAbsent(id, key -> new HashSet<>()).add(userId);
+        likesByUser.computeIfAbsent(userId, key -> new HashSet<>()).add(id);
+    }
+
+    @Override
+    public boolean deleteLike(final long id, final long userId) {
+        Set<Long> filmLikes = likesByFilm.get(id);
+        if (filmLikes == null || !filmLikes.remove(userId)) {
+            return false;
+        }
+        likesByUser.get(userId).remove(id);
+        return true;
+    }
+
+    @Override
+    public Collection<Film> findAll() {
+        return super.findAll().stream()
+                .peek(this::enrichFields)
+                .toList();
     }
 
     @Override
     public Collection<Film> findAllOrderByLikesDesc(final long limit, final Long genreId, final Integer year) {
         return data.values().stream()
-                .sorted(Comparator.comparingInt(this::countFilmLikes).thenComparing(byId))
+                .sorted(Comparator.comparingLong(this::countFilmLikes).thenComparing(byId))
                 .limit(limit)
                 .toList();
     }
 
     @Override
-    public Collection<Film> findAllByDirectorId(long directorId) {
+    public Collection<Film> findAllByDirectorId(final long directorId) {
         return List.of();
     }
 
     @Override
-    public Collection<Film> findAllByDirectorIdOrderByYear(long directorId) {
+    public Collection<Film> findAllByDirectorIdOrderByYear(final long directorId) {
         return List.of();
     }
 
     @Override
-    public Collection<Film> findAllByDirectorIdOrderByLikes(long directorId) {
+    public Collection<Film> findAllByDirectorIdOrderByLikes(final long directorId) {
         return List.of();
-    }
-
-    @Override
-    public Film save(Film entity) {
-        return sortFilmDirectors(sortFilmGenres(super.save(entity)));
-    }
-
-    @Override
-    public Optional<Film> update(Film entity) {
-        return super.update(entity).map(this::sortFilmGenres).map(this::sortFilmDirectors);
-    }
-
-    @Override
-    public void addLike(long id, long userId) {
-        if (!data.containsKey(id)) {
-            throw new RuntimeException("Cannot add like: film with id = %d does not exist".formatted(id));
-        }
-        likes.computeIfAbsent(id, key -> new HashSet<>()).add(userId);
-    }
-
-    @Override
-    public boolean deleteLike(long id, long userId) {
-        Set<Long> filmLikes = likes.get(id);
-        if (filmLikes == null) {
-            return false;
-        }
-        return filmLikes.remove(userId);
     }
 
     @Override
     public void deleteAll() {
-        likes.clear();
+        likesByFilm.clear();
         super.deleteAll();
     }
 
     @Override
-    public Collection<Film> searchFilmsByTitle(String query) {
+    public Collection<Film> searchFilmsByTitle(final String query) {
         return Collections.emptyList();
     }
 
     @Override
-    public Collection<Film> searchFilmsByDirectorName(String query) {
+    public Collection<Film> searchFilmsByDirectorName(final String query) {
         return Collections.emptyList();
     }
 
     @Override
-    public Collection<Film> searchFilmsByTitleAndDirectorName(String query) {
+    public Collection<Film> searchFilmsByTitleAndDirectorName(final String query) {
         return Collections.emptyList();
     }
 
-    private Film sortFilmGenres(final Film film) {
+    @Override
+    public Set<Long> getLikesByUserId(final long userId) {
+        return Set.of();
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(final long id, final long friendId) {
+        return Collections.emptyList();
+    }
+
+    private Film enrichFields(final Film film) {
+        sortFilmGenres(film);
+        sortFilmDirectors(film);
+        updateFilmLikes(film);
+        if (film.getGenres() == null) {
+            film.setGenres(Collections.emptySet());
+        }
+        if (film.getDirectors() == null) {
+            film.setDirectors(Collections.emptySet());
+        }
+        return film;
+    }
+
+    private void sortFilmGenres(final Film film) {
         final Collection<Genre> genres = film.getGenres();
         if (genres != null && !genres.isEmpty()) {
             film.setGenres(genres.stream()
@@ -107,10 +155,9 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
                     .toList()
             );
         }
-        return film;
     }
 
-    private Film sortFilmDirectors(final Film film) {
+    private void sortFilmDirectors(final Film film) {
         final Collection<Director> directors = film.getDirectors();
         if (directors != null && !directors.isEmpty()) {
             film.setDirectors(directors.stream()
@@ -118,20 +165,13 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
                     .toList()
             );
         }
-        return film;
     }
 
-    private int countFilmLikes(final Film film) {
-        return likes.getOrDefault(film.getId(), Collections.emptySet()).size();
+    private void updateFilmLikes(final Film film) {
+        film.setLikes(countFilmLikes(film));
     }
 
-    @Override
-    public Set<Long> getLikesByUserId(long userId) {
-        return Set.of();
-    }
-
-    @Override
-    public Collection<Film> getCommonFilms(long id, long friendId) {
-        return Collections.emptyList();
+    private long countFilmLikes(final Film film) {
+        return likesByFilm.getOrDefault(film.getId(), Collections.emptySet()).size();
     }
 }

@@ -10,6 +10,7 @@ class FilmDbStorageIT extends AbstractFilmStorageTest {
 
     @Autowired
     FilmDbStorageIT(final NamedParameterJdbcTemplate jdbc) {
+        this.userStorage = new UserDbStorage(jdbc);
         this.filmStorage = new FilmDbStorage(jdbc);
     }
 }

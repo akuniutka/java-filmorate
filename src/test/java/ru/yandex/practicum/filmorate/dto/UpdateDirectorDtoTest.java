@@ -31,7 +31,7 @@ class UpdateDirectorDtoTest {
 
         Set<ConstraintViolation<UpdateDirectorDto>> violations = validator.validate(dto);
 
-        assertTrue(violations.stream().anyMatch(v -> "id".equalsIgnoreCase(v.getPropertyPath().toString())));
+        assertTrue(violations.stream().anyMatch(v -> "id".equals(v.getPropertyPath().toString())));
     }
 
     @ParameterizedTest
@@ -43,7 +43,7 @@ class UpdateDirectorDtoTest {
 
         Set<ConstraintViolation<UpdateDirectorDto>> violations = validator.validate(dto);
 
-        assertTrue(violations.stream().anyMatch(v -> "name".endsWith(v.getPropertyPath().toString())));
+        assertTrue(violations.stream().anyMatch(v -> "name".equals(v.getPropertyPath().toString())));
     }
 
     @Test

@@ -18,4 +18,5 @@ public class Film {
     private Mpa mpa;
     private Collection<Genre> genres;
     private Collection<Director> directors;
+    private long likes;
 }

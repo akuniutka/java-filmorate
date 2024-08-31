@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS films
   description  VARCHAR(200) NULL,
   release_date DATE         NOT NULL,
   duration     INT          NOT NULL,
-  mpa_id       BIGINT       NULL REFERENCES mpas (id) ON DELETE SET NULL
+  mpa_id       BIGINT       NULL REFERENCES mpas (id) ON DELETE SET NULL,
+  likes        BIGINT       NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS directors
@@ -97,6 +98,10 @@ CREATE TABLE IF NOT EXISTS film_likes
   CONSTRAINT film_likes_ux UNIQUE (film_id, user_id)
 );
 
+CREATE TRIGGER IF NOT EXISTS insert_film_like_trigger
+AFTER INSERT, DELETE ON film_likes
+FOR EACH ROW CALL 'ru.yandex.practicum.filmorate.storage.db.trigger.FilmLikeTrigger';
+
 CREATE TABLE IF NOT EXISTS reviews_likes
 (
   review_id BIGINT  NOT NULL REFERENCES reviews (id) ON DELETE CASCADE,
@@ -106,14 +111,6 @@ CREATE TABLE IF NOT EXISTS reviews_likes
 );
 
 -- Supplementary views
-
-CREATE VIEW IF NOT EXISTS film_ratings
-AS
-SELECT f.id             AS film_id,
-       COUNT(l.user_id) AS rating
-FROM films AS f
-       LEFT JOIN film_likes AS l ON f.id = l.film_id
-GROUP BY f.id;
 
 CREATE VIEW IF NOT EXISTS review_ratings
 AS

@@ -33,7 +33,7 @@ class NewDirectorDtoTest {
 
         Set<ConstraintViolation<NewDirectorDto>> violations = validator.validate(dto);
 
-        assertTrue(violations.stream().anyMatch(v -> "name".endsWith(v.getPropertyPath().toString())));
+        assertTrue(violations.stream().anyMatch(v -> "name".equals(v.getPropertyPath().toString())));
     }
 
     @Test
