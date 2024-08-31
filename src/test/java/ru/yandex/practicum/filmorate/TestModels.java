@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dto.UpdateDirectorDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
 import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -154,6 +155,17 @@ public final class TestModels {
         return clone;
     }
 
+    public static Event cloneEvent(final Event event) {
+        Event clone = new Event();
+        clone.setId(event.getId());
+        clone.setUserId(event.getUserId());
+        clone.setEventType(event.getEventType());
+        clone.setOperation(event.getOperation());
+        clone.setEntityId(event.getEntityId());
+        clone.setTimestamp(event.getTimestamp());
+        return clone;
+    }
+
     public static void assertUserEquals(final User expected, final User actual) {
         if (expected == null) {
             throw new IllegalArgumentException("value to check against should not be null");
@@ -235,6 +247,32 @@ public final class TestModels {
         assertEquals(expected.size(), actual.size(), "wrong list size");
         for (int i = 0; i < expected.size(); i++) {
             assertDirectorEquals(expected.get(i), actual.get(i));
+        }
+    }
+
+    public static void assertEventEquals(final Event expected, final Event actual) {
+        if (expected == null) {
+            throw new IllegalArgumentException("value to check against should not be null");
+        }
+        assertNotNull(actual, "should be not null");
+        assertAll("wrong event",
+                () -> assertEquals(expected.getId(), actual.getId(), "wrong event id"),
+                () -> assertEquals(expected.getUserId(), actual.getUserId(), "wrong user id"),
+                () -> assertEquals(expected.getEntityId(), actual.getEntityId(), "wrong entity id"),
+                () -> assertEquals(expected.getEventType(), actual.getEventType(), "wrong event type"),
+                () -> assertEquals(expected.getOperation(), actual.getOperation(), "wrong operation"),
+                () -> assertEquals(expected.getTimestamp(), actual.getTimestamp(), "wrong timestamp")
+        );
+    }
+
+    public static void assertEventListEquals(final List<Event> expected, final List<Event> actual) {
+        if (expected == null) {
+            throw new IllegalArgumentException("value to check against should not be null");
+        }
+        assertNotNull(actual, "should be not null");
+        assertEquals(expected.size(), actual.size(), "wrong list size");
+        for (int i = 0; i < expected.size(); i++) {
+            assertEventEquals(expected.get(i), actual.get(i));
         }
     }
 }

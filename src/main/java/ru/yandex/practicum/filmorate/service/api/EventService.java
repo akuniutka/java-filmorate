@@ -8,7 +8,7 @@ import java.util.Collection;
 
 public interface EventService {
 
-    void create(EventType eventType, long userId, Operation operation, Long entityId);
+    void createEvent(EventType eventType, long userId, Operation operation, long entityId);
 
-    Collection<Event> getEvents(Long userId);
+    Collection<Event> getEventsByUserId(long userId);
 }

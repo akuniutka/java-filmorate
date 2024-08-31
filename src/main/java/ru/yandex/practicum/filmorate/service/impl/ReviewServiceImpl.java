@@ -45,7 +45,7 @@ public class ReviewServiceImpl implements ReviewService {
     public void deleteReview(final long id) {
         long userId = getReview(id).getUserId();
         if (reviewStorage.delete(id)) {
-            eventService.create(EventType.REVIEW, userId, Operation.REMOVE, id);
+            eventService.createEvent(EventType.REVIEW, userId, Operation.REMOVE, id);
         }
     }
 
@@ -57,7 +57,7 @@ public class ReviewServiceImpl implements ReviewService {
         final Review reviewStored = reviewStorage.save(review);
         log.info("Created new Review: {}", reviewStored);
         // добавление события добавления отзыва в таблицу events
-        eventService.create(EventType.REVIEW, review.getUserId(), Operation.ADD, reviewStored.getId());
+        eventService.createEvent(EventType.REVIEW, review.getUserId(), Operation.ADD, reviewStored.getId());
         return reviewStored;
     }
 
@@ -68,7 +68,7 @@ public class ReviewServiceImpl implements ReviewService {
                 () -> new NotFoundException(Review.class, review.getId())
         );
         // добавление события обновления отзыва в таблицу events
-        eventService.create(EventType.REVIEW, reviewStored.getUserId(), Operation.UPDATE, reviewStored.getId());
+        eventService.createEvent(EventType.REVIEW, reviewStored.getUserId(), Operation.UPDATE, reviewStored.getId());
         log.info("Updated review: {}", reviewStored);
         return reviewStored;
     }

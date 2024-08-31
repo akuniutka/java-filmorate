@@ -64,7 +64,7 @@ public class UserServiceImpl implements UserService {
         }
         userStorage.addFriend(id, friendId);
         // добавление события добавления друга в таблицу events
-        eventService.create(EventType.FRIEND, id, Operation.ADD, friendId);
+        eventService.createEvent(EventType.FRIEND, id, Operation.ADD, friendId);
     }
 
     @Override
@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService {
         }
         if (userStorage.deleteFriend(id, friendId)) {
             // добавление события удаления друга в таблице events
-            eventService.create(EventType.FRIEND, id, Operation.REMOVE, friendId);
+            eventService.createEvent(EventType.FRIEND, id, Operation.REMOVE, friendId);
         }
     }
 
@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Collection<Event> getEvents(final long id) {
         getUser(id);
-        return eventService.getEvents(id);
+        return eventService.getEventsByUserId(id);
     }
 
     private void resetNameToLoginIfBlank(final User user) {
