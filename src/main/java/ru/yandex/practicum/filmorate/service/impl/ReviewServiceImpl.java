@@ -31,7 +31,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public Collection<Review> getReviewsForFilm(final long filmId, final long count) {
-        return reviewStorage.getReviewsForFilm(filmId, count);
+        return reviewStorage.findAllByFilmId(filmId, count);
     }
 
     @Override

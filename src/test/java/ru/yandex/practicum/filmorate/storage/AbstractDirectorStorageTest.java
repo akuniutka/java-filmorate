@@ -40,7 +40,7 @@ public abstract class AbstractDirectorStorageTest {
 
         final Optional<Director> actual = directorStorage.findById(expectedDirectors.get(1).getId());
 
-        assertTrue(actual.isPresent(), "optional should no be empty");
+        assertTrue(actual.isPresent(), "optional should not be empty");
         assertDirectorEquals(expectedDirectors.get(1), actual.get());
     }
 

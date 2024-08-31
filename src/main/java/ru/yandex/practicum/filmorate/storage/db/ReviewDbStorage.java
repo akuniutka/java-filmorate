@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -11,7 +9,6 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.api.ReviewStorage;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -24,83 +21,45 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
               VALUES (:content, :isPositive, :userId, :filmId)
             );
             """;
-    private static final String FIND_BY_ID_QUERY = """
-            SELECT r.id,
-              r.content,
-              r.is_positive,
-              r.user_id,
-              r.film_id,
-              rr.rating AS useful
-            FROM reviews AS r
-            JOIN review_ratings AS rr on r.id = rr.review_id
-            WHERE r.id = :id;
-            """;
     private static final String UPDATE_QUERY = """
-            SELECT r.id,
-              r.content,
-              r.is_positive,
-              r.user_id,
-              r.film_id,
-              rr.rating AS useful
+            SELECT *
             FROM FINAL TABLE (
               UPDATE reviews
               SET content = :content,
                 is_positive = :isPositive
               WHERE id = :id
-            ) AS r
-            JOIN review_ratings AS rr on r.id = rr.review_id;
+            );
             """;
     private static final String FIND_ALL_QUERY = """
-            SELECT r.id,
-              r.content,
-              r.is_positive,
-              r.user_id,
-              r.film_id,
-              rr.rating AS useful
+            SELECT *
             FROM reviews AS r
-            JOIN review_ratings AS rr on r.id = rr.review_id
-            ORDER BY useful DESC, r.id;
+            ORDER BY r.useful DESC, r.id;
             """;
     private static final String FIND_ALL_REVIEW_FOR_FILM = """
-            SELECT r.id,
-              r.content,
-              r.is_positive,
-              r.user_id,
-              r.film_id,
-              rr.rating AS useful
+            SELECT *
             FROM reviews AS r
-            JOIN review_ratings AS rr on r.id = rr.review_id
-            WHERE film_id = :film_id
-            ORDER BY useful DESC, r.id
+            WHERE film_id = :filmId
+            ORDER BY r.useful DESC, r.id
             LIMIT :count;
             """;
     private static final String ADD_LIKE_QUERY = """
-            MERGE INTO reviews_likes (review_id, user_id, is_like)
+            MERGE INTO review_likes (review_id, user_id, is_like)
             KEY (review_id, user_id)
             VALUES (:reviewId, :userId, :isLike);
             """;
     private static final String DELETE_LIKE_QUERY = """
-            DELETE FROM reviews_likes
+            DELETE FROM review_likes
             WHERE review_id = :reviewId AND user_id = :userId AND is_like = :isLike;
             """;
 
     @Autowired
-    public ReviewDbStorage(final NamedParameterJdbcTemplate jdbc, final RowMapper<Review> mapper) {
-        super(Review.class, jdbc, mapper);
+    public ReviewDbStorage(final NamedParameterJdbcTemplate jdbc) {
+        super(Review.class, jdbc);
     }
 
     @Override
     public Review save(final Review review) {
         return save(SAVE_QUERY, review);
-    }
-
-    @Override
-    public Optional<Review> findById(final long id) {
-        try {
-            return Optional.ofNullable(jdbc.queryForObject(FIND_BY_ID_QUERY, Map.of("id", id), mapper));
-        } catch (EmptyResultDataAccessException ignored) {
-            return Optional.empty();
-        }
     }
 
     @Override
@@ -114,9 +73,9 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public Collection<Review> getReviewsForFilm(final long filmId, final long count) {
+    public Collection<Review> findAllByFilmId(final long filmId, final long count) {
         var params = new MapSqlParameterSource()
-                .addValue("film_id", filmId)
+                .addValue("filmId", filmId)
                 .addValue("count", count);
         return findMany(FIND_ALL_REVIEW_FOR_FILM, params);
     }
