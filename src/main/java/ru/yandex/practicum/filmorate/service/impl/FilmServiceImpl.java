@@ -93,7 +93,7 @@ public class FilmServiceImpl implements FilmService {
         getFilm(id);
         userService.getUser(userId);
         // добавление события добавления лайка в таблицу events
-        eventService.create(EventType.LIKE, userId, Operation.ADD, id);
+        eventService.createEvent(EventType.LIKE, userId, Operation.ADD, id);
         filmStorage.addLike(id, userId);
     }
 
@@ -146,7 +146,7 @@ public class FilmServiceImpl implements FilmService {
         userService.getUser(userId);
         // добавление события удаления лайка в таблицу events
         if (filmStorage.deleteLike(id, userId)) {
-            eventService.create(EventType.LIKE, userId, Operation.REMOVE, id);
+            eventService.createEvent(EventType.LIKE, userId, Operation.REMOVE, id);
         }
     }
 

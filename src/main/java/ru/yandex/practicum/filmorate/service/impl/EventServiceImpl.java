@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.storage.api.EventStorage;
 
-import java.time.Instant;
 import java.util.Collection;
 
 @Service
@@ -20,19 +19,18 @@ public class EventServiceImpl implements EventService {
     private final EventStorage eventStorage;
 
     @Override
-    public void create(EventType eventType, long userId, Operation operation, Long entityId) {
-        Event event = new Event();
-        event.setEventType(eventType);
+    public void createEvent(final EventType type, final long userId, final Operation operation, final long entityId) {
+        final Event event = new Event();
+        event.setEventType(type);
         event.setUserId(userId);
         event.setOperation(operation);
-        event.setTimestamp(Instant.now());
         event.setEntityId(entityId);
-        eventStorage.save(event);
-        log.info("New event added to action log: {}", event);
+        final Event storedEvent = eventStorage.save(event);
+        log.info("New event added to action log: {}", storedEvent);
     }
 
     @Override
-    public Collection<Event> getEvents(Long userId) {
-        return eventStorage.findAll(userId);
+    public Collection<Event> getEventsByUserId(final long userId) {
+        return eventStorage.findAllByUserId(userId);
     }
 }

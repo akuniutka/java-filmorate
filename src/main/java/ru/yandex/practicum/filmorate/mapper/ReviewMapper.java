@@ -18,7 +18,7 @@ public abstract class ReviewMapper {
         Review review = new Review();
         review.setContent(dto.getContent());
         review.setIsPositive(dto.getIsPositive());
-        review.setUseful(0);
+        review.setUseful(0L);
         review.setFilmId(dto.getFilmId());
         review.setUserId(dto.getUserId());
         return review;
