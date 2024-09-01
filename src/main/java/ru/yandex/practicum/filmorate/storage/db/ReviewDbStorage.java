@@ -18,11 +18,11 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     private static final String ADD_LIKE_QUERY = """
             MERGE INTO review_likes (review_id, user_id, is_like)
             KEY (review_id, user_id)
-            VALUES (:reviewId, :userId, :isLike);
+            VALUES (:id, :userId, :isLike);
             """;
     private static final String DELETE_LIKE_QUERY = """
             DELETE FROM review_likes
-            WHERE review_id = :reviewId AND user_id = :userId AND is_like = :isLike;
+            WHERE review_id = :id AND user_id = :userId AND is_like = :isLike;
             """;
 
     @Autowired
@@ -36,14 +36,16 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public Collection<Review> findAll() {
+    public Collection<Review> findAllOrderByUsefulDesc(final long count) {
         return findAll(
-                desc("useful").asc("id")
+                null,
+                desc("useful").asc("id"),
+                count
         );
     }
 
     @Override
-    public Collection<Review> findAllByFilmId(final long filmId, final long count) {
+    public Collection<Review> findAllByFilmIdOrderByUsefulDesc(final long filmId, final long count) {
         return findAll(
                 and().eq("filmId", filmId),
                 desc("useful").asc("id"),
@@ -57,40 +59,40 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public Review addLike(final long reviewId, final long userId) {
-        return addLike(reviewId, userId, true);
+    public Review addLike(final long id, final long userId) {
+        return addLike(id, userId, true);
     }
 
     @Override
-    public Review addDislike(final long reviewId, final long userId) {
-        return addLike(reviewId, userId, false);
+    public Review addDislike(final long id, final long userId) {
+        return addLike(id, userId, false);
     }
 
     @Override
-    public Review deleteLike(long reviewId, long userId) {
-        return deleteLike(reviewId, userId, true);
+    public Review deleteLike(final long id, final long userId) {
+        return deleteLike(id, userId, true);
     }
 
     @Override
-    public Review deleteDislike(long reviewId, long userId) {
-        return deleteLike(reviewId, userId, false);
+    public Review deleteDislike(final long id, final long userId) {
+        return deleteLike(id, userId, false);
     }
 
-    private Review addLike(final long reviewId, final long userId, final boolean isLike) {
+    private Review addLike(final long id, final long userId, final boolean isLike) {
         SqlParameterSource params = new MapSqlParameterSource()
-                .addValue("reviewId", reviewId)
+                .addValue("id", id)
                 .addValue("userId", userId)
                 .addValue("isLike", isLike);
         execute(ADD_LIKE_QUERY, params);
-        return findById(reviewId).orElseThrow();
+        return findById(id).orElseThrow();
     }
 
-    private Review deleteLike(final long reviewId, final long userId, final boolean isLike) {
+    private Review deleteLike(final long id, final long userId, final boolean isLike) {
         SqlParameterSource params = new MapSqlParameterSource()
-                .addValue("reviewId", reviewId)
+                .addValue("id", id)
                 .addValue("userId", userId)
                 .addValue("isLike", isLike);
         execute(DELETE_LIKE_QUERY, params);
-        return findById(reviewId).orElseThrow();
+        return findById(id).orElseThrow();
     }
 }

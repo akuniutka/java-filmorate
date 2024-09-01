@@ -157,7 +157,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllByName(String query) {
+    public Collection<Film> findAllByNameOrderByLikesDesc(String query) {
         final String searchQuery = "%" + query + "%";
         return fetchCollections(findAll(
                 and().like("name", searchQuery),
@@ -166,7 +166,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllByDirectorName(String query) {
+    public Collection<Film> findAllByDirectorNameOrderByLikesDesc(String query) {
         final String searchQuery = "%" + query + "%";
         return fetchCollections(findAll(
                 and().like("directors", "name", searchQuery),
@@ -175,7 +175,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllByNameOrDirectorName(String query) {
+    public Collection<Film> findAllByNameOrDirectorNameOrderByLikesDesc(String query) {
         final String searchQuery = "%" + query + "%";
         return fetchCollections(findAll(
                 or().like("name", searchQuery).like("directors", "name", searchQuery),
@@ -191,7 +191,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllByDirectorIdOrderByLikes(final long directorId) {
+    public Collection<Film> findAllByDirectorIdOrderByLikesDesc(final long directorId) {
         return fetchCollections(findAll(
                 and().eq("directors", "id", directorId),
                 desc("likes").asc("id")
@@ -199,7 +199,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllByDirectorIdOrderByYear(final long directorId) {
+    public Collection<Film> findAllByDirectorIdOrderByYearAsc(final long directorId) {
         return fetchCollections(findAll(
            and().eq("directors", "id", directorId),
            asc("releaseYear").asc("id")
@@ -207,16 +207,35 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllOrderByLikesDesc(final long limit, Long genreId, Integer year) {
-        Filter filter = and();
-        if (genreId != 0) {
-            filter.eq("genres", "id", genreId);
-        }
-        if (year != 0) {
-            filter.eq("releaseYear", year);
-        }
+    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
         return fetchCollections(findAll(
-                filter,
+                desc("likes").asc("id"),
+                limit
+        ));
+    }
+
+    @Override
+    public Collection<Film> findAllByGenreIdOrderByLikesDesc(final long genreId, final long limit) {
+        return fetchCollections(findAll(
+                and().eq("genres", "id", genreId),
+                desc("likes").asc("id"),
+                limit
+        ));
+    }
+
+    @Override
+    public Collection<Film> findAllByReleaseYearOrderByLikesDesc(long releaseYear, long limit) {
+        return fetchCollections(findAll(
+                and().eq("releaseYear", releaseYear),
+                desc("likes").asc("id"),
+                limit
+        ));
+    }
+
+    @Override
+    public Collection<Film> findAllByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit) {
+        return fetchCollections(findAll(
+                and().eq("genres", "id", genreId).eq("releaseYear", releaseYear),
                 desc("likes").asc("id"),
                 limit
         ));

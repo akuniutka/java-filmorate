@@ -5,17 +5,14 @@ import ru.yandex.practicum.filmorate.model.Review;
 import java.util.Collection;
 
 public interface ReviewService {
-    Collection<Review> getReviews();
-
-    Collection<Review> getReviewsForFilm(long filmId, long count);
-
-    Review getReview(long id);
 
     Review createReview(Review review);
 
-    Review updateReview(Review review);
+    Review getReview(long id);
 
-    void deleteReview(long id);
+    Collection<Review> getReviews(Long filmId, long count);
+
+    Review updateReview(Review review);
 
     Review addLike(long reviewId, long userId);
 
@@ -24,5 +21,7 @@ public interface ReviewService {
     Review deleteLike(long reviewId, long userId);
 
     Review deleteDislike(long reviewId, long userId);
+
+    void deleteReview(long id);
 }
 
