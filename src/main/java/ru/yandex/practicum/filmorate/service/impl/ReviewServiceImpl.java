@@ -45,9 +45,9 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public Collection<Review> getReviews(final Long filmId, final long count) {
         if (filmId == null) {
-            return reviewStorage.findAll(count);
+            return reviewStorage.findAllOrderByUsefulDesc(count);
         } else {
-            return reviewStorage.findAll(filmId, count);
+            return reviewStorage.findAllByFilmIdOrderByUsefulDesc(filmId, count);
         }
     }
 

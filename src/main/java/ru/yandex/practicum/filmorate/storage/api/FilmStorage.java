@@ -14,19 +14,25 @@ public interface FilmStorage {
 
     Collection<Film> findAll();
 
-    Collection<Film> findAllByName(String query);
+    Collection<Film> findAllByNameOrderByLikesDesc(String query);
 
-    Collection<Film> findAllByDirectorName(String query);
+    Collection<Film> findAllByDirectorNameOrderByLikesDesc(String query);
+
+    Collection<Film> findAllByNameOrDirectorNameOrderByLikesDesc(String query);
 
     Collection<Film> findAllByDirectorId(long directorId);
 
-    Collection<Film> findAllByNameOrDirectorName(String query);
+    Collection<Film> findAllByDirectorIdOrderByLikesDesc(long directorId);
 
-    Collection<Film> findAllByDirectorIdOrderByLikes(long directorId);
+    Collection<Film> findAllByDirectorIdOrderByYearAsc(long directorId);
 
-    Collection<Film> findAllByDirectorIdOrderByYear(long directorId);
+    Collection<Film> findAllOrderByLikesDesc(long limit);
 
-    Collection<Film> findAllOrderByLikesDesc(long limit, Long genreId, Integer year);
+    Collection<Film> findAllByGenreIdOrderByLikesDesc(long genreId, long limit);
+
+    Collection<Film> findAllByReleaseYearOrderByLikesDesc(long releaseYear, long limit);
+
+    Collection<Film> findAllByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit);
 
     Optional<Film> update(Film film);
 

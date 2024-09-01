@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
@@ -24,6 +23,62 @@ public class FilmController {
     private final FilmService filmService;
     private final FilmMapper mapper;
 
+    @PostMapping
+    public FilmDto createFilm(@Valid @RequestBody final NewFilmDto newFilmDto) {
+        log.info("Received POST at /films: {}", newFilmDto);
+        final Film film = mapper.mapToFilm(newFilmDto);
+        final FilmDto filmDto = mapper.mapToDto(filmService.createFilm(film));
+        log.info("Responded to POST /films: {}", filmDto);
+        return filmDto;
+    }
+
+    @GetMapping("/{id}")
+    public FilmDto getFilm(@PathVariable final long id) {
+        log.info("Received GET at /films/{}", id);
+        final FilmDto dto = mapper.mapToDto(filmService.getFilm(id));
+        log.info("Responded to GET /films/{}: {}", id, dto);
+        return dto;
+    }
+
+    @GetMapping
+    public Collection<FilmDto> getFilms() {
+        log.info("Received GET at /films");
+        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getFilms());
+        log.info("Responded to GET /films: {}", dtos);
+        return dtos;
+    }
+
+    @GetMapping("/popular")
+    public Collection<FilmDto> getTopLiked(
+            @RequestParam(defaultValue = "10") @Valid @Positive final long count,
+            @RequestParam(required = false) final Long genreId,
+            @RequestParam(required = false) final Integer year) {
+        log.info("Received GET at /films/popular?count={}&genreId={}&year{}", count, genreId, year);
+        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getTopFilms(count, genreId, year));
+        log.info("Responded to GET /films/popular?count={}&genreId={}&year={}: {}", count, genreId, year, dtos);
+        return dtos;
+    }
+
+    @GetMapping("/director/{directorId}")
+    public Collection<FilmDto> getFilmsByDirector(
+            @PathVariable final long directorId,
+            @RequestParam final String sortBy) {
+        log.info("Received GET at /films/director/{}?sortBy={}", directorId, sortBy);
+        final Collection<FilmDto> dtos =  mapper.mapToDto(filmService.getFilmsByDirectorId(directorId, sortBy));
+        log.info("Responded to GET /films/director/{}?sortBy={}: {}", directorId, sortBy, dtos);
+        return dtos;
+    }
+
+    @GetMapping("/search")
+    public Collection<FilmDto> searchFilms(
+            @RequestParam final String query,
+            @RequestParam(required = false, defaultValue = "title") final String by) {
+        log.info("Received GET at /films/search?query={}&by={}", query, by);
+        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getFilmsByTitleAndDirectorName(query, by));
+        log.info("Responded to GET /films/search?query={}&by={}: {}", query, by, dtos);
+        return dtos;
+    }
+
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable final long id, @PathVariable final long userId) {
         log.info("Received PUT at /films/{}/like/{}", id, userId);
@@ -36,41 +91,6 @@ public class FilmController {
         log.info("Received DELETE at /films/{}/like/{}", id, userId);
         filmService.deleteLike(id, userId);
         log.info("Responded to DELETE /films/{}/like/{} with no body", id, userId);
-    }
-
-    @GetMapping("/popular")
-    public Collection<FilmDto> getTopLiked(@RequestParam(defaultValue = "10") @Valid @Positive final long count,
-                                           @RequestParam(required = false) final Long genreId,
-                                           @RequestParam(required = false) final Integer year) {
-        log.info("Received GET at /films/popular?count={}&genreId={}&year{}", count, genreId, year);
-        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getTopFilms(count, genreId, year));
-        log.info("Responded to GET /films/popular?count={}&genreId={}&year={}: {}", count, genreId, year, dtos);
-        return dtos;
-    }
-
-    @GetMapping("/{id}")
-    public FilmDto getFilm(@PathVariable final long id) {
-        log.info("Received GET at /films/{}", id);
-        final FilmDto dto = mapper.mapToDto(filmService.getFilm(id));
-        log.info("Responded to GET /films/{}: {}", id, dto);
-        return dto;
-    }
-
-    @PostMapping
-    public FilmDto createFilm(@Valid @RequestBody final NewFilmDto newFilmDto) {
-        log.info("Received POST at /films: {}", newFilmDto);
-        final Film film = mapper.mapToFilm(newFilmDto);
-        final FilmDto filmDto = mapper.mapToDto(filmService.createFilm(film));
-        log.info("Responded to POST /films: {}", filmDto);
-        return filmDto;
-    }
-
-    @GetMapping
-    public Collection<FilmDto> getFilms() {
-        log.info("Received GET at /films");
-        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getFilms());
-        log.info("Responded to GET /films: {}", dtos);
-        return dtos;
     }
 
     @PutMapping
@@ -94,49 +114,6 @@ public class FilmController {
         log.info("Received GET at /films/common?userId={}&friendId={}", userId, friendId);
         final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getCommonFilms(userId, friendId));
         log.info("Responded to GET /films/common?userId={}&friendId={}: {}", userId, friendId, dtos);
-        return dtos;
-    }
-
-    @GetMapping("/director/{directorId}")
-    public Collection<FilmDto> getFilmsByDirector(@PathVariable final long directorId, @RequestParam final String sortBy) {
-        log.info("Received GET at /films/director/{}?sortBy={}", directorId, sortBy);
-        final Collection<Film> films = switch (sortBy) {
-            case "year" -> filmService.getFilmsByDirectorIdOrderByYear(directorId);
-            case "likes" -> filmService.getFilmsByDirectorIdOrderByLikes(directorId);
-            case null -> filmService.getFilmsByDirectorId(directorId);
-            default -> throw new ValidationException("Check parameter to sort films by (you send %s)"
-                    .formatted(sortBy));
-        };
-        final Collection<FilmDto> dtos = mapper.mapToDto(films);
-        log.info("Responded to GET /films/director/{}?sortBy={}: {}", directorId, sortBy, dtos);
-        return dtos;
-    }
-
-    @GetMapping("/search")
-    public Collection<FilmDto> searchFilms(
-            @RequestParam String query,
-            @RequestParam(name = "by", required = false, defaultValue = "title") String by) {
-        log.info("Received GET at /films/search?query={}&by={}", query, by);
-        // Разбиваем параметры by на отдельные значения (director, title)
-        String[] searchCriteria = by.split(",");
-
-        Collection<Film> films;
-
-        if (searchCriteria.length == 1) {
-            // Если указано только одно значение в параметре by
-            if ("director".equalsIgnoreCase(searchCriteria[0])) {
-                films = filmService.searchFilmsByDirectorName(query);
-            } else {
-                films = filmService.searchFilmsByTitle(query);
-            }
-        } else {
-            // Если указаны оба значения (director, title)
-            films = filmService.searchFilmsByTitleAndDirectorName(query);
-        }
-
-        // Маппим фильмы на DTO и возвращаем результат
-        final Collection<FilmDto> dtos = mapper.mapToDto(films);
-        log.info("Responded to GET /films/search?query={}&by={}: {}", query, by, dtos);
         return dtos;
     }
 }

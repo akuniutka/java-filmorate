@@ -11,9 +11,9 @@ public interface ReviewStorage {
 
     Optional<Review> findById(long id);
 
-    Collection<Review> findAll(long count);
+    Collection<Review> findAllOrderByUsefulDesc(long count);
 
-    Collection<Review> findAll(long filmId, long count);
+    Collection<Review> findAllByFilmIdOrderByUsefulDesc(long filmId, long count);
 
     Optional<Review> update(Review review);
 

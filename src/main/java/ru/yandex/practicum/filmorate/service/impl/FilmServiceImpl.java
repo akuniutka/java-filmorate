@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -34,31 +35,12 @@ public class FilmServiceImpl implements FilmService {
     private final DirectorService directorService;
 
     @Override
-    public Collection<Film> getFilms() {
-        return filmStorage.findAll();
-    }
-
-    @Override
-    public Collection<Film> getTopFilms(final long limit, final Long genreId, final Integer year) {
-        return filmStorage.findAllOrderByLikesDesc(limit, genreId, year);
-    }
-
-    @Override
-    public Collection<Film> getFilmsByDirectorId(final long directorId) {
-        directorService.getDirector(directorId);
-        return filmStorage.findAllByDirectorId(directorId);
-    }
-
-    @Override
-    public Collection<Film> getFilmsByDirectorIdOrderByYear(final long directorId) {
-        directorService.getDirector(directorId);
-        return filmStorage.findAllByDirectorIdOrderByYear(directorId);
-    }
-
-    @Override
-    public Collection<Film> getFilmsByDirectorIdOrderByLikes(final long directorId) {
-        directorService.getDirector(directorId);
-        return filmStorage.findAllByDirectorIdOrderByLikes(directorId);
+    public Film createFilm(final Film film) {
+        Objects.requireNonNull(film, "Cannot create film: is null");
+        validateCollections(film);
+        final Film filmStored = filmStorage.save(film);
+        log.info("Created new film: {}", filmStored);
+        return filmStored;
     }
 
     @Override
@@ -69,12 +51,35 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public Film createFilm(final Film film) {
-        Objects.requireNonNull(film, "Cannot create film: is null");
-        validateCollections(film);
-        final Film filmStored = filmStorage.save(film);
-        log.info("Created new film: {}", filmStored);
-        return filmStored;
+    public Collection<Film> getFilms() {
+        return filmStorage.findAll();
+    }
+
+    @Override
+    public Collection<Film> getTopFilms(final long count, final Long genreId, final Integer year) {
+        if (genreId != null && year != null) {
+            return filmStorage.findAllByGenreIdAndReleaseYearOrderByLikesDesc(genreId, year, count);
+        } else if (genreId != null) {
+            return filmStorage.findAllByGenreIdOrderByLikesDesc(genreId, count);
+        } else if (year != null) {
+            return filmStorage.findAllByReleaseYearOrderByLikesDesc(year, count);
+        } else {
+            return filmStorage.findAllOrderByLikesDesc(count);
+        }
+    }
+
+    @Override
+    public Collection<Film> getFilmsByDirectorId(final long directorId, final String sortBy) {
+        directorService.getDirector(directorId);
+        if (sortBy == null) {
+            return filmStorage.findAllByDirectorId(directorId);
+        } else if ("likes".equalsIgnoreCase(sortBy)) {
+            return filmStorage.findAllByDirectorIdOrderByLikesDesc(directorId);
+        } else if ("year".equalsIgnoreCase(sortBy)) {
+            return filmStorage.findAllByDirectorIdOrderByYearAsc(directorId);
+        } else {
+            throw new ValidationException("Check parameter to sort films by (you send %s)".formatted(sortBy));
+        }
     }
 
     @Override
@@ -92,7 +97,6 @@ public class FilmServiceImpl implements FilmService {
     public void addLike(final long id, final long userId) {
         getFilm(id);
         userService.getUser(userId);
-        // добавление события добавления лайка в таблицу events
         eventService.createEvent(EventType.LIKE, userId, Operation.ADD, id);
         filmStorage.addLike(id, userId);
     }
@@ -144,7 +148,6 @@ public class FilmServiceImpl implements FilmService {
     public void deleteLike(final long id, final long userId) {
         getFilm(id);
         userService.getUser(userId);
-        // добавление события удаления лайка в таблицу events
         if (filmStorage.deleteLike(id, userId)) {
             eventService.createEvent(EventType.LIKE, userId, Operation.REMOVE, id);
         }
@@ -156,18 +159,16 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public Collection<Film> searchFilmsByTitle(String query) {
-        return filmStorage.findAllByName(query);
-    }
-
-    @Override
-    public Collection<Film> searchFilmsByDirectorName(String query) {
-        return filmStorage.findAllByDirectorName(query);
-    }
-
-    @Override
-    public Collection<Film> searchFilmsByTitleAndDirectorName(String query) {
-        return filmStorage.findAllByNameOrDirectorName(query);
+    public Collection<Film> getFilmsByTitleAndDirectorName(final String query, final String by) {
+        if ("director,title".equalsIgnoreCase(by) || "title,director".equalsIgnoreCase(by)) {
+            return filmStorage.findAllByNameOrDirectorNameOrderByLikesDesc(query);
+        } else if ("title".equalsIgnoreCase(by)) {
+            return filmStorage.findAllByNameOrderByLikesDesc(query);
+        } else if ("director".equalsIgnoreCase(by)) {
+            return filmStorage.findAllByDirectorNameOrderByLikesDesc(query);
+        } else {
+            throw new ValidationException("Check parameter to filter films by (you send %s)".formatted(by));
+        }
     }
 
     @Override

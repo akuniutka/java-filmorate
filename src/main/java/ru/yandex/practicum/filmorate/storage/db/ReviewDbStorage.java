@@ -36,7 +36,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public Collection<Review> findAll(final long count) {
+    public Collection<Review> findAllOrderByUsefulDesc(final long count) {
         return findAll(
                 null,
                 desc("useful").asc("id"),
@@ -45,7 +45,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public Collection<Review> findAll(final long filmId, final long count) {
+    public Collection<Review> findAllByFilmIdOrderByUsefulDesc(final long filmId, final long count) {
         return findAll(
                 and().eq("filmId", filmId),
                 desc("useful").asc("id"),
