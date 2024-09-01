@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Operation;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +20,8 @@ import java.util.stream.Collectors;
 
 public class BaseDbStorage<T> {
 
+    protected static final String SAVE_QUERY = "SELECT * FROM FINAL TABLE (INSERT INTO %s (%s) VALUES (%s));";
+    protected static final String UPDATE_QUERY = "SELECT * FROM FINAL TABLE (UPDATE %s SET %s WHERE id = :id);";
     protected static final String FIND_ALL_QUERY = "SELECT * FROM %s ORDER BY id;";
     protected static final String FIND_BY_ID_QUERY = "SELECT * FROM %s WHERE id = :id;";
     protected static final String FIND_BY_IDS_QUERY = "SELECT * FROM %s WHERE id IN (%s);";
@@ -55,11 +58,11 @@ public class BaseDbStorage<T> {
         return jdbc.query(FIND_BY_IDS_QUERY.formatted(tableName, idsStr), mapper);
     }
 
-    public T save(String query, T entity) {
+    protected T save(String query, T entity) {
         return update(query, entity).orElseThrow();
     }
 
-    public Optional<T> update(String query, T entity) {
+    protected Optional<T> update(final String query, final T entity) {
         SqlParameterSource params = new BeanPropertySqlParameterSource(entity) {
             @Override
             public Object getValue(String paramName) throws IllegalArgumentException {
@@ -74,6 +77,25 @@ public class BaseDbStorage<T> {
             }
         };
         return findOne(query, params);
+    }
+
+    protected T save(final List<String> fields, final T entity) {
+        final String dbFields = fields.stream()
+                .map(this::toDbNotation)
+                .collect(Collectors.joining(", "));
+        final String entityFields = fields.stream()
+                .map(fieldName -> ":" + fieldName)
+                .collect(Collectors.joining(", "));
+        final String query = SAVE_QUERY.formatted(tableName, dbFields, entityFields);
+        return update(query, entity).orElseThrow();
+    }
+
+    protected Optional<T> update(final List<String> fields, final T entity) {
+        String fieldPairs = fields.stream()
+                .map(field -> toDbNotation(field) + " = :" + field)
+                .collect(Collectors.joining(", "));
+        final String query = UPDATE_QUERY.formatted(tableName, fieldPairs);
+        return update(query, entity);
     }
 
     public boolean delete(final long id) {
@@ -105,8 +127,8 @@ public class BaseDbStorage<T> {
         jdbc.update(query, Collections.emptyMap());
     }
 
-    protected void execute(final String query, final SqlParameterSource params) {
-        jdbc.update(query, params);
+    protected int execute(final String query, final SqlParameterSource params) {
+        return jdbc.update(query, params);
     }
 
     protected Optional<T> findOne(final String query, final SqlParameterSource params) {
@@ -119,5 +141,17 @@ public class BaseDbStorage<T> {
 
     protected List<T> findMany(final String query, final SqlParameterSource params) {
         return jdbc.query(query, params, mapper);
+    }
+
+    protected String toDbNotation(String fieldName) {
+        StringBuilder sb = new StringBuilder();
+        for (char ch : fieldName.toCharArray()) {
+            if (Character.isUpperCase(ch)) {
+                sb.append('_').append(Character.toLowerCase(ch));
+            } else {
+                sb.append(ch);
+            }
+        }
+        return sb.toString();
     }
 }

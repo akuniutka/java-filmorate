@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,6 +28,15 @@ import java.util.stream.Collectors;
 @Repository
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
+    private static final String ADD_LIKE_QUERY = """
+            MERGE INTO film_likes
+            KEY (film_id, user_id)
+            VALUES (:id, :userId);
+            """;
+    private static final String DELETE_LIKE_QUERY = """
+            DELETE FROM film_likes
+            WHERE film_id = :id AND user_id = :userId;
+            """;
     private static final String GET_LIKES_BY_USER_ID_QUERY = """
         SELECT film_id
         FROM film_likes
@@ -82,33 +92,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             JOIN film_directors AS fd ON f.id = fd.film_id
             WHERE fd.director_id = :directorId
             ORDER BY f.likes DESC, f.id;
-            """;
-    private static final String SAVE_QUERY = """
-            SELECT *
-            FROM FINAL TABLE (
-              INSERT INTO films (name, description, release_date, duration)
-              VALUES (:name, :description, :releaseDate, :duration)
-            );
-            """;
-    private static final String UPDATE_QUERY = """
-            SELECT *
-            FROM FINAL TABLE (
-              UPDATE films
-              SET name = :name,
-                description = :description,
-                release_date = :releaseDate,
-                duration = :duration
-              WHERE id = :id
-            );
-            """;
-    private static final String ADD_LIKE_QUERY = """
-            MERGE INTO film_likes
-            KEY (film_id, user_id)
-            VALUES (:id, :userId);
-            """;
-    private static final String DELETE_LIKE_QUERY = """
-            DELETE FROM film_likes
-            WHERE film_id = :id AND user_id = :userId;
             """;
     private static final String SAVE_FILM_MPA_QUERY = """
             UPDATE films
@@ -240,6 +223,47 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
+    public Film save(final Film film) {
+        final Film savedFilm = save(List.of("name", "description", "releaseDate", "duration"), film);
+        saveFilmMpa(savedFilm.getId(), film.getMpa());
+        saveFilmGenres(savedFilm.getId(), film.getGenres());
+        saveFilmDirectors(savedFilm.getId(), film.getDirectors());
+        return fetchCollections(savedFilm);
+    }
+
+    @Override
+    public Optional<Film> findById(final long id) {
+        return super.findById(id).map(this::fetchCollections);
+    }
+
+    @Override
+    public Optional<Film> update(final Film film) {
+        final Optional<Film> savedFilm = update(List.of("name", "description", "releaseDate", "duration"), film);
+        savedFilm.ifPresent(f -> {
+            saveFilmMpa(film.getId(), film.getMpa());
+            updateFilmGenres(film.getId(), film.getGenres());
+            updateFilmDirectors(film.getId(), film.getDirectors());
+        });
+        return savedFilm.map(this::fetchCollections);
+    }
+
+    @Override
+    public void addLike(final long id, final long userId) {
+        var params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("userId", userId);
+        execute(ADD_LIKE_QUERY, params);
+    }
+
+    @Override
+    public boolean deleteLike(final long id, final long userId) {
+        var params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("userId", userId);
+        return execute(DELETE_LIKE_QUERY, params) > 0;
+    }
+
+    @Override
     public Collection<Film> findAll() {
         return fetchCollections(super.findAll());
     }
@@ -287,47 +311,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public Collection<Film> findAllByDirectorIdOrderByLikes(final long directorId) {
         var params = new MapSqlParameterSource("directorId", directorId);
         return fetchCollections(findMany(FIND_ALL_BY_DIRECTOR_ID_ORDER_BY_LIKES_QUERY, params));
-    }
-
-    @Override
-    public Optional<Film> findById(final long id) {
-        return super.findById(id).map(this::fetchCollections);
-    }
-
-    @Override
-    public Film save(final Film film) {
-        final Film savedFilm = save(SAVE_QUERY, film);
-        saveFilmMpa(savedFilm.getId(), film.getMpa());
-        saveFilmGenres(savedFilm.getId(), film.getGenres());
-        saveFilmDirectors(savedFilm.getId(), film.getDirectors());
-        return fetchCollections(savedFilm);
-    }
-
-    @Override
-    public Optional<Film> update(final Film film) {
-        final Optional<Film> savedFilm = update(UPDATE_QUERY, film);
-        savedFilm.ifPresent(f -> {
-            saveFilmMpa(film.getId(), film.getMpa());
-            updateFilmGenres(film.getId(), film.getGenres());
-            updateFilmDirectors(film.getId(), film.getDirectors());
-        });
-        return savedFilm.map(this::fetchCollections);
-    }
-
-    @Override
-    public void addLike(final long id, final long userId) {
-        var params = new MapSqlParameterSource()
-                .addValue("id", id)
-                .addValue("userId", userId);
-        execute(ADD_LIKE_QUERY, params);
-    }
-
-    @Override
-    public boolean deleteLike(final long id, final long userId) {
-        var params = new MapSqlParameterSource()
-                .addValue("id", id)
-                .addValue("userId", userId);
-        return jdbc.update(DELETE_LIKE_QUERY, params) > 0;
     }
 
     @Override

@@ -9,26 +9,20 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.api.ReviewStorage;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStorage {
 
-    private static final String SAVE_QUERY = """
-            SELECT *
-            FROM FINAL TABLE (
-              INSERT INTO reviews (content, is_positive, user_id, film_id)
-              VALUES (:content, :isPositive, :userId, :filmId)
-            );
+    private static final String ADD_LIKE_QUERY = """
+            MERGE INTO review_likes (review_id, user_id, is_like)
+            KEY (review_id, user_id)
+            VALUES (:reviewId, :userId, :isLike);
             """;
-    private static final String UPDATE_QUERY = """
-            SELECT *
-            FROM FINAL TABLE (
-              UPDATE reviews
-              SET content = :content,
-                is_positive = :isPositive
-              WHERE id = :id
-            );
+    private static final String DELETE_LIKE_QUERY = """
+            DELETE FROM review_likes
+            WHERE review_id = :reviewId AND user_id = :userId AND is_like = :isLike;
             """;
     private static final String FIND_ALL_QUERY = """
             SELECT *
@@ -42,15 +36,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             ORDER BY r.useful DESC, r.id
             LIMIT :count;
             """;
-    private static final String ADD_LIKE_QUERY = """
-            MERGE INTO review_likes (review_id, user_id, is_like)
-            KEY (review_id, user_id)
-            VALUES (:reviewId, :userId, :isLike);
-            """;
-    private static final String DELETE_LIKE_QUERY = """
-            DELETE FROM review_likes
-            WHERE review_id = :reviewId AND user_id = :userId AND is_like = :isLike;
-            """;
 
     @Autowired
     public ReviewDbStorage(final NamedParameterJdbcTemplate jdbc) {
@@ -59,12 +44,12 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public Review save(final Review review) {
-        return save(SAVE_QUERY, review);
+        return save(List.of("content", "isPositive", "userId", "filmId"), review);
     }
 
     @Override
     public Optional<Review> update(final Review review) {
-        return update(UPDATE_QUERY, review);
+        return update(List.of("content", "isPositive"), review);
     }
 
     @Override

@@ -8,17 +8,11 @@ import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.storage.api.EventStorage;
 
 import java.util.Collection;
+import java.util.List;
 
 @Repository
 public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage {
 
-    private static final String SAVE_QUERY = """
-            SELECT *
-            FROM FINAL TABLE (
-              INSERT INTO events (user_id, event_type, operation, entity_id)
-              VALUES (:userId, :eventType, :operation, :entityId)
-            );
-            """;
     private static final String FIND_ALL_BY_USER_ID_QUERY = """
             SELECT *
             FROM events
@@ -40,6 +34,6 @@ public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage
 
     @Override
     public Event save(final Event event) {
-        return save(SAVE_QUERY, event);
+        return save(List.of("userId", "eventType", "operation", "entityId"), event);
     }
 }
