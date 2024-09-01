@@ -25,13 +25,14 @@ public class ReviewServiceImpl implements ReviewService {
     private final EventService eventService;
 
     @Override
-    public Collection<Review> getReviews() {
-        return reviewStorage.findAll();
-    }
-
-    @Override
-    public Collection<Review> getReviewsForFilm(final long filmId, final long count) {
-        return reviewStorage.findAllByFilmId(filmId, count);
+    public Review createReview(final Review review) {
+        Objects.requireNonNull(review, "Cannot create Review: is null");
+        filmService.getFilm(review.getFilmId());
+        userService.getUser(review.getUserId());
+        final Review reviewStored = reviewStorage.save(review);
+        log.info("Created new Review: {}", reviewStored);
+        eventService.createEvent(EventType.REVIEW, review.getUserId(), Operation.ADD, reviewStored.getId());
+        return reviewStored;
     }
 
     @Override
@@ -42,23 +43,12 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public void deleteReview(final long id) {
-        long userId = getReview(id).getUserId();
-        if (reviewStorage.delete(id)) {
-            eventService.createEvent(EventType.REVIEW, userId, Operation.REMOVE, id);
+    public Collection<Review> getReviews(final Long filmId, final long count) {
+        if (filmId == null) {
+            return reviewStorage.findAll(count);
+        } else {
+            return reviewStorage.findAll(filmId, count);
         }
-    }
-
-    @Override
-    public Review createReview(final Review review) {
-        Objects.requireNonNull(review, "Cannot create Review: is null");
-        filmService.getFilm(review.getFilmId());
-        userService.getUser(review.getUserId());
-        final Review reviewStored = reviewStorage.save(review);
-        log.info("Created new Review: {}", reviewStored);
-        // добавление события добавления отзыва в таблицу events
-        eventService.createEvent(EventType.REVIEW, review.getUserId(), Operation.ADD, reviewStored.getId());
-        return reviewStored;
     }
 
     @Override
@@ -67,7 +57,6 @@ public class ReviewServiceImpl implements ReviewService {
         final Review reviewStored = reviewStorage.update(review).orElseThrow(
                 () -> new NotFoundException(Review.class, review.getId())
         );
-        // добавление события обновления отзыва в таблицу events
         eventService.createEvent(EventType.REVIEW, reviewStored.getUserId(), Operation.UPDATE, reviewStored.getId());
         log.info("Updated review: {}", reviewStored);
         return reviewStored;
@@ -81,13 +70,6 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Review deleteLike(final long reviewId, final long userId) {
-        getReview(reviewId);
-        userService.getUser(userId);
-        return reviewStorage.deleteLike(reviewId, userId);
-    }
-
-    @Override
     public Review addDislike(final long reviewId, final long userId) {
         getReview(reviewId);
         userService.getUser(userId);
@@ -95,9 +77,24 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public Review deleteLike(final long reviewId, final long userId) {
+        getReview(reviewId);
+        userService.getUser(userId);
+        return reviewStorage.deleteLike(reviewId, userId);
+    }
+
+    @Override
     public Review deleteDislike(final long reviewId, final long userId) {
         getReview(reviewId);
         userService.getUser(userId);
         return reviewStorage.deleteDislike(reviewId, userId);
+    }
+
+    @Override
+    public void deleteReview(final long id) {
+        long userId = getReview(id).getUserId();
+        if (reviewStorage.delete(id)) {
+            eventService.createEvent(EventType.REVIEW, userId, Operation.REMOVE, id);
+        }
     }
 }
