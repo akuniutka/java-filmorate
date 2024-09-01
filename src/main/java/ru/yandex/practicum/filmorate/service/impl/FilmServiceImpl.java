@@ -39,7 +39,7 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public Collection<Film> getTopFilmsByLikes(final long limit, final Long genreId, final Integer year) {
+    public Collection<Film> getTopFilms(final long limit, final Long genreId, final Integer year) {
         return filmStorage.findAllOrderByLikesDesc(limit, genreId, year);
     }
 

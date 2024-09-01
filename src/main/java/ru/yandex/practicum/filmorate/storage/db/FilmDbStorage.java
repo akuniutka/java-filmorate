@@ -209,10 +209,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public Collection<Film> findAllOrderByLikesDesc(final long limit, Long genreId, Integer year) {
         Filter filter = and();
-        if (genreId != 0) {
+        if (genreId != null) {
             filter.eq("genres", "id", genreId);
         }
-        if (year != 0) {
+        if (year != null) {
             filter.eq("releaseYear", year);
         }
         return fetchCollections(findAll(
