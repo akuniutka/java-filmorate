@@ -157,17 +157,17 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<Film> searchFilmsByTitle(String query) {
-        return filmStorage.searchFilmsByTitle(query);
+        return filmStorage.findAllByName(query);
     }
 
     @Override
     public Collection<Film> searchFilmsByDirectorName(String query) {
-        return filmStorage.searchFilmsByDirectorName(query);
+        return filmStorage.findAllByDirectorName(query);
     }
 
     @Override
     public Collection<Film> searchFilmsByTitleAndDirectorName(String query) {
-        return filmStorage.searchFilmsByTitleAndDirectorName(query);
+        return filmStorage.findAllByNameOrDirectorName(query);
     }
 
     @Override

@@ -9,39 +9,12 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.api.ReviewStorage;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStorage {
 
-    private static final String SAVE_QUERY = """
-            SELECT *
-            FROM FINAL TABLE (
-              INSERT INTO reviews (content, is_positive, user_id, film_id)
-              VALUES (:content, :isPositive, :userId, :filmId)
-            );
-            """;
-    private static final String UPDATE_QUERY = """
-            SELECT *
-            FROM FINAL TABLE (
-              UPDATE reviews
-              SET content = :content,
-                is_positive = :isPositive
-              WHERE id = :id
-            );
-            """;
-    private static final String FIND_ALL_QUERY = """
-            SELECT *
-            FROM reviews AS r
-            ORDER BY r.useful DESC, r.id;
-            """;
-    private static final String FIND_ALL_REVIEW_FOR_FILM = """
-            SELECT *
-            FROM reviews AS r
-            WHERE film_id = :filmId
-            ORDER BY r.useful DESC, r.id
-            LIMIT :count;
-            """;
     private static final String ADD_LIKE_QUERY = """
             MERGE INTO review_likes (review_id, user_id, is_like)
             KEY (review_id, user_id)
@@ -59,25 +32,28 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public Review save(final Review review) {
-        return save(SAVE_QUERY, review);
-    }
-
-    @Override
-    public Optional<Review> update(final Review review) {
-        return update(UPDATE_QUERY, review);
+        return save(List.of("content", "isPositive", "userId", "filmId"), review);
     }
 
     @Override
     public Collection<Review> findAll() {
-        return findAll(FIND_ALL_QUERY);
+        return findAll(
+                desc("useful").asc("id")
+        );
     }
 
     @Override
     public Collection<Review> findAllByFilmId(final long filmId, final long count) {
-        var params = new MapSqlParameterSource()
-                .addValue("filmId", filmId)
-                .addValue("count", count);
-        return findMany(FIND_ALL_REVIEW_FOR_FILM, params);
+        return findAll(
+                and().eq("filmId", filmId),
+                desc("useful").asc("id"),
+                count
+        );
+    }
+
+    @Override
+    public Optional<Review> update(final Review review) {
+        return update(List.of("content", "isPositive"), review);
     }
 
     @Override

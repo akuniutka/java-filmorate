@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS films
   release_date DATE         NOT NULL,
   duration     INT          NOT NULL,
   mpa_id       BIGINT       NULL REFERENCES mpas (id) ON DELETE SET NULL,
-  likes        BIGINT       NOT NULL DEFAULT 0
+  likes        BIGINT       NOT NULL DEFAULT 0,
+  release_year INT GENERATED ALWAYS AS (EXTRACT(YEAR FROM release_date))
 );
 
 CREATE TABLE IF NOT EXISTS directors
