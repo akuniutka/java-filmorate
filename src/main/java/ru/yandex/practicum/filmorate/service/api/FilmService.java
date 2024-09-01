@@ -6,19 +6,15 @@ import java.util.Collection;
 
 public interface FilmService {
 
-    Collection<Film> getFilms();
-
-    Collection<Film> getTopFilmsByLikes(long limit, Long genreId, Integer year);
-
-    Collection<Film> getFilmsByDirectorId(long directorId);
-
-    Collection<Film> getFilmsByDirectorIdOrderByYear(long directorId);
-
-    Collection<Film> getFilmsByDirectorIdOrderByLikes(long directorId);
+    Film createFilm(Film film);
 
     Film getFilm(long id);
 
-    Film createFilm(Film film);
+    Collection<Film> getFilms();
+
+    Collection<Film> getTopFilms(long count, Long genreId, Integer year);
+
+    Collection<Film> getFilmsByDirectorId(long directorId, String sortBy);
 
     Film updateFilm(Film film);
 
@@ -30,11 +26,7 @@ public interface FilmService {
 
     void deleteFilm(long id);
 
-    Collection<Film> searchFilmsByTitle(String query);
-
-    Collection<Film> searchFilmsByDirectorName(String query);
-
-    Collection<Film> searchFilmsByTitleAndDirectorName(String query);
+    Collection<Film> getFilmsByTitleAndDirectorName(String query, String by);
 
     Collection<Film> getCommonFilms(long id, long friendId);
 }

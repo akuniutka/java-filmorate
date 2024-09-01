@@ -81,11 +81,26 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public Collection<Film> findAllOrderByLikesDesc(final long limit, final Long genreId, final Integer year) {
+    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
         return data.values().stream()
                 .sorted(Comparator.comparingLong(this::countFilmLikes).thenComparing(byId))
                 .limit(limit)
                 .toList();
+    }
+
+    @Override
+    public Collection<Film> findAllByGenreIdOrderByLikesDesc(long genreId, long limit) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Film> findAllByReleaseYearOrderByLikesDesc(long releaseYear, long limit) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Film> findAllByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit) {
+        return List.of();
     }
 
     @Override
@@ -94,12 +109,12 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public Collection<Film> findAllByDirectorIdOrderByYear(final long directorId) {
+    public Collection<Film> findAllByDirectorIdOrderByYearAsc(final long directorId) {
         return List.of();
     }
 
     @Override
-    public Collection<Film> findAllByDirectorIdOrderByLikes(final long directorId) {
+    public Collection<Film> findAllByDirectorIdOrderByLikesDesc(final long directorId) {
         return List.of();
     }
 
@@ -110,17 +125,17 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public Collection<Film> findAllByName(final String query) {
+    public Collection<Film> findAllByNameOrderByLikesDesc(final String query) {
         return Collections.emptyList();
     }
 
     @Override
-    public Collection<Film> findAllByDirectorName(final String query) {
+    public Collection<Film> findAllByDirectorNameOrderByLikesDesc(final String query) {
         return Collections.emptyList();
     }
 
     @Override
-    public Collection<Film> findAllByNameOrDirectorName(final String query) {
+    public Collection<Film> findAllByNameOrDirectorNameOrderByLikesDesc(final String query) {
         return Collections.emptyList();
     }
 
