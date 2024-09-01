@@ -8,19 +8,25 @@ import java.util.Set;
 
 public interface FilmStorage {
 
-    Collection<Film> findAll();
-
-    Collection<Film> findAllOrderByLikesDesc(long limit, Long genreId, Integer year);
-
-    Collection<Film> findAllByDirectorId(long directorId);
-
-    Collection<Film> findAllByDirectorIdOrderByYear(long directorId);
-
-    Collection<Film> findAllByDirectorIdOrderByLikes(long directorId);
+    Film save(Film film);
 
     Optional<Film> findById(long id);
 
-    Film save(Film film);
+    Collection<Film> findAll();
+
+    Collection<Film> findAllByName(String query);
+
+    Collection<Film> findAllByDirectorName(String query);
+
+    Collection<Film> findAllByDirectorId(long directorId);
+
+    Collection<Film> findAllByNameOrDirectorName(String query);
+
+    Collection<Film> findAllByDirectorIdOrderByLikes(long directorId);
+
+    Collection<Film> findAllByDirectorIdOrderByYear(long directorId);
+
+    Collection<Film> findAllOrderByLikesDesc(long limit, Long genreId, Integer year);
 
     Optional<Film> update(Film film);
 
@@ -28,17 +34,11 @@ public interface FilmStorage {
 
     boolean deleteLike(long id, long userId);
 
-    void deleteAll();
-
-    Set<Long> getLikesByUserId(long userId);
-
     boolean delete(long id);
 
-    Collection<Film> searchFilmsByTitle(String query);
-
-    Collection<Film> searchFilmsByDirectorName(String query);
-
-    Collection<Film> searchFilmsByTitleAndDirectorName(String query);
+    void deleteAll();
 
     Collection<Film> getCommonFilms(long id, long friendId);
+
+    Set<Long> getLikesByUserId(long userId);
 }

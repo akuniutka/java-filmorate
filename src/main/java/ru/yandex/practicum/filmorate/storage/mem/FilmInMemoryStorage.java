@@ -110,17 +110,17 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public Collection<Film> searchFilmsByTitle(final String query) {
+    public Collection<Film> findAllByName(final String query) {
         return Collections.emptyList();
     }
 
     @Override
-    public Collection<Film> searchFilmsByDirectorName(final String query) {
+    public Collection<Film> findAllByDirectorName(final String query) {
         return Collections.emptyList();
     }
 
     @Override
-    public Collection<Film> searchFilmsByTitleAndDirectorName(final String query) {
+    public Collection<Film> findAllByNameOrDirectorName(final String query) {
         return Collections.emptyList();
     }
 

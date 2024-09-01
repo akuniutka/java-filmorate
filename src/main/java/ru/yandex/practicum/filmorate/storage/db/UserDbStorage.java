@@ -8,27 +8,12 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
-    private static final String SAVE_QUERY = """
-            SELECT * FROM FINAL TABLE (
-              INSERT INTO users (email, login, name, birthday)
-              VALUES (:email, :login, :name, :birthday)
-            );
-            """;
-    private static final String UPDATE_QUERY = """
-            SELECT * FROM FINAL TABLE (
-              UPDATE users
-              SET email = :email,
-                login = :login,
-                name = :name,
-                birthday = :birthday
-              WHERE id = :id
-            );
-            """;
     private static final String ADD_FRIEND_QUERY = """
             MERGE INTO friends
             KEY (user_id, friend_id)
@@ -61,12 +46,12 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     @Override
     public User save(final User user) {
-        return save(SAVE_QUERY, user);
+        return save(List.of("email", "login", "name", "birthday"), user);
     }
 
     @Override
     public Optional<User> update(final User user) {
-        return update(UPDATE_QUERY, user);
+        return update(List.of("email", "login", "name", "birthday"), user);
     }
 
     @Override
@@ -82,7 +67,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
         var params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("friendId", friendId);
-        return jdbc.update(DELETE_FRIEND_QUERY, params) > 0;
+        return execute(DELETE_FRIEND_QUERY, params) > 0;
     }
 
     @Override
