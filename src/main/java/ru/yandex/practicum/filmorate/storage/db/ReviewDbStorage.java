@@ -24,18 +24,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             DELETE FROM review_likes
             WHERE review_id = :reviewId AND user_id = :userId AND is_like = :isLike;
             """;
-    private static final String FIND_ALL_QUERY = """
-            SELECT *
-            FROM reviews AS r
-            ORDER BY r.useful DESC, r.id;
-            """;
-    private static final String FIND_ALL_REVIEW_FOR_FILM = """
-            SELECT *
-            FROM reviews AS r
-            WHERE film_id = :filmId
-            ORDER BY r.useful DESC, r.id
-            LIMIT :count;
-            """;
 
     @Autowired
     public ReviewDbStorage(final NamedParameterJdbcTemplate jdbc) {
@@ -48,21 +36,24 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public Optional<Review> update(final Review review) {
-        return update(List.of("content", "isPositive"), review);
-    }
-
-    @Override
     public Collection<Review> findAll() {
-        return findAll(FIND_ALL_QUERY);
+        return findAll(
+                desc("useful").asc("id")
+        );
     }
 
     @Override
     public Collection<Review> findAllByFilmId(final long filmId, final long count) {
-        var params = new MapSqlParameterSource()
-                .addValue("filmId", filmId)
-                .addValue("count", count);
-        return findMany(FIND_ALL_REVIEW_FOR_FILM, params);
+        return findAll(
+                and().eq("filmId", filmId),
+                desc("useful").asc("id"),
+                count
+        );
+    }
+
+    @Override
+    public Optional<Review> update(final Review review) {
+        return update(List.of("content", "isPositive"), review);
     }
 
     @Override
