@@ -140,13 +140,13 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public Set<Long> getLikesByUserId(final long userId) {
-        return Set.of();
+    public Collection<Film> getCommonFilms(final long id, final long friendId) {
+        return Collections.emptyList();
     }
 
     @Override
-    public Collection<Film> getCommonFilms(final long id, final long friendId) {
-        return Collections.emptyList();
+    public Collection<Film> findRecommendedByUserId(long userId) {
+        return List.of();
     }
 
     private Film enrichFields(final Film film) {

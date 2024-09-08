@@ -108,9 +108,9 @@ public class UserController {
     }
 
     @GetMapping("/{id}/recommendations")
-    public Collection<Film> getRecommendations(@PathVariable final long id) {
+    public Collection<Film> getRecommendedFilms(@PathVariable final long id) {
         log.info("Received GET at /users/{}/recommendations", id);
-        Collection<Film> dtos = filmService.getRecommendations(id);
+        Collection<Film> dtos = filmService.getRecommended(id);
         log.info("Responded to GET /users/{}/recommendations: {}", id, dtos);
         return dtos;
     }
