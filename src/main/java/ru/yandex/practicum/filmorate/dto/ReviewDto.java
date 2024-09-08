@@ -1,12 +1,16 @@
 package ru.yandex.practicum.filmorate.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(of = {"reviewId"})
+@EqualsAndHashCode(of = {"id"})
 public class ReviewDto {
-    private Long reviewId;
+
+    @JsonProperty("reviewId")
+    private Long id;
+
     private String content;
     private Boolean isPositive;
     private Long filmId;
