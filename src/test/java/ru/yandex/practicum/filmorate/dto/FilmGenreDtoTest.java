@@ -10,11 +10,11 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class FilmGenreTest {
+class FilmGenreDtoTest {
 
     private final Validator validator;
 
-    FilmGenreTest() {
+    FilmGenreDtoTest() {
         try (ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
             this.validator = validatorFactory.getValidator();
         }
@@ -22,20 +22,20 @@ class FilmGenreTest {
 
     @Test
     void shouldViolateConstraintWhenIdNull() {
-        final FilmGenre dto = new FilmGenre();
+        final FilmGenreDto dto = new FilmGenreDto();
         dto.setId(null);
 
-        Set<ConstraintViolation<FilmGenre>> violations = validator.validate(dto);
+        Set<ConstraintViolation<FilmGenreDto>> violations = validator.validate(dto);
 
         assertTrue(violations.stream().anyMatch(v -> "id".equals(v.getPropertyPath().toString())));
     }
 
     @Test
-    void shouldViolateNoConstraintWhenFilmGenreCorrect() {
-        final FilmGenre dto = new FilmGenre();
+    void shouldViolateNoConstraintWhenFilmGenreDtoCorrect() {
+        final FilmGenreDto dto = new FilmGenreDto();
         dto.setId(1L);
 
-        Set<ConstraintViolation<FilmGenre>> violations = validator.validate(dto);
+        Set<ConstraintViolation<FilmGenreDto>> violations = validator.validate(dto);
 
         assertTrue(violations.isEmpty());
     }

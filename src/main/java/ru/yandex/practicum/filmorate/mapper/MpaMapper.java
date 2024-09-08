@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.mapper;
 
 import org.mapstruct.Mapper;
-import ru.yandex.practicum.filmorate.dto.FilmMpa;
+import ru.yandex.practicum.filmorate.dto.FilmMpaDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
@@ -14,5 +14,5 @@ public interface MpaMapper {
 
     Collection<MpaDto> mapToDto(Collection<Mpa> mpas);
 
-    Mpa mapToMpa(final FilmMpa dto);
+    Mpa mapToMpa(final FilmMpaDto dto);
 }
