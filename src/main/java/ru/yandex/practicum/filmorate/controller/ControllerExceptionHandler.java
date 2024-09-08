@@ -22,28 +22,28 @@ import java.util.stream.Collectors;
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler
-    protected ProblemDetail handleNotFoundException(NotFoundException exception) {
+    protected ProblemDetail handleNotFoundException(final NotFoundException exception) {
         log.warn(exception.getMessage());
         log.debug(exception.getMessage(), exception);
-        String detail = "Check that id of %s is correct (you sent %s)".formatted(exception.getModelName(),
+        final String detail = "Check that id of %s is correct (you sent %s)".formatted(exception.getModelName(),
                 exception.getModelId());
-        ProblemDetail response = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, detail);
+        final ProblemDetail response = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, detail);
         response.setProperty("error", detail);
         return response;
     }
 
     @ExceptionHandler
-    protected ProblemDetail handleValidationException(ValidationException exception) {
+    protected ProblemDetail handleValidationException(final ValidationException exception) {
         log.warn(exception.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exception,
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException exception,
             @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
         log.warn(exception.getMessage());
-        HttpStatus statusCode = HttpStatus.BAD_REQUEST;
-        String detail = exception.getBindingResult().getFieldErrors().stream()
+        final HttpStatus statusCode = HttpStatus.BAD_REQUEST;
+        final String detail = exception.getBindingResult().getFieldErrors().stream()
                 .map(e -> "'%s' %s".formatted(e.getField(), e.getDefaultMessage()))
                 .collect(Collectors.joining("; "));
 
@@ -52,7 +52,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler
-    protected ProblemDetail handleThrowable(Throwable throwable) {
+    protected ProblemDetail handleThrowable(final Throwable throwable) {
         log.error(throwable.getMessage(), throwable);
         return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Please contact site admin");
     }
