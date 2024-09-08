@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-class FilmMpaTest {
+class FilmDirectorDtoTest {
 
     private final Validator validator;
 
-    FilmMpaTest() {
+    FilmDirectorDtoTest() {
         try (ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
             this.validator = validatorFactory.getValidator();
         }
@@ -22,20 +22,20 @@ class FilmMpaTest {
 
     @Test
     void shouldViolateConstraintWhenIdNull() {
-        final FilmMpa dto = new FilmMpa();
+        final FilmDirectorDto dto = new FilmDirectorDto();
         dto.setId(null);
 
-        Set<ConstraintViolation<FilmMpa>> violations = validator.validate(dto);
+        Set<ConstraintViolation<FilmDirectorDto>> violations = validator.validate(dto);
 
         assertTrue(violations.stream().anyMatch(v -> "id".equals(v.getPropertyPath().toString())));
     }
 
     @Test
-    void shouldViolateNoConstraintWhenFilmMpaCorrect() {
-        final FilmMpa dto = new FilmMpa();
+    void shouldViolateNoConstraintWhenFilmDirectorDtoCorrect() {
+        final FilmDirectorDto dto = new FilmDirectorDto();
         dto.setId(1L);
 
-        Set<ConstraintViolation<FilmMpa>> violations = validator.validate(dto);
+        Set<ConstraintViolation<FilmDirectorDto>> violations = validator.validate(dto);
 
         assertTrue(violations.isEmpty());
     }

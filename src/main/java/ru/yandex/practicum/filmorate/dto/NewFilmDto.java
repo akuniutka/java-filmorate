@@ -29,7 +29,7 @@ public class NewFilmDto {
     @Positive
     private Integer duration;
 
-    private FilmMpa mpa;
-    private Set<FilmGenre> genres;
-    private Set<FilmDirector> directors;
+    private FilmMpaDto mpa;
+    private Set<FilmGenreDto> genres;
+    private Set<FilmDirectorDto> directors;
 }

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class FilmGenre {
+public class FilmDirectorDto {
 
     @NotNull
     private Long id;
