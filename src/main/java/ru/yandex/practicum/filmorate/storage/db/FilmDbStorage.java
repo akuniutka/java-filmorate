@@ -165,92 +165,92 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> findAll() {
-        return fetchCollections(super.findAll());
+        return super.findAll();
     }
 
     @Override
     public Collection<Film> findByNameOrderByLikesDesc(String query) {
         final String searchQuery = "%" + query + "%";
-        return fetchCollections(find(
+        return find(
                 and().like("name", searchQuery),
                 desc("likes").asc("id")
-        ));
+        );
     }
 
     @Override
     public Collection<Film> findByDirectorNameOrderByLikesDesc(String query) {
         final String searchQuery = "%" + query + "%";
-        return fetchCollections(find(
+        return find(
                 and().like("directors", "name", searchQuery),
                 desc("likes").asc("id")
-        ));
+        );
     }
 
     @Override
     public Collection<Film> findByNameOrDirectorNameOrderByLikesDesc(String query) {
         final String searchQuery = "%" + query + "%";
-        return fetchCollections(find(
+        return find(
                 or().like("name", searchQuery).like("directors", "name", searchQuery),
                 desc("likes").asc("id")
-        ));
+        );
     }
 
     @Override
     public Collection<Film> findByDirectorId(final long directorId) {
-        return fetchCollections(find(
+        return find(
                 and().eq("directors", "id", directorId)
-        ));
+        );
     }
 
     @Override
     public Collection<Film> findByDirectorIdOrderByLikesDesc(final long directorId) {
-        return fetchCollections(find(
+        return find(
                 and().eq("directors", "id", directorId),
                 desc("likes").asc("id")
-        ));
+        );
     }
 
     @Override
     public Collection<Film> findByDirectorIdOrderByYearAsc(final long directorId) {
-        return fetchCollections(find(
+        return find(
            and().eq("directors", "id", directorId),
            asc("releaseYear").asc("id")
-        ));
+        );
     }
 
     @Override
     public Collection<Film> findAllOrderByLikesDesc(final long limit) {
-        return fetchCollections(findAll(
+        return findAll(
                 desc("likes").asc("id"),
                 limit
-        ));
+        );
     }
 
     @Override
     public Collection<Film> findByGenreIdOrderByLikesDesc(final long genreId, final long limit) {
-        return fetchCollections(find(
+        return find(
                 and().eq("genres", "id", genreId),
                 desc("likes").asc("id"),
                 limit
-        ));
+        );
     }
 
     @Override
     public Collection<Film> findByReleaseYearOrderByLikesDesc(long releaseYear, long limit) {
-        return fetchCollections(find(
+        return find(
                 and().eq("releaseYear", releaseYear),
                 desc("likes").asc("id"),
                 limit
-        ));
+        );
     }
 
     @Override
     public Collection<Film> findByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit) {
-        return fetchCollections(find(
+        return find(
                 and().eq("genres", "id", genreId).eq("releaseYear", releaseYear),
                 desc("likes").asc("id"),
                 limit
-        ));
+        );
     }
 
     @Override
@@ -285,13 +285,18 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         var params = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("friendId", friendId);
-        return fetchCollections(findMany(FIND_COMMON_FILMS_QUERY, params));
+        return findMany(FIND_COMMON_FILMS_QUERY, params);
     }
 
     @Override
     public Collection<Film> findRecommendedByUserId(final long userId) {
         SqlParameterSource params = new MapSqlParameterSource("userId", userId);
-        return fetchCollections(findMany(FIND_RECOMMENDED_BY_USER_ID_QUERY, params));
+        return findMany(FIND_RECOMMENDED_BY_USER_ID_QUERY, params);
+    }
+
+    @Override
+    protected List<Film> findMany(String query, SqlParameterSource params) {
+        return fetchCollections(super.findMany(query, params));
     }
 
     private Film fetchCollections(final Film film) {
@@ -302,7 +307,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 .orElseThrow();
     }
 
-    private Collection<Film> fetchCollections(final Collection<Film> films) {
+    private List<Film> fetchCollections(final List<Film> films) {
         return Optional.of(films)
                 .map(this::fetchMpa)
                 .map(this::fetchGenres)
@@ -321,7 +326,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         return film;
     }
 
-    private Collection<Film> fetchMpa(final Collection<Film> films) {
+    private List<Film> fetchMpa(final List<Film> films) {
         final String filmIds = films.stream()
                 .map(Film::getId)
                 .map(Object::toString)
@@ -346,7 +351,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         return film;
     }
 
-    private Collection<Film> fetchGenres(final Collection<Film> films) {
+    private List<Film> fetchGenres(final List<Film> films) {
         final String filmIds = films.stream()
                 .map(Film::getId)
                 .map(Object::toString)
@@ -371,7 +376,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         return film;
     }
 
-    private Collection<Film> fetchDirectors(final Collection<Film> films) {
+    private List<Film> fetchDirectors(final List<Film> films) {
         final String filmIds = films.stream()
                 .map(Film::getId)
                 .map(Object::toString)
