@@ -26,10 +26,11 @@ public class BaseInMemoryStorage<T> {
         this.lastUsedId = 0L;
     }
 
-    public Collection<T> findAll() {
-        return data.values().stream()
-                .sorted(byId)
-                .toList();
+    public T save(final T entity) {
+        Objects.requireNonNull(entity, "Cannot save entity: is null");
+        idSetter.accept(entity, ++lastUsedId);
+        data.put(lastUsedId, entity);
+        return entity;
     }
 
     public Optional<T> findById(final long id) {
@@ -42,11 +43,10 @@ public class BaseInMemoryStorage<T> {
                 .collect(Collectors.toSet());
     }
 
-    public T save(final T entity) {
-        Objects.requireNonNull(entity, "Cannot save entity: is null");
-        idSetter.accept(entity, ++lastUsedId);
-        data.put(lastUsedId, entity);
-        return entity;
+    public Collection<T> findAll() {
+        return data.values().stream()
+                .sorted(byId)
+                .toList();
     }
 
     public Optional<T> update(final T entity) {

@@ -47,7 +47,7 @@ public class ReviewServiceImpl implements ReviewService {
         if (filmId == null) {
             return reviewStorage.findAllOrderByUsefulDesc(count);
         } else {
-            return reviewStorage.findAllByFilmIdOrderByUsefulDesc(filmId, count);
+            return reviewStorage.findByFilmIdOrderByUsefulDesc(filmId, count);
         }
     }
 

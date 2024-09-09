@@ -7,11 +7,11 @@ import java.util.Optional;
 
 public interface UserStorage {
 
-    Collection<User> findAll();
+    User save(User user);
 
     Optional<User> findById(long id);
 
-    User save(User user);
+    Collection<User> findAll();
 
     Optional<User> update(User user);
 
@@ -19,11 +19,11 @@ public interface UserStorage {
 
     boolean deleteFriend(long id, long friendId);
 
-    Collection<User> findFriends(long id);
-
-    Collection<User> findCommonFriends(long id, long friendId);
+    boolean delete(long id);
 
     void deleteAll();
 
-    boolean delete(long id);
+    Collection<User> findFriends(long id);
+
+    Collection<User> findCommonFriends(long id, long friendId);
 }

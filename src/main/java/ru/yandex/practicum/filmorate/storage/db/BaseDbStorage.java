@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.lang.NonNull;
 import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Operation;
 
@@ -14,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -66,34 +66,34 @@ public class BaseDbStorage<T> {
     }
 
     public Collection<T> findAll() {
-        return findAll(null, null, null);
-    }
-
-    protected Collection<T> findAll(final Filter filter) {
-        return findAll(filter, null, null);
-    }
-
-    protected Collection<T> findAll(final OrderBy orderBy) {
-        return findAll(null, orderBy, null);
+        return find(null, null, null);
     }
 
     protected Collection<T> findAll(final Long limit) {
-        return findAll(null, null, limit);
+        return find(null, null, limit);
     }
 
-    protected Collection<T> findAll(final Filter filter, final OrderBy orderBy) {
-        return findAll(filter, orderBy, null);
-    }
-
-    protected Collection<T> findAll(final Filter filter, final Long limit) {
-        return findAll(filter, null, limit);
+    protected Collection<T> findAll(final OrderBy orderBy) {
+        return find(null, orderBy, null);
     }
 
     protected Collection<T> findAll(final OrderBy orderBy, final Long limit) {
-        return findAll(null, orderBy, limit);
+        return find(null, orderBy, limit);
     }
 
-    protected List<T> findAll(final Filter filter, final OrderBy orderBy, final Long limit) {
+    protected Collection<T> find(final Filter filter) {
+        return find(filter, null, null);
+    }
+
+    protected Collection<T> find(final Filter filter, final Long limit) {
+        return find(filter, null, limit);
+    }
+
+    protected Collection<T> find(final Filter filter, final OrderBy orderBy) {
+        return find(filter, orderBy, null);
+    }
+
+    protected List<T> find(final Filter filter, final OrderBy orderBy, final Long limit) {
         final SqlParameterSource params;
         final String filterStr;
         if (filter == null) {
@@ -136,7 +136,7 @@ public class BaseDbStorage<T> {
     protected Optional<T> persist(final String query, final T entity) {
         SqlParameterSource params = new BeanPropertySqlParameterSource(entity) {
             @Override
-            public Object getValue(String paramName) throws IllegalArgumentException {
+            public Object getValue(@NonNull String paramName) throws IllegalArgumentException {
                 Object value = super.getValue(paramName);
                 if (value instanceof EventType) {
                     return value.toString();
@@ -148,18 +148,6 @@ public class BaseDbStorage<T> {
             }
         };
         return findOne(query, params);
-    }
-
-    protected List<T> findAll(final String query) {
-        return jdbc.query(query, mapper);
-    }
-
-    protected Optional<T> findById(final String query, final long id) {
-        try {
-            return Optional.ofNullable(jdbc.queryForObject(query, Map.of("id", id), mapper));
-        } catch (EmptyResultDataAccessException ignored) {
-            return Optional.empty();
-        }
     }
 
     protected int execute(final String query, final SqlParameterSource params) {

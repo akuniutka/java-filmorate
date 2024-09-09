@@ -13,25 +13,25 @@ public interface FilmStorage {
 
     Collection<Film> findAll();
 
-    Collection<Film> findAllByNameOrderByLikesDesc(String query);
+    Collection<Film> findByNameOrderByLikesDesc(String query);
 
-    Collection<Film> findAllByDirectorNameOrderByLikesDesc(String query);
+    Collection<Film> findByDirectorNameOrderByLikesDesc(String query);
 
-    Collection<Film> findAllByNameOrDirectorNameOrderByLikesDesc(String query);
+    Collection<Film> findByNameOrDirectorNameOrderByLikesDesc(String query);
 
-    Collection<Film> findAllByDirectorId(long directorId);
+    Collection<Film> findByDirectorId(long directorId);
 
-    Collection<Film> findAllByDirectorIdOrderByLikesDesc(long directorId);
+    Collection<Film> findByDirectorIdOrderByLikesDesc(long directorId);
 
-    Collection<Film> findAllByDirectorIdOrderByYearAsc(long directorId);
+    Collection<Film> findByDirectorIdOrderByYearAsc(long directorId);
 
     Collection<Film> findAllOrderByLikesDesc(long limit);
 
-    Collection<Film> findAllByGenreIdOrderByLikesDesc(long genreId, long limit);
+    Collection<Film> findByGenreIdOrderByLikesDesc(long genreId, long limit);
 
-    Collection<Film> findAllByReleaseYearOrderByLikesDesc(long releaseYear, long limit);
+    Collection<Film> findByReleaseYearOrderByLikesDesc(long releaseYear, long limit);
 
-    Collection<Film> findAllByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit);
+    Collection<Film> findByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit);
 
     Optional<Film> update(Film film);
 
@@ -43,7 +43,7 @@ public interface FilmStorage {
 
     void deleteAll();
 
-    Collection<Film> getCommonFilms(long id, long friendId);
+    Collection<Film> findCommonByUserIdAndFriendId(long userId, long friendId);
 
     Collection<Film> findRecommendedByUserId(long userId);
 }

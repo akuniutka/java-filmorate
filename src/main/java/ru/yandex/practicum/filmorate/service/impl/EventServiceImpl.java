@@ -31,6 +31,6 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Collection<Event> getEventsByUserId(final long userId) {
-        return eventStorage.findAllByUserId(userId);
+        return eventStorage.findByUserId(userId);
     }
 }

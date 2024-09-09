@@ -23,8 +23,8 @@ public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage
     }
 
     @Override
-    public Collection<Event> findAllByUserId(final long userId) {
-        return findAll(
+    public Collection<Event> findByUserId(final long userId) {
+        return find(
                 and().eq("userId", userId)
         );
     }
