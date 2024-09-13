@@ -8,14 +8,19 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.lang.NonNull;
+import org.springframework.util.CollectionUtils;
 import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Operation;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class BaseDbStorage<T> {
@@ -30,15 +35,17 @@ public class BaseDbStorage<T> {
 
     protected final NamedParameterJdbcTemplate jdbc;
     protected final RowMapper<T> mapper;
+    protected final String baseName;
     protected final String tableName;
 
     protected BaseDbStorage(Class<T> entityType, NamedParameterJdbcTemplate jdbc, RowMapper<T> mapper) {
-        this.tableName = entityType.getSimpleName().toLowerCase() + "s";
+        this.baseName = entityType.getSimpleName().toLowerCase();
+        this.tableName = baseName + "s";
         this.jdbc = jdbc;
         this.mapper = mapper;
     }
 
-    protected BaseDbStorage(Class<T> entityType, NamedParameterJdbcTemplate jdbc) {
+    protected BaseDbStorage(final Class<T> entityType, final NamedParameterJdbcTemplate jdbc) {
         this(entityType, jdbc, new BeanPropertyRowMapper<>(entityType));
     }
 
@@ -155,6 +162,10 @@ public class BaseDbStorage<T> {
     }
 
     protected Optional<T> findOne(final String query, final SqlParameterSource params) {
+        return findOne(query, params, mapper);
+    }
+
+    protected <U> Optional<U> findOne(final String query, final SqlParameterSource params, RowMapper<U> mapper) {
         try {
             return Optional.ofNullable(jdbc.queryForObject(query, params, mapper));
         } catch (EmptyResultDataAccessException ignored) {
@@ -163,7 +174,15 @@ public class BaseDbStorage<T> {
     }
 
     protected List<T> findMany(final String query, final SqlParameterSource params) {
-        return jdbc.query(query, params, mapper);
+        return new ArrayList<>(findMany(query, params, mapper));
+    }
+
+    protected <U> Set<U> findMany(final String query, final SqlParameterSource params, RowMapper<U> mapper) {
+        final Set<U> entities = new LinkedHashSet<>();
+        jdbc.query(query, params, rs -> {
+            entities.add(mapper.mapRow(rs, 0));
+        });
+        return entities;
     }
 
     protected Filter and() {
@@ -192,6 +211,267 @@ public class BaseDbStorage<T> {
             }
         }
         return sb.toString();
+    }
+
+    protected static class OrderBy {
+
+        private final List<OrderEntry> entries = new ArrayList<>();
+
+        public OrderBy asc(final String field) {
+            entries.add(new OrderEntry(field, "ASC"));
+            return this;
+        }
+
+        public OrderBy desc(final String field) {
+            entries.add(new OrderEntry(field, "DESC"));
+            return this;
+        }
+
+        public List<OrderEntry> getEntries() {
+            return new ArrayList<>(entries);
+        }
+
+        protected record OrderEntry(String field, String order) {
+
+        }
+    }
+
+    protected class ManyToOneRelation<S> {
+
+        private static final String MANAGE_RELATION_QUERY = """
+                UPDATE %s
+                SET %s = :relatedId
+                WHERE id = :id;
+                """;
+        private static final String FETCH_RELATION_QUERY = """
+                SELECT r.*
+                FROM %s AS r
+                JOIN %s AS b ON r.id = b.%s
+                WHERE b.id = :id;
+                """;
+        private static final String FETCH_RELATIONS_QUERY = """
+                SELECT b.id AS base__id,
+                    r.*
+                FROM %s AS r
+                JOIN %s AS b ON r.id = b.%s
+                WHERE b.id IN (%s);
+                """;
+
+        private final RowMapper<S> mapper;
+        private final String joinedTable;
+        private final String joinedColumn;
+
+        public ManyToOneRelation(final Class<S> relatedModel) {
+            final String baseName = relatedModel.getSimpleName().toLowerCase();
+            this.joinedTable = baseName + "s";
+            this.joinedColumn = baseName + "_id";
+            this.mapper = new BeanPropertyRowMapper<>(relatedModel);
+        }
+
+        public void addRelation(final long id, final long relatedId) {
+            final String query = MANAGE_RELATION_QUERY.formatted(tableName, joinedColumn);
+            final SqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("id", id)
+                    .addValue("relatedId", relatedId);
+            execute(query, params);
+        }
+
+        public void dropRelation(final long id) {
+            final String query = MANAGE_RELATION_QUERY.formatted(tableName, joinedColumn);
+            final SqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("id", id)
+                    .addValue("relatedId", null);
+            execute(query, params);
+        }
+
+        public Optional<S> fetchRelation(final long id) {
+            final String query = FETCH_RELATION_QUERY.formatted(joinedTable, tableName, joinedColumn);
+            final SqlParameterSource params = new MapSqlParameterSource("id", id);
+            return findOne(query, params, mapper);
+        }
+
+        public Map<Long, S> fetchRelations(final Set<Long> ids) {
+            final String idsStr = ids.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+            final String query = FETCH_RELATIONS_QUERY.formatted(joinedTable, tableName, joinedColumn, idsStr);
+            final Map<Long, S> relationById = new HashMap<>();
+            jdbc.getJdbcOperations().query(query, rs -> {
+                Long id = rs.getLong("base__id");
+                S relation = mapper.mapRow(rs, 0);
+                relationById.put(id, relation);
+            });
+            return relationById;
+        }
+    }
+
+    protected class ManyToManyRelation<S> {
+
+        private static final String MANAGE_RELATION_QUERY = """
+                MERGE INTO %s (%s, %s)
+                KEY (%s, %s)
+                VALUES (:id, :relatedId);
+                """;
+        private static final String MANAGE_RELATION_WITH_PAYLOAD_QUERY = """
+                MERGE INTO %s (%s, %s, %s)
+                KEY (%s, %s)
+                VALUES (:id, :relatedId, :payload);
+                """;
+        private static final String FETCH_RELATION_QUERY = """
+                SELECT r.*
+                FROM %s AS r
+                JOIN %s AS j ON r.id = j.%s
+                WHERE j.%s = :id
+                ORDER BY r.id;
+                """;
+        private static final String FETCH_RELATIONS_QUERY = """
+                SELECT j.%s,
+                    r.*
+                FROM %s AS r
+                JOIN %s AS j ON r.id = j.%s
+                WHERE j.%s IN (%s)
+                ORDER BY r.id;
+                """;
+        private static final String DROP_ALL_RELATIONS_QUERY = """
+                DELETE FROM %s
+                WHERE %s = :id;
+                """;
+        private static final String DROP_RELATIONS_EXCEPT_QUERY = """
+                DELETE FROM %s
+                WHERE %s = :id AND %s NOT IN (%S);
+                """;
+        private static final String DROP_RELATION_QUERY = """
+                DELETE FROM %s
+                WHERE %s = :id AND %s = :relatedId;
+                """;
+        private static final String DROP_RELATION_WITH_PAYLOAD_QUERY = """
+                DELETE FROM %s
+                WHERE %s = :id AND %s = :relatedId AND %s = :payload;
+                """;
+
+        private final RowMapper<S> mapper;
+        private final String joinedTable;
+        private final String baseColumn;
+        private String joinedColumn;
+        private String joinTable;
+        private String payloadColumn;
+
+        public ManyToManyRelation(final Class<S> relatedModel) {
+            final String baseName = relatedModel.getSimpleName().toLowerCase();
+            this.joinedTable = baseName + "s";
+            this.joinedColumn = baseName + "_id";
+            this.joinTable = BaseDbStorage.this.baseName + "_" + joinedTable;
+            this.baseColumn = BaseDbStorage.this.baseName + "_id";
+            this.payloadColumn = "status_id";
+            this.mapper = new BeanPropertyRowMapper<>(relatedModel);
+        }
+
+        public ManyToManyRelation<S> withJoinTable(final String joinTable) {
+            this.joinTable = joinTable;
+            return this;
+        }
+
+        public ManyToManyRelation<S> withJoinedColumn(final String joinedColumn) {
+            this.joinedColumn = joinedColumn;
+            return this;
+        }
+
+        public ManyToManyRelation<S> withPayloadColumn(final String payloadColumn) {
+            this.payloadColumn = payloadColumn;
+            return this;
+        }
+
+        public void addRelation(final long id, final long relatedId) {
+            addRelations(id, Set.of(relatedId));
+        }
+
+        public void addRelation(final long id, final long relatedId, final Object payload) {
+            final String query = MANAGE_RELATION_WITH_PAYLOAD_QUERY.formatted(joinTable, baseColumn, joinedColumn,
+                    payloadColumn, baseColumn, joinedColumn);
+            final SqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("id", id)
+                    .addValue("relatedId", relatedId)
+                    .addValue("payload", payload);
+            execute(query, params);
+        }
+
+        public void saveRelations(final long id, final Set<Long> relatedIds) {
+            addRelations(id, relatedIds);
+            dropRelationsExcept(id, relatedIds);
+        }
+
+        public Set<S> fetchRelations(final long id) {
+            final String query = FETCH_RELATION_QUERY.formatted(joinedTable, joinTable, joinedColumn, baseColumn);
+            final SqlParameterSource params = new MapSqlParameterSource("id", id);
+            return findMany(query, params, mapper);
+        }
+
+        public Map<Long, Set<S>> fetchRelations(final Set<Long> ids) {
+            final String idsStr = ids.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+            final String query = FETCH_RELATIONS_QUERY.formatted(baseColumn, joinedTable, joinTable, joinedColumn,
+                    baseColumn, idsStr);
+            final Map<Long, Set<S>> relationsById = new HashMap<>();
+            jdbc.getJdbcOperations().query(query, rs -> {
+                Long id = rs.getLong(baseColumn);
+                S relation = mapper.mapRow(rs, 0);
+                relationsById.computeIfAbsent(id, key -> new LinkedHashSet<>()).add(relation);
+            });
+            return relationsById;
+        }
+
+        public boolean dropRelations(final long id) {
+            final String query = DROP_ALL_RELATIONS_QUERY.formatted(joinTable, baseColumn);
+            final SqlParameterSource params = new MapSqlParameterSource("id", id);
+            return execute(query, params) > 0;
+        }
+
+        public boolean dropRelation(final long id, final long relatedId) {
+            final String query = DROP_RELATION_QUERY.formatted(joinTable, baseColumn, joinedColumn);
+            final SqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("id", id)
+                    .addValue("relatedId", relatedId);
+            return execute(query, params) > 0;
+        }
+
+        public boolean dropRelation(final long id, final long relatedId, final Object payload) {
+            final String query = DROP_RELATION_WITH_PAYLOAD_QUERY.formatted(joinTable, baseColumn, joinedColumn,
+                    payloadColumn);
+            final SqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("id", id)
+                    .addValue("relatedId", relatedId)
+                    .addValue("payload", payload);
+            return execute(query, params) > 0;
+        }
+
+        private void addRelations(final long id, final Set<Long> relatedIds) {
+            if (CollectionUtils.isEmpty(relatedIds)) {
+                return;
+            }
+            final String query = MANAGE_RELATION_QUERY.formatted(joinTable, baseColumn, joinedColumn, baseColumn,
+                    joinedColumn);
+            final SqlParameterSource[] params = relatedIds.stream()
+                    .map(relatedId -> new MapSqlParameterSource()
+                            .addValue("id", id)
+                            .addValue("relatedId", relatedId)
+                    )
+                    .toArray(SqlParameterSource[]::new);
+            jdbc.batchUpdate(query, params);
+        }
+
+        private boolean dropRelationsExcept(final long id, final Set<Long> relatedIds) {
+            if (CollectionUtils.isEmpty(relatedIds)) {
+                return dropRelations(id);
+            }
+            final String relatedIdsStr = relatedIds.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+            final String query = DROP_RELATIONS_EXCEPT_QUERY.formatted(joinTable, baseColumn, joinedColumn,
+                    relatedIdsStr);
+            final SqlParameterSource params = new MapSqlParameterSource("id", id);
+            return execute(query, params) > 0;
+        }
     }
 
     protected class Filter {
@@ -273,28 +553,7 @@ public class BaseDbStorage<T> {
         }
 
         protected record FilterEntry(String operator, String table, String field, Object value) {
-        }
-    }
 
-    protected static class OrderBy {
-
-        private final List<OrderEntry> entries = new ArrayList<>();
-
-        public OrderBy asc(final String field) {
-            entries.add(new OrderEntry(field, "ASC"));
-            return this;
-        }
-
-        public OrderBy desc(final String field) {
-            entries.add(new OrderEntry(field, "DESC"));
-            return this;
-        }
-
-        public List<OrderEntry> getEntries() {
-            return new ArrayList<>(entries);
-        }
-
-        protected record OrderEntry(String field, String order) {
         }
     }
 }

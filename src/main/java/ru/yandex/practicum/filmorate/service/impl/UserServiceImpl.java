@@ -13,7 +13,9 @@ import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -90,7 +92,9 @@ public class UserServiceImpl implements UserService {
     public Collection<User> getCommonFriends(final long id, final long friendId) {
         getUser(id);
         getUser(friendId);
-        return userStorage.findCommonFriends(id, friendId);
+        final Set<User> commonFriends = userStorage.findFriends(id);
+        commonFriends.retainAll(userStorage.findFriends(friendId));
+        return commonFriends;
     }
 
     @Override

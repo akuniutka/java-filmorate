@@ -5,11 +5,12 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -46,29 +47,14 @@ public class UserInMemoryStorage extends BaseInMemoryStorage<User> implements Us
     }
 
     @Override
-    public Collection<User> findFriends(final long id) {
+    public Set<User> findFriends(final long id) {
         if (!data.containsKey(id)) {
             throw new RuntimeException("Cannot get friends: user with id = %d does not exist".formatted(id));
         }
         return friends.getOrDefault(id, new HashSet<>()).stream()
                 .map(data::get)
                 .sorted(byId)
-                .toList();
-    }
-
-    @Override
-    public Collection<User> findCommonFriends(final long id, final long friendId) {
-        if (!data.containsKey(id)) {
-            throw new RuntimeException("Cannot get common friends: user with id = %d does not exist".formatted(id));
-        }
-        if (!data.containsKey(friendId)) {
-            throw new RuntimeException("Cannot get common friends: friend with id = %d does not exist"
-                    .formatted(friendId));
-        }
-        Set<Long> friendFriends = friends.getOrDefault(friendId, new HashSet<>());
-        return findFriends(id).stream()
-                .filter(user -> friendFriends.contains(user.getId()))
-                .toList();
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override
