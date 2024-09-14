@@ -44,6 +44,4 @@ public interface FilmStorage {
     boolean delete(long id);
 
     void deleteAll();
-
-    Collection<Film> findRecommendedByUserId(long userId);
 }

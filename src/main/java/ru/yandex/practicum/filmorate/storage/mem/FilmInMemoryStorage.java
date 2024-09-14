@@ -144,11 +144,6 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
         super.deleteAll();
     }
 
-    @Override
-    public Collection<Film> findRecommendedByUserId(long userId) {
-        return List.of();
-    }
-
     private Film enrichFields(final Film film) {
         sortFilmGenres(film);
         sortFilmDirectors(film);

@@ -20,13 +20,13 @@ public interface FilmService {
 
     void addLike(long id, long userId);
 
-    Collection<Film> getRecommended(long userId);
-
     void deleteLike(long id, long userId);
 
     void deleteFilm(long id);
 
     Collection<Film> getFilmsByTitleAndDirectorName(String query, String by);
 
-    Collection<Film> getCommonFilms(long id, long friendId);
+    Collection<Film> getLikedFilms(long userId);
+
+    Collection<Film> getCommonFilms(long userId, long friendId);
 }

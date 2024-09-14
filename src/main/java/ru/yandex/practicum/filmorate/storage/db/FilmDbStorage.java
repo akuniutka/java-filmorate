@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
@@ -23,25 +22,6 @@ import java.util.stream.Collectors;
 
 @Repository
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
-
-    private static final String FIND_RECOMMENDED_BY_USER_ID_QUERY = """
-            SELECT f.*
-            FROM films AS f
-            JOIN film_likes AS fl1 ON f.id = fl1.film_id AND fl1.user_id =
-            (
-              SELECT fl1.user_id
-              FROM film_likes AS fl1
-              LEFT JOIN film_likes AS fl2 ON fl1.film_id = fl2.film_id
-              WHERE fl1.user_id != :userId AND fl2.user_id = :userId
-              GROUP BY fl1.user_id
-              HAVING COUNT(fl2.user_id) > 0
-              ORDER BY COUNT(fl2.user_id) DESC, COUNT(*) DESC, fl1.user_id
-              LIMIT 1
-            )
-            LEFT JOIN film_likes AS fl2 ON f.id = fl2.film_id AND fl2.user_id = :userId
-            WHERE fl2.film_id IS NULL
-            ORDER BY f.likes DESC, f.id;
-            """;
 
     private final ManyToOneRelation<Mpa> mpa;
     private final ManyToManyRelation<Genre> genres;
@@ -186,12 +166,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public boolean deleteLike(final long id, final long userId) {
         return likes.dropRelation(id, userId);
-    }
-
-    @Override
-    public Collection<Film> findRecommendedByUserId(final long userId) {
-        SqlParameterSource params = new MapSqlParameterSource("userId", userId);
-        return findMany(FIND_RECOMMENDED_BY_USER_ID_QUERY, params);
     }
 
     @Override

@@ -100,12 +100,6 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public Collection<Film> getRecommended(final long userId) {
-        userService.getUser(userId);
-        return filmStorage.findRecommendedByUserId(userId);
-    }
-
-    @Override
     public void deleteLike(final long id, final long userId) {
         getFilm(id);
         userService.getUser(userId);
@@ -130,6 +124,12 @@ public class FilmServiceImpl implements FilmService {
         } else {
             throw new ValidationException("Check parameter to filter films by (you send %s)".formatted(by));
         }
+    }
+
+    @Override
+    public Collection<Film> getLikedFilms(long userId) {
+        userService.getUser(userId);
+        return filmStorage.findByUserId(userId);
     }
 
     @Override
