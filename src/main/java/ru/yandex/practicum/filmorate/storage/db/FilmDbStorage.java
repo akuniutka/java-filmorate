@@ -24,14 +24,6 @@ import java.util.stream.Collectors;
 @Repository
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
-    private static final String FIND_COMMON_FILMS_QUERY = """
-            SELECT f.*
-            FROM films AS f
-            JOIN film_likes AS fl1 ON f.id = fl1.film_id
-            JOIN film_likes AS fl2 ON f.id = fl2.film_id
-            WHERE fl1.user_id = :userId AND fl2.user_id = :friendId
-            ORDER BY f.likes DESC, f.id;
-            """;
     private static final String FIND_RECOMMENDED_BY_USER_ID_QUERY = """
             SELECT f.*
             FROM films AS f
@@ -81,29 +73,19 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findByNameOrderByLikesDesc(String query) {
-        final String searchQuery = "%" + query + "%";
-        return find(
-                where("name", Operand.LIKE, searchQuery),
-                orderBy("likes", Order.DESC).andThenBy("id")
+    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
+        return findAll(
+                orderBy("likes", Order.DESC).andThenBy("id"),
+                limit
         );
     }
 
     @Override
-    public Collection<Film> findByDirectorNameOrderByLikesDesc(String query) {
-        final String searchQuery = "%" + query + "%";
+    public Collection<Film> findByGenreIdOrderByLikesDesc(final long genreId, final long limit) {
         return find(
-                where(directors, "name", Operand.LIKE, searchQuery),
-                orderBy("likes", Order.DESC).andThenBy("id")
-        );
-    }
-
-    @Override
-    public Collection<Film> findByNameOrDirectorNameOrderByLikesDesc(String query) {
-        final String searchQuery = "%" + query + "%";
-        return find(
-                where("name", Operand.LIKE, searchQuery).or(directors, "name", Operand.LIKE, searchQuery),
-                orderBy("likes", Order.DESC).andThenBy("id")
+                where(genres, "id", Operand.EQ, genreId),
+                orderBy("likes", Order.DESC).andThenBy("id"),
+                limit
         );
     }
 
@@ -131,19 +113,36 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
-        return findAll(
-                orderBy("likes", Order.DESC).andThenBy("id"),
-                limit
+    public Collection<Film> findByUserId(final long userId) {
+        return find(
+                where(likes, "id", Operand.EQ, userId)
         );
     }
 
     @Override
-    public Collection<Film> findByGenreIdOrderByLikesDesc(final long genreId, final long limit) {
+    public Collection<Film> findByNameOrderByLikesDesc(String query) {
+        final String searchQuery = "%" + query + "%";
         return find(
-                where(genres, "id", Operand.EQ, genreId),
-                orderBy("likes", Order.DESC).andThenBy("id"),
-                limit
+                where("name", Operand.LIKE, searchQuery),
+                orderBy("likes", Order.DESC).andThenBy("id")
+        );
+    }
+
+    @Override
+    public Collection<Film> findByDirectorNameOrderByLikesDesc(String query) {
+        final String searchQuery = "%" + query + "%";
+        return find(
+                where(directors, "name", Operand.LIKE, searchQuery),
+                orderBy("likes", Order.DESC).andThenBy("id")
+        );
+    }
+
+    @Override
+    public Collection<Film> findByNameOrDirectorNameOrderByLikesDesc(String query) {
+        final String searchQuery = "%" + query + "%";
+        return find(
+                where("name", Operand.LIKE, searchQuery).or(directors, "name", Operand.LIKE, searchQuery),
+                orderBy("likes", Order.DESC).andThenBy("id")
         );
     }
 
@@ -187,14 +186,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public boolean deleteLike(final long id, final long userId) {
         return likes.dropRelation(id, userId);
-    }
-
-    @Override
-    public Collection<Film> findCommonByUserIdAndFriendId(long userId, long friendId) {
-        var params = new MapSqlParameterSource()
-                .addValue("userId", userId)
-                .addValue("friendId", friendId);
-        return findMany(FIND_COMMON_FILMS_QUERY, params);
     }
 
     @Override

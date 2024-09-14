@@ -133,10 +133,12 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public Collection<Film> getCommonFilms(long id, long friendId) {
-        userService.getUser(id);
+    public Collection<Film> getCommonFilms(long userId, long friendId) {
+        userService.getUser(userId);
         userService.getUser(friendId);
-        return filmStorage.findCommonByUserIdAndFriendId(id, friendId);
+        final Set<Film> commonFilms = new LinkedHashSet<>(filmStorage.findByUserId(userId));
+        commonFilms.retainAll(filmStorage.findByUserId(friendId));
+        return commonFilms;
     }
 
     private void validateCollections(final Film film) {

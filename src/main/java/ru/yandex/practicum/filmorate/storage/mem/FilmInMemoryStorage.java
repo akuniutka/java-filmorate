@@ -41,17 +41,73 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public Optional<Film> update(final Film film) {
-        return super.update(film).map(this::enrichFields);
+    public Collection<Film> findAll() {
+        return super.findAll().stream()
+                .peek(this::enrichFields)
+                .toList();
     }
 
     @Override
-    public boolean delete(final long id) {
-        Set<Long> filmLikes = likesByFilm.remove(id);
-        if (filmLikes != null) {
-            filmLikes.forEach(userId -> likesByUser.get(userId).remove(id));
-        }
-        return super.delete(id);
+    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
+        return data.values().stream()
+                .sorted(Comparator.comparingLong(this::countFilmLikes).thenComparing(byId))
+                .limit(limit)
+                .toList();
+    }
+
+    @Override
+    public Collection<Film> findByGenreIdOrderByLikesDesc(long genreId, long limit) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Film> findByDirectorId(final long directorId) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Film> findByDirectorIdOrderByLikesDesc(final long directorId) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Film> findByDirectorIdOrderByYearAsc(final long directorId) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Film> findByUserId(long userId) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Film> findByNameOrderByLikesDesc(final String query) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Collection<Film> findByDirectorNameOrderByLikesDesc(final String query) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Collection<Film> findByNameOrDirectorNameOrderByLikesDesc(final String query) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Collection<Film> findByReleaseYearOrderByLikesDesc(long releaseYear, long limit) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Film> findByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit) {
+        return List.of();
+    }
+
+    @Override
+    public Optional<Film> update(final Film film) {
+        return super.update(film).map(this::enrichFields);
     }
 
     @Override
@@ -74,74 +130,18 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public Collection<Film> findAll() {
-        return super.findAll().stream()
-                .peek(this::enrichFields)
-                .toList();
-    }
-
-    @Override
-    public Collection<Film> findAllOrderByLikesDesc(final long limit) {
-        return data.values().stream()
-                .sorted(Comparator.comparingLong(this::countFilmLikes).thenComparing(byId))
-                .limit(limit)
-                .toList();
-    }
-
-    @Override
-    public Collection<Film> findByGenreIdOrderByLikesDesc(long genreId, long limit) {
-        return List.of();
-    }
-
-    @Override
-    public Collection<Film> findByReleaseYearOrderByLikesDesc(long releaseYear, long limit) {
-        return List.of();
-    }
-
-    @Override
-    public Collection<Film> findByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit) {
-        return List.of();
-    }
-
-    @Override
-    public Collection<Film> findByDirectorId(final long directorId) {
-        return List.of();
-    }
-
-    @Override
-    public Collection<Film> findByDirectorIdOrderByYearAsc(final long directorId) {
-        return List.of();
-    }
-
-    @Override
-    public Collection<Film> findByDirectorIdOrderByLikesDesc(final long directorId) {
-        return List.of();
+    public boolean delete(final long id) {
+        Set<Long> filmLikes = likesByFilm.remove(id);
+        if (filmLikes != null) {
+            filmLikes.forEach(userId -> likesByUser.get(userId).remove(id));
+        }
+        return super.delete(id);
     }
 
     @Override
     public void deleteAll() {
         likesByFilm.clear();
         super.deleteAll();
-    }
-
-    @Override
-    public Collection<Film> findByNameOrderByLikesDesc(final String query) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Collection<Film> findByDirectorNameOrderByLikesDesc(final String query) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Collection<Film> findByNameOrDirectorNameOrderByLikesDesc(final String query) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Collection<Film> findCommonByUserIdAndFriendId(final long userId, final long friendId) {
-        return Collections.emptyList();
     }
 
     @Override
