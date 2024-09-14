@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
+import lombok.Getter;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -88,27 +89,27 @@ public class BaseDbStorage<T> {
         return find(null, orderBy, limit);
     }
 
-    protected Collection<T> find(final Filter filter) {
-        return find(filter, null, null);
+    protected Collection<T> find(final Where where) {
+        return find(where, null, null);
     }
 
-    protected Collection<T> find(final Filter filter, final Long limit) {
-        return find(filter, null, limit);
+    protected Collection<T> find(final Where where, final Long limit) {
+        return find(where, null, limit);
     }
 
-    protected Collection<T> find(final Filter filter, final OrderBy orderBy) {
-        return find(filter, orderBy, null);
+    protected Collection<T> find(final Where where, final OrderBy orderBy) {
+        return find(where, orderBy, null);
     }
 
-    protected List<T> find(final Filter filter, final OrderBy orderBy, final Long limit) {
+    protected List<T> find(final Where where, final OrderBy orderBy, final Long limit) {
         final SqlParameterSource params;
         final String filterStr;
-        if (filter == null) {
+        if (where == null) {
             filterStr = "";
             params = null;
         } else {
-            filterStr = filter.getFilterString();
-            params = filter.getFilterParams();
+            filterStr = where.getCondition();
+            params = where.getParams();
         }
         final String orderByStr;
         if (orderBy == null || orderBy.getEntries() == null) {
@@ -185,12 +186,13 @@ public class BaseDbStorage<T> {
         return entities;
     }
 
-    protected Filter and() {
-        return new Filter();
+    protected Where where(final String fieldName, final Operand operand, final Object value) {
+        return new Where(fieldName, operand, value);
     }
 
-    protected Filter or() {
-        return new Filter("OR");
+    protected <S> Where where(final ManyToManyRelation<S> relation, final String fieldName, final Operand operand,
+            final Object value) {
+        return new Where(relation, fieldName, operand, value);
     }
 
     protected OrderBy asc(final String field) {
@@ -350,10 +352,19 @@ public class BaseDbStorage<T> {
                 """;
 
         private final RowMapper<S> mapper;
+
+        @Getter
         private final String joinedTable;
+
+        @Getter
         private final String baseColumn;
+
+        @Getter
         private String joinedColumn;
+
+        @Getter
         private String joinTable;
+
         private String payloadColumn;
 
         public ManyToManyRelation(final Class<S> relatedModel) {
@@ -421,10 +432,10 @@ public class BaseDbStorage<T> {
             return relationsById;
         }
 
-        public boolean dropRelations(final long id) {
+        public void dropRelations(final long id) {
             final String query = DROP_ALL_RELATIONS_QUERY.formatted(joinTable, baseColumn);
             final SqlParameterSource params = new MapSqlParameterSource("id", id);
-            return execute(query, params) > 0;
+            execute(query, params);
         }
 
         public boolean dropRelation(final long id, final long relatedId) {
@@ -435,14 +446,14 @@ public class BaseDbStorage<T> {
             return execute(query, params) > 0;
         }
 
-        public boolean dropRelation(final long id, final long relatedId, final Object payload) {
+        public void dropRelation(final long id, final long relatedId, final Object payload) {
             final String query = DROP_RELATION_WITH_PAYLOAD_QUERY.formatted(joinTable, baseColumn, joinedColumn,
                     payloadColumn);
             final SqlParameterSource params = new MapSqlParameterSource()
                     .addValue("id", id)
                     .addValue("relatedId", relatedId)
                     .addValue("payload", payload);
-            return execute(query, params) > 0;
+            execute(query, params);
         }
 
         private void addRelations(final long id, final Set<Long> relatedIds) {
@@ -460,9 +471,10 @@ public class BaseDbStorage<T> {
             jdbc.batchUpdate(query, params);
         }
 
-        private boolean dropRelationsExcept(final long id, final Set<Long> relatedIds) {
+        private void dropRelationsExcept(final long id, final Set<Long> relatedIds) {
             if (CollectionUtils.isEmpty(relatedIds)) {
-                return dropRelations(id);
+                dropRelations(id);
+                return;
             }
             final String relatedIdsStr = relatedIds.stream()
                     .map(Object::toString)
@@ -470,90 +482,100 @@ public class BaseDbStorage<T> {
             final String query = DROP_RELATIONS_EXCEPT_QUERY.formatted(joinTable, baseColumn, joinedColumn,
                     relatedIdsStr);
             final SqlParameterSource params = new MapSqlParameterSource("id", id);
-            return execute(query, params) > 0;
+            execute(query, params);
         }
     }
 
-    protected class Filter {
+    protected class Where {
 
-        private final List<FilterEntry> entries;
-        private final String combineOperator;
-        private final MapSqlParameterSource params;
+        private final StringBuilder condition = new StringBuilder();
+        private final MapSqlParameterSource params = new MapSqlParameterSource();
         private long lastParamNumber;
 
-        Filter(final String combineOperator) {
-            if (!"OR".equals(combineOperator) && !"AND".equals(combineOperator)) {
-                throw new IllegalArgumentException("Combine operator should be AND or OR");
-            }
-            this.entries = new ArrayList<>();
-            this.combineOperator = combineOperator;
-            this.params = new MapSqlParameterSource();
-            this.lastParamNumber = 0;
+        public Where(final String fieldName, final Operand operand, final Object value) {
+            this.condition.append(toCondition(fieldName, operand, appendParam(value)));
         }
 
-        Filter() {
-            this("AND");
+        public <S> Where(final ManyToManyRelation<S> relation, final String fieldName, final Operand operand,
+                final Object value) {
+            this.condition.append(toCondition(relation, fieldName, operand, appendParam(value)));
         }
 
-        public Filter eq(final String table, final String field, final Object value) {
-            entries.add(new FilterEntry("=", table, field, value));
+        public Where and(final String fieldName, final Operand operand, final Object value) {
+            appendCondition("AND", toCondition(fieldName, operand, appendParam(value)));
             return this;
         }
 
-        public Filter eq(final String field, final Object value) {
-            return eq(null, field, value);
-        }
-
-        public Filter like(final String table, final String field, final Object value) {
-            entries.add(new FilterEntry("ILIKE", table, field, value));
+        public <S> Where and(final ManyToManyRelation<S> relation, final String fieldName, final Operand operand,
+                final Object value) {
+            appendCondition("AND", toCondition(relation, fieldName, operand, appendParam(value)));
             return this;
         }
 
-        public Filter like(final String field, final Object value) {
-            return like(null, field, value);
+        public Where or(final String fieldName, final Operand operand, final Object value) {
+            appendCondition("OR", toCondition(fieldName, operand, appendParam(value)));
+            return this;
         }
 
-        public String getFilterString() {
-            if (entries.isEmpty()) {
-                return "";
-            }
-            return "WHERE " + entries.stream()
-                    .map(this::entryToString)
-                    .collect(Collectors.joining(combineOperator));
+        public <S> Where or(final ManyToManyRelation<S> relation, final String fieldName, final Operand operand,
+                final Object value) {
+            appendCondition("OR", toCondition(relation, fieldName, operand, appendParam(value)));
+            return this;
         }
 
-        public SqlParameterSource getFilterParams() {
+        public String getCondition() {
+            return "WHERE " + condition;
+        }
+
+        public SqlParameterSource getParams() {
             return params;
         }
 
-        private String entryToString(final FilterEntry entry) {
-            final String entryStr;
-            final String param = "param" + lastParamNumber;
-            params.addValue(param, entry.value());
-            if (entry.table() == null) {
-                entryStr = "(" + toDbNotation(entry.field()) + " " + entry.operator() + " :" + param + ")";
-            } else {
-                String joinedTable = entry.table();
-                String baseName = tableName.substring(0, tableName.length() - 1);
-                String baseTableJoinColumn = baseName + "_id";
-                String joinTable = baseName + "_" + joinedTable;
-                String joinedColumn = joinedTable.substring(0, joinedTable.length() - 1) + "_id";
-                entryStr = """
-                        (id IN
-                        (
-                          SELECT %s
-                          FROM %s JOIN %s ON %s.%s = %s.id
-                          WHERE %s.%s %s :%s
-                        ))
-                        """.formatted(baseTableJoinColumn, joinTable, joinedTable, joinTable, joinedColumn,
-                        joinedTable, joinedTable, entry.field(), entry.operator(), param);
-            }
-            lastParamNumber++;
-            return entryStr;
+        private String appendParam(final Object value) {
+            final String paramName = "param" + lastParamNumber++;
+            params.addValue(paramName, value);
+            return paramName;
         }
 
-        protected record FilterEntry(String operator, String table, String field, Object value) {
+        private void appendCondition(final String joiner, final String conditionToAppend) {
+            condition
+                    .insert(0, '(')
+                    .append(' ')
+                    .append(joiner)
+                    .append(' ')
+                    .append(conditionToAppend)
+                    .append(')');
+        }
 
+        private String toCondition(final String fieldName, final Operand operand, final String paramName) {
+            return toDbNotation(fieldName) + " " + operand.getDbNotation() + " :" + paramName;
+        }
+
+        private <S> String toCondition(final ManyToManyRelation<S> relation, final String fieldName,
+                final Operand operand, final String paramName) {
+            return """
+                        id IN (
+                          SELECT j.%s
+                          FROM %s AS j JOIN %s AS r ON j.%s = r.id
+                          WHERE r.%s %s :%s
+                        )
+                        """.formatted(relation.getBaseColumn(), relation.getJoinTable(), relation.getJoinedTable(),
+                    relation.getJoinedColumn(), fieldName, operand.getDbNotation(), paramName);
+        }
+    }
+
+    protected enum Operand {
+        EQ("="),
+        LIKE("ILIKE");
+
+        private final String dbNotation;
+
+        Operand(final String dbNotation) {
+            this.dbNotation = dbNotation;
+        }
+
+        String getDbNotation() {
+            return this.dbNotation;
         }
     }
 }

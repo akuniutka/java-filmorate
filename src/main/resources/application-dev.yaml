@@ -8,3 +8,4 @@ spring:
 logging:
   level:
     ru.yandex.practicum.filmorate.controller: DEBUG
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG

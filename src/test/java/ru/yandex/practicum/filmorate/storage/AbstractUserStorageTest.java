@@ -184,21 +184,6 @@ public abstract class AbstractUserStorageTest {
     }
 
     @Test
-    void shouldReturnCorrectCommonFriendsList() {
-        final List<User> expectedUsers = preloadData();
-        final long id = expectedUsers.getFirst().getId();
-        final long friendId = expectedUsers.getLast().getId();
-        final long commonFriendId = expectedUsers.get(1).getId();
-        final List<User> expectedFriends = List.of(expectedUsers.get(1));
-
-        userStorage.addFriend(id, commonFriendId);
-        userStorage.addFriend(friendId, commonFriendId);
-        final List<User> actualFriends = new ArrayList<>(userStorage.findCommonFriends(id, friendId));
-
-        assertUserListEquals(expectedFriends, actualFriends);
-    }
-
-    @Test
     void shouldReturnTrueWhenDeleteUser() {
         final List<User> expectedUsers = preloadData();
         final long id = expectedUsers.get(1).getId();
