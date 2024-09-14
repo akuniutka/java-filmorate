@@ -29,12 +29,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         final Collection<Film> userLikedFilms = filmService.getLikedFilms(userId);
         final Set<User> users = new HashSet<>(userService.getUsers());
         users.remove(user);
-        int maxCommonFilms = 0;
+        int maxCommonFilms = 1;
         Collection<Film> maxAnotherUserLikedFilms = Collections.emptySet();
 
         for (User anotherUser : users) {
             Collection<Film> commonFilms = filmService.getCommonFilms(userId, anotherUser.getId());
-            if (commonFilms.size() > maxCommonFilms) {
+            if (commonFilms.size() >= maxCommonFilms) {
                 maxCommonFilms = commonFilms.size();
                 Collection<Film> anotherUserLikedFilms = filmService.getLikedFilms(anotherUser.getId());
                 if (anotherUserLikedFilms.size() > maxAnotherUserLikedFilms.size()) {
