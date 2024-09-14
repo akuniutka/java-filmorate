@@ -19,7 +19,7 @@ import ru.yandex.practicum.filmorate.mapper.EventMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.api.FilmService;
+import ru.yandex.practicum.filmorate.service.api.RecommendationService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 
 import java.util.Collection;
@@ -31,7 +31,7 @@ import java.util.Collection;
 public class UserController {
 
     private final UserService userService;
-    private final FilmService filmService;
+    private final RecommendationService recommendationService;
     private final UserMapper mapper;
     private final EventMapper eventMapper;
 
@@ -110,7 +110,7 @@ public class UserController {
     @GetMapping("/{id}/recommendations")
     public Collection<Film> getRecommendedFilms(@PathVariable final long id) {
         log.info("Received GET at /users/{}/recommendations", id);
-        Collection<Film> dtos = filmService.getRecommended(id);
+        Collection<Film> dtos = recommendationService.getRecommended(id);
         log.info("Responded to GET /users/{}/recommendations: {}", id, dtos);
         return dtos;
     }
