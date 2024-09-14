@@ -102,25 +102,11 @@ public class BaseDbStorage<T> {
     }
 
     protected List<T> find(final Where where, final OrderBy orderBy, final Long limit) {
-        final SqlParameterSource params;
-        final String filterStr;
-        if (where == null) {
-            filterStr = "";
-            params = null;
-        } else {
-            filterStr = where.getCondition();
-            params = where.getParams();
-        }
-        final String orderByStr;
-        if (orderBy == null || orderBy.getEntries() == null) {
-            orderByStr = "ORDER BY id";
-        } else {
-            orderByStr = "ORDER BY " + orderBy.getEntries().stream()
-                    .map(entry -> toDbNotation(entry.field()) + " " + entry.order())
-                    .collect(Collectors.joining(", "));
-        }
-        final String limitStr = limit != null ? "LIMIT " + limit : "";
-        final String query = FIND_ALL_QUERY.formatted(tableName, filterStr, orderByStr, limitStr);
+        final String whereClause = where == null ? "" : "\n" + where.getCondition();
+        final SqlParameterSource params = where == null ? null : where.getParams();
+        final String orderClause = orderBy == null ? "\nORDER BY id" : "\n" + orderBy.getOrderClause();
+        final String limitStr = limit == null ? "" : "\nLIMIT " + limit;
+        final String query = FIND_ALL_QUERY.formatted(tableName, whereClause, orderClause, limitStr);
         return findMany(query, params);
     }
 
@@ -195,12 +181,12 @@ public class BaseDbStorage<T> {
         return new Where(relation, fieldName, operand, value);
     }
 
-    protected OrderBy asc(final String field) {
-        return new OrderBy().asc(field);
+    protected OrderBy orderBy(final String fieldName) {
+        return new OrderBy(fieldName);
     }
 
-    protected OrderBy desc(final String field) {
-        return new OrderBy().desc(field);
+    protected OrderBy orderBy(final String fieldName, final Order order) {
+        return new OrderBy(fieldName, order);
     }
 
     private String toDbNotation(String fieldName) {
@@ -213,29 +199,6 @@ public class BaseDbStorage<T> {
             }
         }
         return sb.toString();
-    }
-
-    protected static class OrderBy {
-
-        private final List<OrderEntry> entries = new ArrayList<>();
-
-        public OrderBy asc(final String field) {
-            entries.add(new OrderEntry(field, "ASC"));
-            return this;
-        }
-
-        public OrderBy desc(final String field) {
-            entries.add(new OrderEntry(field, "DESC"));
-            return this;
-        }
-
-        public List<OrderEntry> getEntries() {
-            return new ArrayList<>(entries);
-        }
-
-        protected record OrderEntry(String field, String order) {
-
-        }
     }
 
     protected class ManyToOneRelation<S> {
@@ -564,6 +527,33 @@ public class BaseDbStorage<T> {
         }
     }
 
+    protected class OrderBy {
+
+        private final StringBuilder orderClause = new StringBuilder();
+
+        public OrderBy(final String fieldName) {
+            orderClause.append(toDbNotation(fieldName));
+        }
+
+        public OrderBy(final String fieldName, final Order order) {
+            orderClause.append(toDbNotation(fieldName)).append(' ').append(order);
+        }
+
+        public OrderBy andThenBy(final String fieldName) {
+            orderClause.append(", ").append(toDbNotation(fieldName));
+            return this;
+        }
+
+        public OrderBy andThenBy(final String fieldName, final Order order) {
+            orderClause.append(", ").append(toDbNotation(fieldName)).append(' ').append(order);
+            return this;
+        }
+
+        public String getOrderClause() {
+            return "ORDER BY " + orderClause;
+        }
+    }
+
     protected enum Operand {
         EQ("="),
         LIKE("ILIKE");
@@ -577,5 +567,10 @@ public class BaseDbStorage<T> {
         String getDbNotation() {
             return this.dbNotation;
         }
+    }
+
+    protected enum Order {
+        ASC,
+        DESC
     }
 }
