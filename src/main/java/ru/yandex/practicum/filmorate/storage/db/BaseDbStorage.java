@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -289,6 +290,14 @@ public class BaseDbStorage<T> {
                 WHERE j.%s = :id
                 ORDER BY r.id;
                 """;
+        private static final String FETCH_RELATION_WITH_PAYLOAD_QUERY = """
+                SELECT r.*,
+                  j.%s AS payload_value
+                FROM %s AS r
+                JOIN %s AS j ON r.id = j.%s
+                WHERE j.%s = :id
+                ORDER BY r.id;
+                """;
         private static final String FETCH_RELATIONS_QUERY = """
                 SELECT j.%s,
                     r.*
@@ -378,6 +387,19 @@ public class BaseDbStorage<T> {
             final String query = FETCH_RELATION_QUERY.formatted(joinedTable, joinTable, joinedColumn, baseColumn);
             final SqlParameterSource params = new MapSqlParameterSource("id", id);
             return findMany(query, params, mapper);
+        }
+
+        public Map<S, Object> fetchRelationsWithPayload(final long id) {
+            final String query = FETCH_RELATION_WITH_PAYLOAD_QUERY.formatted(payloadColumn, joinedTable, joinTable,
+                    joinedColumn, baseColumn);
+            final SqlParameterSource params = new MapSqlParameterSource("id", id);
+            final Map<S, Object> payloadByRelation = new LinkedHashMap<>();
+            jdbc.query(query, params, rs -> {
+                S entity = mapper.mapRow(rs, 0);
+                Object payload = rs.getObject("payload_value");
+                payloadByRelation.put(entity, payload);
+            });
+            return payloadByRelation;
         }
 
         public Map<Long, Set<S>> fetchRelations(final Set<Long> ids) {

@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.service.api;
 
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
+import java.util.Map;
 
 public interface UserService {
 
@@ -26,4 +28,6 @@ public interface UserService {
     void deleteUserById(long userId);
 
     Collection<Event> getEvents(long id);
+
+    Map<Film, Integer> getLikes(long id);
 }

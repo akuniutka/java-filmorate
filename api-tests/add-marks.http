@@ -1,0 +1,283 @@
+### Add user #1
+
+POST http://localhost:8080/users
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{$random.email}}",
+  "name": "John Carmack",
+  "login": "john_c",
+  "birthday": "1970-12-31"
+}
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("User id is 1", function() {
+        client.assert(response.body.id === 1, "Wrong user id");
+    })
+%}
+
+<> 2024-09-15T065959.200.json
+<> 2024-09-15T065920.200.json
+<> 2024-09-15T065639.200.json
+<> 2024-09-15T064903.200.json
+<> 2024-09-15T064822.200.json
+<> 2024-09-15T063928.200.json
+<> 2024-09-15T063905.500.json
+<> 2024-09-15T062956.200.json
+<> 2024-09-07T145247.404.json
+<> 2024-09-07T144934.500.json
+
+### Add user #2
+
+POST http://localhost:8080/users
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{$random.email}}",
+  "name": "Jack Sparrow",
+  "login": "jack_s",
+  "birthday": "1620-06-30"
+}
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("User id is 2", function() {
+        client.assert(response.body.id === 2, "Wrong user id");
+    })
+%}
+
+### Add film #1
+
+POST http://localhost:8080/films
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "The Matrix",
+  "description": "Legendary movie",
+  "releaseDate": "1999-03-24",
+  "duration": 136,
+  "mpa": {"id" : 4},
+  "genres" : [
+    {"id" : 6}
+  ]
+}
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film id is 1", function() {
+        client.assert(response.body.id === 1, "Wrong film id");
+    })
+%}
+
+<> 2024-09-15T070000.200.json
+<> 2024-09-15T065921.200.json
+<> 2024-09-15T065639-1.200.json
+
+### User #1 adds like to film #1
+
+PUT http://localhost:8080/films/1/like/1?mark=9
+
+<> 2024-09-15T065921.404.json
+
+### Film #1 has rating 9
+
+GET http://localhost:8080/films/1
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film rating is 9", function() {
+        client.assert(response.body.rating === 9, "Wrong film rating")
+    })
+%}
+
+### User #2 add like to film #1
+
+PUT http://localhost:8080/films/1/like/2?mark=6
+
+### Film #1 has rating 7.5
+
+GET http://localhost:8080/films/1
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film rating is 7.5", function() {
+        client.assert(response.body.rating === 7.5, "Wrong film rating")
+    })
+%}
+
+### Add user #3
+
+POST http://localhost:8080/users
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{$random.email}}",
+  "name": "Caroline Clark",
+  "login": "caroline_c",
+  "birthday": "1985-07-04"
+}
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("User id is 3", function() {
+        client.assert(response.body.id === 3, "Wrong user id");
+    })
+%}
+
+### Add film #2
+
+POST http://localhost:8080/films
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "The Matrix Reloaded",
+  "description": "Sequel of The Matrix",
+  "releaseDate": "2003-05-07",
+  "duration": 138,
+  "mpa": {"id" : 4},
+  "genres" : [
+    {"id" : 6}
+  ]
+}
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film id is 2", function() {
+        client.assert(response.body.id === 2, "Wrong film id");
+    })
+%}
+
+### Add film #3
+
+POST http://localhost:8080/films
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "The Matrix Revolutions",
+  "description": "Third movie in The Matrix series",
+  "releaseDate": "2003-10-16",
+  "duration": 129,
+  "mpa": {"id" : 4},
+  "genres" : [
+    {"id" : 6}
+  ]
+}
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film id is 3", function() {
+        client.assert(response.body.id === 3, "Wrong film id");
+    })
+%}
+
+### User #2 adds like to film #2
+
+PUT http://localhost:8080/films/2/like/2?mark=7
+
+### Film #2 has rating 7
+
+GET http://localhost:8080/films/2
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film rating is 7", function() {
+        client.assert(response.body.rating === 7, "Wrong film rating")
+    })
+%}
+
+### User #2 adds like to film #3
+
+PUT http://localhost:8080/films/3/like/2?mark=5
+
+### Film #3 has rating 5
+
+GET http://localhost:8080/films/3
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film rating is 5", function() {
+        client.assert(response.body.rating === 5, "Wrong film rating")
+    })
+%}
+
+### User #3 adds like to film #1
+
+PUT http://localhost:8080/films/1/like/3?mark=7
+
+### Film #1 has rating 7.3
+
+GET http://localhost:8080/films/1
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film rating is 7.3", function() {
+        client.assert(response.body.rating === 7.3, "Wrong film rating")
+    })
+%}
+
+### Film #2 is recommended for user #3
+
+GET http://localhost:8080/users/3/recommendations
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Recommended 1 film", function() {
+        client.assert(response.body.length === 1, "Wrong number of films")
+    })
+
+    client.test("Recommended film #2", function() {
+        client.assert(response.body[0].id === 2, "Wrong film id")
+    })
+%}
+
+###
+

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.mem;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 
@@ -61,5 +62,10 @@ public class UserInMemoryStorage extends BaseInMemoryStorage<User> implements Us
     public void deleteAll() {
         friends.clear();
         super.deleteAll();
+    }
+
+    @Override
+    public Map<Film, Integer> findLikes(final long id) {
+        return Map.of();
     }
 }

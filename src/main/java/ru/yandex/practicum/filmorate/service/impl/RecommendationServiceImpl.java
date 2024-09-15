@@ -13,7 +13,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,25 +28,46 @@ public class RecommendationServiceImpl implements RecommendationService {
     @Override
     public Collection<Film> getRecommended(final long userId) {
         final User user = userService.getUser(userId);
-        final Collection<Film> userLikedFilms = filmService.getLikedFilms(userId);
+        final Map<Film, Integer> userLikes = userService.getLikes(userId);
         final Set<User> users = new HashSet<>(userService.getUsers());
         users.remove(user);
         int maxCommonFilms = 1;
-        Collection<Film> maxAnotherUserLikedFilms = Collections.emptySet();
+        long minLikesDistance = Long.MAX_VALUE;
+        User closestUser = null;
+        Map<Film, Integer> closestLikes = Collections.emptyMap();
 
         for (User anotherUser : users) {
             Collection<Film> commonFilms = filmService.getCommonFilms(userId, anotherUser.getId());
             if (commonFilms.size() >= maxCommonFilms) {
-                maxCommonFilms = commonFilms.size();
-                Collection<Film> anotherUserLikedFilms = filmService.getLikedFilms(anotherUser.getId());
-                if (anotherUserLikedFilms.size() > maxAnotherUserLikedFilms.size()) {
-                    maxAnotherUserLikedFilms = anotherUserLikedFilms;
+                Map<Film, Integer> anotherUserLikes = userService.getLikes(anotherUser.getId());
+                long likesDistance = likesDistance(userLikes, anotherUserLikes, commonFilms);
+                if (commonFilms.size() > maxCommonFilms || likesDistance < minLikesDistance) {
+                    maxCommonFilms = commonFilms.size();
+                    minLikesDistance = likesDistance;
+                    closestUser = anotherUser;
+                    closestLikes = anotherUserLikes;
                 }
             }
         }
-        final Set<Film> recommendedFilms = new LinkedHashSet<>(maxAnotherUserLikedFilms);
-        recommendedFilms.removeAll(userLikedFilms);
+        final Map<Film, Integer> f = closestLikes;
 
-        return recommendedFilms;
+        return closestUser == null ? Collections.emptySet() : filmService.getLikedFilms(closestUser.getId()).stream()
+                .filter(film -> !userLikes.containsKey(film))
+                .filter(film -> f.get(film) > 5)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private long likesDistance(
+            final Map<Film, Integer> userLikes,
+            final Map<Film, Integer> anotherUserLikes,
+            final Collection<Film> commonFilms
+    ) {
+        long likesDistance = 0L;
+        for (Film film : commonFilms) {
+            int userMark = userLikes.get(film);
+            int anotherUserMark = anotherUserLikes.get(film);
+            likesDistance += Math.abs(userMark - anotherUserMark);
+        }
+        return likesDistance;
     }
 }
