@@ -18,9 +18,7 @@ public interface FilmService {
 
     Film updateFilm(Film film);
 
-    void addLike(long id, long userId);
-
-    Collection<Film> getRecommended(long userId);
+    void addLike(long id, long userId, int mark);
 
     void deleteLike(long id, long userId);
 
@@ -28,5 +26,7 @@ public interface FilmService {
 
     Collection<Film> getFilmsByTitleAndDirectorName(String query, String by);
 
-    Collection<Film> getCommonFilms(long id, long friendId);
+    Collection<Film> getLikedFilms(long userId);
+
+    Collection<Film> getCommonFilms(long userId, long friendId);
 }

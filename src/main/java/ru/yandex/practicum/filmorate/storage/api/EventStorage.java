@@ -10,7 +10,7 @@ public interface EventStorage {
 
     Collection<Event> findAll();
 
-    Collection<Event> findAllByUserId(long userId);
+    Collection<Event> findByUserId(long userId);
 
     void deleteAll();
 }

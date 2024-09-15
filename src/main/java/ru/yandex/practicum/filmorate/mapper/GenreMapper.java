@@ -10,8 +10,6 @@ import java.util.Collection;
 @Mapper
 public interface GenreMapper {
 
-    Genre mapToGenre(FilmGenreDto dto);
-
     Collection<Genre> mapToGenre(Collection<FilmGenreDto> dtos);
 
     GenreDto mapToDto(Genre genre);

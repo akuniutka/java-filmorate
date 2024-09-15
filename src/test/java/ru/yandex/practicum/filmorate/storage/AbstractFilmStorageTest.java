@@ -133,7 +133,8 @@ public abstract class AbstractFilmStorageTest {
         final long filmId = filmStorage.save(film).getId();
         final long userId = userStorage.save(user).getId();
 
-        filmStorage.addLike(filmId, userId);
+        // TODO: rewrite for marks
+        filmStorage.addLike(filmId, userId, 10);
         final Film actualFilm = filmStorage.findById(filmId).orElseThrow();
 
         assertEquals(1L, actualFilm.getLikes(), "wrong number of likes");
@@ -146,8 +147,9 @@ public abstract class AbstractFilmStorageTest {
         final long filmId = filmStorage.save(film).getId();
         final long userId = userStorage.save(user).getId();
 
-        filmStorage.addLike(filmId, userId);
-        filmStorage.addLike(filmId, userId);
+        // TODO: rewrite for marks
+        filmStorage.addLike(filmId, userId, 10);
+        filmStorage.addLike(filmId, userId, 10);
         final Film actualFilm = filmStorage.findById(filmId).orElseThrow();
 
         assertEquals(1L, actualFilm.getLikes(), "wrong number of likes");
@@ -160,7 +162,8 @@ public abstract class AbstractFilmStorageTest {
         final long filmId = filmStorage.save(film).getId();
         final long userId = userStorage.save(user).getId();
 
-        filmStorage.addLike(filmId, userId);
+        // TODO: rewrite for marks
+        filmStorage.addLike(filmId, userId, 10);
         filmStorage.deleteLike(filmId, userId);
         final Film actualFilm = filmStorage.findById(filmId).orElseThrow();
 

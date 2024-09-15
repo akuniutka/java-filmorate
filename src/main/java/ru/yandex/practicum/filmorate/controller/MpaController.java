@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,24 +17,29 @@ import java.util.Collection;
 @RequestMapping("/mpa")
 @RequiredArgsConstructor
 @Slf4j
-public class MpaController {
+public class MpaController extends BaseController {
 
     private final MpaService mpaService;
     private final MpaMapper mapper;
 
     @GetMapping("/{id}")
-    public MpaDto getMpa(@PathVariable final long id) {
-        log.info("Received GET at /mpa/{}", id);
+    public MpaDto getMpa(
+            @PathVariable final long id,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final MpaDto dto = mapper.mapToDto(mpaService.getMpa(id));
-        log.info("Responded to GET /mpa/{}: {}", id, dto);
+        logResponse(request, dto);
         return dto;
     }
 
     @GetMapping
-    public Collection<MpaDto> getMpas() {
-        log.info("Received GET at /mpa");
+    public Collection<MpaDto> getMpas(
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final Collection<MpaDto> dtos = mapper.mapToDto(mpaService.getMpas());
-        log.info("Responded to GET /mpa: {}", dtos);
+        logResponse(request, dtos);
         return dtos;
     }
 }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collection;
 
@@ -19,4 +20,5 @@ public class Film {
     private Collection<Genre> genres;
     private Collection<Director> directors;
     private long likes;
+    private BigDecimal rating;
 }

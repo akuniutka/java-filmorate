@@ -7,13 +7,17 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.service.api.UserService;
 import ru.yandex.practicum.filmorate.storage.api.UserStorage;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -63,7 +67,6 @@ public class UserServiceImpl implements UserService {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
         userStorage.addFriend(id, friendId);
-        // добавление события добавления друга в таблицу events
         eventService.createEvent(EventType.FRIEND, id, Operation.ADD, friendId);
     }
 
@@ -75,7 +78,6 @@ public class UserServiceImpl implements UserService {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
         if (userStorage.deleteFriend(id, friendId)) {
-            // добавление события удаления друга в таблице events
             eventService.createEvent(EventType.FRIEND, id, Operation.REMOVE, friendId);
         }
     }
@@ -90,7 +92,14 @@ public class UserServiceImpl implements UserService {
     public Collection<User> getCommonFriends(final long id, final long friendId) {
         getUser(id);
         getUser(friendId);
-        return userStorage.findCommonFriends(id, friendId);
+        final Set<User> commonFriends = userStorage.findFriends(id);
+        commonFriends.retainAll(userStorage.findFriends(friendId));
+        return commonFriends;
+    }
+
+    @Override
+    public Map<Film, Integer> getLikes(final long id) {
+        return userStorage.findLikes(id);
     }
 
     @Override
