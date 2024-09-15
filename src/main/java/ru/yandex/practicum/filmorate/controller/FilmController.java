@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -110,10 +112,11 @@ public class FilmController extends BaseController {
     public void addLike(
             @PathVariable final long id,
             @PathVariable final long userId,
+            @Valid @RequestParam(defaultValue = "10") @Min(1) @Max(10) final int mark,
             final HttpServletRequest request
     ) {
         logRequest(request);
-        filmService.addLike(id, userId);
+        filmService.addLike(id, userId, mark);
         logResponse(request);
     }
 

@@ -92,11 +92,11 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public void addLike(final long id, final long userId) {
+    public void addLike(final long id, final long userId, final int mark) {
         getFilm(id);
         userService.getUser(userId);
+        filmStorage.addLike(id, userId, mark);
         eventService.createEvent(EventType.LIKE, userId, Operation.ADD, id);
-        filmStorage.addLike(id, userId);
     }
 
     @Override

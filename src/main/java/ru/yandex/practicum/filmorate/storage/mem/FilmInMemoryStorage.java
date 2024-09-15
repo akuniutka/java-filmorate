@@ -111,7 +111,7 @@ public class FilmInMemoryStorage extends BaseInMemoryStorage<Film> implements Fi
     }
 
     @Override
-    public void addLike(final long id, final long userId) {
+    public void addLike(final long id, final long userId, final int mark) {
         if (!data.containsKey(id)) {
             throw new RuntimeException("Cannot add like: film with id = %d does not exist".formatted(id));
         }

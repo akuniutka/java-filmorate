@@ -37,7 +37,7 @@ public interface FilmStorage {
 
     Optional<Film> update(Film film);
 
-    void addLike(long id, long userId);
+    void addLike(long id, long userId, int mark);
 
     boolean deleteLike(long id, long userId);
 

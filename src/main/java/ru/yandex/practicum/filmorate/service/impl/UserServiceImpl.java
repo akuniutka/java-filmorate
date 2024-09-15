@@ -65,7 +65,6 @@ public class UserServiceImpl implements UserService {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
         userStorage.addFriend(id, friendId);
-        // добавление события добавления друга в таблицу events
         eventService.createEvent(EventType.FRIEND, id, Operation.ADD, friendId);
     }
 
@@ -77,7 +76,6 @@ public class UserServiceImpl implements UserService {
             throw new ValidationException("Check that friend id is correct (you sent %s)".formatted(friendId));
         }
         if (userStorage.deleteFriend(id, friendId)) {
-            // добавление события удаления друга в таблице events
             eventService.createEvent(EventType.FRIEND, id, Operation.REMOVE, friendId);
         }
     }

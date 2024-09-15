@@ -57,8 +57,8 @@ public class ReviewServiceImpl implements ReviewService {
         final Review reviewStored = reviewStorage.update(review).orElseThrow(
                 () -> new NotFoundException(Review.class, review.getId())
         );
-        eventService.createEvent(EventType.REVIEW, reviewStored.getUserId(), Operation.UPDATE, reviewStored.getId());
         log.info("Updated review: {}", reviewStored);
+        eventService.createEvent(EventType.REVIEW, reviewStored.getUserId(), Operation.UPDATE, reviewStored.getId());
         return reviewStored;
     }
 

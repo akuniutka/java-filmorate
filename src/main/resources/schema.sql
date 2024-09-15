@@ -38,7 +38,9 @@ CREATE TABLE IF NOT EXISTS films
   duration     INT          NOT NULL,
   mpa_id       BIGINT       NULL REFERENCES mpas (id) ON DELETE SET NULL,
   likes        BIGINT       NOT NULL DEFAULT 0,
-  release_year INT GENERATED ALWAYS AS (EXTRACT(YEAR FROM release_date))
+  marks_sum    BIGINT       NOT NULL DEFAULT 0,
+  release_year INT GENERATED ALWAYS AS (EXTRACT(YEAR FROM release_date)),
+  rating       NUMERIC(3, 1) GENERATED ALWAYS AS (CASE likes WHEN 0 THEN 0 ELSE ROUND((marks_sum + 0.0) / likes, 1) END)
 );
 
 CREATE TABLE IF NOT EXISTS directors
@@ -96,6 +98,7 @@ CREATE TABLE IF NOT EXISTS film_likes
 (
   film_id BIGINT NOT NULL REFERENCES films (id) ON DELETE CASCADE,
   user_id BIGINT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  mark    INT    NOT NULL DEFAULT 10 CHECK (mark BETWEEN 1 AND 10),
   CONSTRAINT film_likes_ux UNIQUE (film_id, user_id)
 );
 

@@ -35,7 +35,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         this.genres = new ManyToManyRelation<Genre>(Genre.class);
         this.directors = new ManyToManyRelation<Director>(Director.class);
         this.likes = new ManyToManyRelation<>(User.class)
-                .withJoinTable("film_likes");
+                .withJoinTable("film_likes")
+                .withPayloadColumn("mark");
     }
 
     @Override
@@ -159,8 +160,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public void addLike(final long id, final long userId) {
-        likes.addRelation(id, userId);
+    public void addLike(final long id, final long userId, final int mark) {
+        likes.addRelation(id, userId, mark);
     }
 
     @Override

@@ -18,7 +18,7 @@ public interface FilmService {
 
     Film updateFilm(Film film);
 
-    void addLike(long id, long userId);
+    void addLike(long id, long userId, int mark);
 
     void deleteLike(long id, long userId);
 

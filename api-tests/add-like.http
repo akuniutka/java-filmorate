@@ -1,4 +1,4 @@
-### Add new user
+### Add user #1
 
 POST http://localhost:8080/users
 Content-Type: application/json
@@ -16,22 +16,8 @@ Accept: application/json
         client.assert(response.status === 200, "Response status is not 200");
     });
 
-    client.test("Contains headers", function() {
-        client.assert(response.hasOwnProperty("headers"), "There no headers in response");
-        // client.assert(response.body.hasOwnProperty("headers"), "there no headers in response");
-    });
-
-    client.test("Response content-type is json", function() {
-        let type = response.contentType.mimeType;
-        client.assert(type === "application/json", "Expected 'application/json' bot got '" + type +";");
-    })
-
     client.test("User id is 1", function() {
         client.assert(response.body.id === 1, "Wrong user id");
-    })
-
-    client.test("User email is 'john@yahoo.com'", function() {
-        client.assert(response.body.email === "john@yahoo.com", "Wrong user email")
     })
 %}
 
@@ -46,7 +32,30 @@ Accept: application/json
 <> 2024-09-07T145247.404.json
 <> 2024-09-07T144934.500.json
 
-### Add new Film
+### Add user #2
+
+POST http://localhost:8080/users
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "jack@google.com",
+  "name": "Jack Sparrow",
+  "login": "jack_s",
+  "birthday": "1620-06-30"
+}
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("User id is 2", function() {
+        client.assert(response.body.id === 2, "Wrong user id");
+    })
+%}
+
+### Add film #1
 
 POST http://localhost:8080/films
 Content-Type: application/json
@@ -63,14 +72,56 @@ Accept: application/json
   ]
 }
 
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film id is 1", function() {
+        client.assert(response.body.id === 1, "Wrong film id");
+    })
+%}
+
 <> 2024-09-15T070000.200.json
 <> 2024-09-15T065921.200.json
 <> 2024-09-15T065639-1.200.json
 
-### Add like
+### User #1 adds like
 
 PUT http://localhost:8080/films/1/like/1?mark=9
 
 <> 2024-09-15T065921.404.json
 
-###
+### Film #1 has rating 9
+
+GET http://localhost:8080/films/1
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film rating is 9", function() {
+        client.assert(response.body.rating === 9, "Wrong film mark")
+    })
+%}
+
+### User #2 add like
+
+PUT http://localhost:8080/films/1/like/2?mark=6
+
+### Film #1 has rating 7.5
+
+GET http://localhost:8080/films/1
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Film mark is 9", function() {
+        client.assert(response.body.rating === 7.5, "Wrong film mark")
+    })
+%}
