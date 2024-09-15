@@ -1,0 +1,76 @@
+### Add new user
+
+POST http://localhost:8080/users
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "john@yahoo.com",
+  "name": "John Carmack",
+  "login": "john_c",
+  "birthday": "1970-12-31"
+}
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Contains headers", function() {
+        client.assert(response.hasOwnProperty("headers"), "There no headers in response");
+        // client.assert(response.body.hasOwnProperty("headers"), "there no headers in response");
+    });
+
+    client.test("Response content-type is json", function() {
+        let type = response.contentType.mimeType;
+        client.assert(type === "application/json", "Expected 'application/json' bot got '" + type +";");
+    })
+
+    client.test("User id is 1", function() {
+        client.assert(response.body.id === 1, "Wrong user id");
+    })
+
+    client.test("User email is 'john@yahoo.com'", function() {
+        client.assert(response.body.email === "john@yahoo.com", "Wrong user email")
+    })
+%}
+
+<> 2024-09-15T065959.200.json
+<> 2024-09-15T065920.200.json
+<> 2024-09-15T065639.200.json
+<> 2024-09-15T064903.200.json
+<> 2024-09-15T064822.200.json
+<> 2024-09-15T063928.200.json
+<> 2024-09-15T063905.500.json
+<> 2024-09-15T062956.200.json
+<> 2024-09-07T145247.404.json
+<> 2024-09-07T144934.500.json
+
+### Add new Film
+
+POST http://localhost:8080/films
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Matrix",
+  "description": "Legendary movie",
+  "releaseDate": "1999-03-24",
+  "duration": 136,
+  "mpa": {"id" : 4},
+  "genres" : [
+    {"id" : 6}
+  ]
+}
+
+<> 2024-09-15T070000.200.json
+<> 2024-09-15T065921.200.json
+<> 2024-09-15T065639-1.200.json
+
+### Add like
+
+PUT http://localhost:8080/films/1/like/1?mark=9
+
+<> 2024-09-15T065921.404.json
+
+###

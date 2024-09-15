@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,24 +17,29 @@ import java.util.Collection;
 @RequestMapping("/genres")
 @RequiredArgsConstructor
 @Slf4j
-public class GenreController {
+public class GenreController extends BaseController {
 
     private final GenreService genreService;
     private final GenreMapper mapper;
 
     @GetMapping("/{id}")
-    public GenreDto getGenre(@PathVariable final long id) {
-        log.info("Received GET at /genres/{}", id);
+    public GenreDto getGenre(
+            @PathVariable final long id,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final GenreDto dto = mapper.mapToDto(genreService.getGenre(id));
-        log.info("Responded to GET /genres/{}: {}", id, dto);
+        logResponse(request, dto);
         return dto;
     }
 
     @GetMapping
-    public Collection<GenreDto> getGenres() {
-        log.info("Received GET at /genres");
+    public Collection<GenreDto> getGenres(
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final Collection<GenreDto> dtos = mapper.mapToDto(genreService.getGenres());
-        log.info("Responded to GET /genres: {}", dtos);
+        logResponse(request, dtos);
         return dtos;
     }
 }
