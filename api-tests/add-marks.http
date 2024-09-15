@@ -1,3 +1,43 @@
+### Add director #1
+
+POST http://localhost:8080/directors
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Lana Wachowski"
+}
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Director id is 1", function() {
+        client.assert(response.body.id === 1, "Wrong director id");
+    })
+%}
+
+### Add director #2
+
+POST http://localhost:8080/directors
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Lilly Wachowski"
+}
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Director id is 2", function() {
+        client.assert(response.body.id === 2, "Wrong director id");
+    })
+%}
+
 ### Add user #1
 
 POST http://localhost:8080/users
@@ -69,6 +109,10 @@ Accept: application/json
   "mpa": {"id" : 4},
   "genres" : [
     {"id" : 6}
+  ],
+  "directors": [
+    {"id": 1},
+    {"id": 2}
   ]
 }
 
@@ -163,6 +207,10 @@ Accept: application/json
   "mpa": {"id" : 4},
   "genres" : [
     {"id" : 6}
+  ],
+  "directors": [
+    {"id": 1},
+    {"id": 2}
   ]
 }
 
@@ -190,6 +238,10 @@ Accept: application/json
   "mpa": {"id" : 4},
   "genres" : [
     {"id" : 6}
+  ],
+  "directors": [
+    {"id": 1},
+    {"id": 2}
   ]
 }
 
@@ -205,9 +257,9 @@ Accept: application/json
 
 ### User #2 adds like to film #2
 
-PUT http://localhost:8080/films/2/like/2?mark=7
+PUT http://localhost:8080/films/2/like/2?mark=8
 
-### Film #2 has rating 7
+### Film #2 has rating 8
 
 GET http://localhost:8080/films/2
 Accept: application/json
@@ -217,8 +269,8 @@ Accept: application/json
         client.assert(response.status === 200, "Response status is not 200");
     });
 
-    client.test("Film rating is 7", function() {
-        client.assert(response.body.rating === 7, "Wrong film rating")
+    client.test("Film rating is 8", function() {
+        client.assert(response.body.rating === 8, "Wrong film rating")
     })
 %}
 
@@ -279,5 +331,212 @@ Accept: application/json
     })
 %}
 
-###
+### Get popular films in right order
 
+GET http://localhost:8080/films/popular
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("List consist of 3 films", function() {
+        client.assert(response.body.length === 3, "Wrong number of films")
+    })
+
+    client.test("Top #1 is film #2", function() {
+        client.assert(response.body[0].id === 2, "Wrong film id")
+    })
+
+    client.test("Top #2 is film #1", function() {
+        client.assert(response.body[1].id === 1, "Wrong film id")
+    })
+
+    client.test("Top #3 is film #3", function() {
+        client.assert(response.body[2].id === 3, "Wrong film id")
+    })
+%}
+
+### Get popular films filtered by genre id in right order
+
+GET http://localhost:8080/films/popular?genreId=6
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("List consist of 3 films", function() {
+        client.assert(response.body.length === 3, "Wrong number of films")
+    })
+
+    client.test("Top #1 is film #2", function() {
+        client.assert(response.body[0].id === 2, "Wrong film id")
+    })
+
+    client.test("Top #2 is film #1", function() {
+        client.assert(response.body[1].id === 1, "Wrong film id")
+    })
+
+    client.test("Top #3 is film #3", function() {
+        client.assert(response.body[2].id === 3, "Wrong film id")
+    })
+%}
+
+### Get popular films filtered by release year in right order
+
+GET http://localhost:8080/films/popular?year=2003
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("List consist of 2 films", function() {
+        client.assert(response.body.length === 2, "Wrong number of films")
+    })
+
+    client.test("Top #1 is film #2", function() {
+        client.assert(response.body[0].id === 2, "Wrong film id")
+    })
+
+    client.test("Top #3 is film #3", function() {
+        client.assert(response.body[1].id === 3, "Wrong film id")
+    })
+%}
+
+### Get popular films filtered by genre id and release year in right order
+
+GET http://localhost:8080/films/popular?genreId=6&year=2003
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("List consist of 2 films", function() {
+        client.assert(response.body.length === 2, "Wrong number of films")
+    })
+
+    client.test("Top #1 is film #2", function() {
+        client.assert(response.body[0].id === 2, "Wrong film id")
+    })
+
+    client.test("Top #3 is film #3", function() {
+        client.assert(response.body[1].id === 3, "Wrong film id")
+    })
+%}
+
+### Get director's films ordered by likes
+
+GET http://localhost:8080/films/director/1?sortBy=likes
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("List consist of 3 films", function() {
+        client.assert(response.body.length === 3, "Wrong number of films")
+    })
+
+    client.test("Top #1 is film #2", function() {
+        client.assert(response.body[0].id === 2, "Wrong film id")
+    })
+
+    client.test("Top #2 is film #1", function() {
+        client.assert(response.body[1].id === 1, "Wrong film id")
+    })
+
+    client.test("Top #3 is film #3", function() {
+        client.assert(response.body[2].id === 3, "Wrong film id")
+    })
+%}
+
+### Get films after search by title ordered by likes
+
+GET http://localhost:8080/films/search?query=matrix&by=title
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("List consist of 3 films", function() {
+        client.assert(response.body.length === 3, "Wrong number of films")
+    })
+
+    client.test("Top #1 is film #2", function() {
+        client.assert(response.body[0].id === 2, "Wrong film id")
+    })
+
+    client.test("Top #2 is film #1", function() {
+        client.assert(response.body[1].id === 1, "Wrong film id")
+    })
+
+    client.test("Top #3 is film #3", function() {
+        client.assert(response.body[2].id === 3, "Wrong film id")
+    })
+%}
+
+### Get films after search by director's name ordered by likes
+
+GET http://localhost:8080/films/search?query=wachowski&by=director
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("List consist of 3 films", function() {
+        client.assert(response.body.length === 3, "Wrong number of films")
+    })
+
+    client.test("Top #1 is film #2", function() {
+        client.assert(response.body[0].id === 2, "Wrong film id")
+    })
+
+    client.test("Top #2 is film #1", function() {
+        client.assert(response.body[1].id === 1, "Wrong film id")
+    })
+
+    client.test("Top #3 is film #3", function() {
+        client.assert(response.body[2].id === 3, "Wrong film id")
+    })
+%}
+
+### Get films after search by title and director's name ordered by likes
+
+GET http://localhost:8080/films/search?query=a&by=title,director
+Accept: application/json
+
+> {%
+    client.test("Response code 200", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("List consist of 3 films", function() {
+        client.assert(response.body.length === 3, "Wrong number of films")
+    })
+
+    client.test("Top #1 is film #2", function() {
+        client.assert(response.body[0].id === 2, "Wrong film id")
+    })
+
+    client.test("Top #2 is film #1", function() {
+        client.assert(response.body[1].id === 1, "Wrong film id")
+    })
+
+    client.test("Top #3 is film #3", function() {
+        client.assert(response.body[2].id === 3, "Wrong film id")
+    })
+%}
+
+###

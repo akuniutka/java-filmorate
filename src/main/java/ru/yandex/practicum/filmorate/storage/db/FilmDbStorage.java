@@ -56,7 +56,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public Collection<Film> findAllOrderByLikesDesc(final long limit) {
         return findAll(
-                orderBy("likes", Order.DESC).andThenBy("id"),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id"),
                 limit
         );
     }
@@ -65,7 +65,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public Collection<Film> findByGenreIdOrderByLikesDesc(final long genreId, final long limit) {
         return find(
                 where(genres, "id", Operand.EQ, genreId),
-                orderBy("likes", Order.DESC).andThenBy("id"),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id"),
                 limit
         );
     }
@@ -81,7 +81,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public Collection<Film> findByDirectorIdOrderByLikesDesc(final long directorId) {
         return find(
                 where(directors, "id", Operand.EQ, directorId),
-                orderBy("likes", Order.DESC).andThenBy("id")
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id")
         );
     }
 
@@ -105,7 +105,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         final String searchQuery = "%" + query + "%";
         return find(
                 where("name", Operand.LIKE, searchQuery),
-                orderBy("likes", Order.DESC).andThenBy("id")
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id")
         );
     }
 
@@ -114,7 +114,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         final String searchQuery = "%" + query + "%";
         return find(
                 where(directors, "name", Operand.LIKE, searchQuery),
-                orderBy("likes", Order.DESC).andThenBy("id")
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id")
         );
     }
 
@@ -123,7 +123,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         final String searchQuery = "%" + query + "%";
         return find(
                 where("name", Operand.LIKE, searchQuery).or(directors, "name", Operand.LIKE, searchQuery),
-                orderBy("likes", Order.DESC).andThenBy("id")
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id")
         );
     }
 
@@ -131,7 +131,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public Collection<Film> findByReleaseYearOrderByLikesDesc(long releaseYear, long limit) {
         return find(
                 where("releaseYear", Operand.EQ, releaseYear),
-                orderBy("likes", Order.DESC).andThenBy("id"),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id"),
                 limit
         );
     }
@@ -140,7 +140,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public Collection<Film> findByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit) {
         return find(
                 where(genres, "id", Operand.EQ, genreId).and("releaseYear", Operand.EQ, releaseYear),
-                orderBy("likes", Order.DESC).andThenBy("id"),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id"),
                 limit
         );
     }
