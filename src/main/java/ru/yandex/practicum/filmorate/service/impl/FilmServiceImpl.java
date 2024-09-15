@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Operation;
-//import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.api.DirectorService;
 import ru.yandex.practicum.filmorate.service.api.EventService;
 import ru.yandex.practicum.filmorate.service.api.FilmService;
@@ -20,7 +19,6 @@ import ru.yandex.practicum.filmorate.service.api.UserService;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 
 import java.util.*;
-//import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -58,11 +56,11 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Collection<Film> getTopFilms(final long count, final Long genreId, final Integer year) {
         if (genreId != null && year != null) {
-            return filmStorage.findAllByGenreIdAndReleaseYearOrderByLikesDesc(genreId, year, count);
+            return filmStorage.findByGenreIdAndReleaseYearOrderByLikesDesc(genreId, year, count);
         } else if (genreId != null) {
-            return filmStorage.findAllByGenreIdOrderByLikesDesc(genreId, count);
+            return filmStorage.findByGenreIdOrderByLikesDesc(genreId, count);
         } else if (year != null) {
-            return filmStorage.findAllByReleaseYearOrderByLikesDesc(year, count);
+            return filmStorage.findByReleaseYearOrderByLikesDesc(year, count);
         } else {
             return filmStorage.findAllOrderByLikesDesc(count);
         }
@@ -72,11 +70,11 @@ public class FilmServiceImpl implements FilmService {
     public Collection<Film> getFilmsByDirectorId(final long directorId, final String sortBy) {
         directorService.getDirector(directorId);
         if (sortBy == null) {
-            return filmStorage.findAllByDirectorId(directorId);
+            return filmStorage.findByDirectorId(directorId);
         } else if ("likes".equalsIgnoreCase(sortBy)) {
-            return filmStorage.findAllByDirectorIdOrderByLikesDesc(directorId);
+            return filmStorage.findByDirectorIdOrderByLikesDesc(directorId);
         } else if ("year".equalsIgnoreCase(sortBy)) {
-            return filmStorage.findAllByDirectorIdOrderByYearAsc(directorId);
+            return filmStorage.findByDirectorIdOrderByYearAsc(directorId);
         } else {
             throw new ValidationException("Check parameter to sort films by (you send %s)".formatted(sortBy));
         }
@@ -94,17 +92,11 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public void addLike(final long id, final long userId) {
+    public void addLike(final long id, final long userId, final int mark) {
         getFilm(id);
         userService.getUser(userId);
+        filmStorage.addLike(id, userId, mark);
         eventService.createEvent(EventType.LIKE, userId, Operation.ADD, id);
-        filmStorage.addLike(id, userId);
-    }
-
-    @Override
-    public Collection<Film> getRecommended(final long userId) {
-        userService.getUser(userId);
-        return filmStorage.findRecommendedByUserId(userId);
     }
 
     @Override
@@ -124,21 +116,29 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Collection<Film> getFilmsByTitleAndDirectorName(final String query, final String by) {
         if ("director,title".equalsIgnoreCase(by) || "title,director".equalsIgnoreCase(by)) {
-            return filmStorage.findAllByNameOrDirectorNameOrderByLikesDesc(query);
+            return filmStorage.findByNameOrDirectorNameOrderByLikesDesc(query);
         } else if ("title".equalsIgnoreCase(by)) {
-            return filmStorage.findAllByNameOrderByLikesDesc(query);
+            return filmStorage.findByNameOrderByLikesDesc(query);
         } else if ("director".equalsIgnoreCase(by)) {
-            return filmStorage.findAllByDirectorNameOrderByLikesDesc(query);
+            return filmStorage.findByDirectorNameOrderByLikesDesc(query);
         } else {
             throw new ValidationException("Check parameter to filter films by (you send %s)".formatted(by));
         }
     }
 
     @Override
-    public Collection<Film> getCommonFilms(long id, long friendId) {
-        userService.getUser(id);
+    public Collection<Film> getLikedFilms(long userId) {
+        userService.getUser(userId);
+        return filmStorage.findByUserId(userId);
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(long userId, long friendId) {
+        userService.getUser(userId);
         userService.getUser(friendId);
-        return filmStorage.getCommonFilms(id, friendId);
+        final Set<Film> commonFilms = new LinkedHashSet<>(filmStorage.findByUserId(userId));
+        commonFilms.retainAll(filmStorage.findByUserId(friendId));
+        return commonFilms;
     }
 
     private void validateCollections(final Film film) {

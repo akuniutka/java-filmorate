@@ -1,300 +1,186 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.api.FilmStorage;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Repository
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
-    private static final String FIND_COMMON_FILMS_QUERY = """
-            SELECT f.*
-            FROM films AS f
-            JOIN film_likes AS fl1 ON f.id = fl1.film_id
-            JOIN film_likes AS fl2 ON f.id = fl2.film_id
-            WHERE fl1.user_id = :id AND fl2.user_id = :friendId
-            ORDER BY f.likes DESC, f.id;
-            """;
-    private static final String ADD_LIKE_QUERY = """
-            MERGE INTO film_likes
-            KEY (film_id, user_id)
-            VALUES (:id, :userId);
-            """;
-    private static final String DELETE_LIKE_QUERY = """
-            DELETE FROM film_likes
-            WHERE film_id = :id AND user_id = :userId;
-            """;
-    private static final String SAVE_FILM_MPA_QUERY = """
-            UPDATE films
-            SET mpa_id = :mpaId
-            WHERE id = :id;
-            """;
-    private static final String SAVE_FILM_GENRE_QUERY = """
-            MERGE INTO film_genres
-            KEY (film_id, genre_id)
-            VALUES (:id, :genreId);
-            """;
-    private static final String SAVE_FILM_DIRECTOR_QUERY = """
-            MERGE INTO film_directors
-            KEY (film_id, director_id)
-            VALUES (:id, :directorId);
-            """;
-    private static final String FIND_FILM_MPA_QUERY = """
-            SELECT m.*
-            FROM mpas AS m
-            JOIN films AS f ON m.id = f.mpa_id
-            WHERE f.id = :id;
-            """;
-    private static final String FIND_FILMS_MPA_QUERY = """
-            SELECT f.id AS film_id,
-              m.*
-            FROM mpas AS m
-            JOIN films AS f ON m.id = f.mpa_id
-            WHERE f.id IN (%s);
-            """;
-    private static final String FIND_FILM_GENRES_QUERY = """
-            SELECT g.*
-            FROM genres AS g
-            JOIN film_genres AS fg ON g.id = fg.genre_id
-            WHERE fg.film_id = :id
-            ORDER BY g.id;
-            """;
-    private static final String FIND_FILMS_GENRES_QUERY = """
-            SELECT fg.film_id,
-              g.*
-            FROM genres AS g
-            JOIN film_genres AS fg ON g.id = fg.genre_id
-            WHERE fg.film_id IN (%s)
-            ORDER BY g.id;
-            """;
-    private static final String FIND_FILM_DIRECTORS_QUERY = """
-            SELECT d.*
-            FROM directors AS d
-            JOIN film_directors AS fd ON d.id = fd.director_id
-            WHERE fd.film_id = :id
-            ORDER BY d.id
-            """;
-    private static final String FIND_FILMS_DIRECTORS_QUERY = """
-            SELECT fd.film_id,
-              d.*
-            FROM directors AS d
-            JOIN film_directors AS fd ON d.id = fd.director_id
-            WHERE fd.film_id IN (%s)
-            ORDER BY d.id;
-            """;
-    private static final String DELETE_FILM_GENRES_QUERY = """
-            DELETE FROM film_genres
-            WHERE film_id = :id AND genre_id NOT IN (%s);
-            """;
-    private static final String DELETE_ALL_FILM_GENRES_QUERY = """
-            DELETE FROM film_genres
-            WHERE film_id = :id;
-            """;
-    private static final String DELETE_FILM_DIRECTORS_QUERY = """
-            DELETE FROM film_directors
-            WHERE film_id = :id AND director_id NOT IN (%s);
-            """;
-    private static final String DELETE_ALL_FILM_DIRECTORS_QUERY = """
-            DELETE FROM film_directors
-            WHERE film_id = :id;
-            """;
-    private static final String FIND_RECOMMENDED_BY_USER_ID_QUERY = """
-            SELECT f.*
-            FROM films AS f
-            JOIN film_likes AS fl1 ON f.id = fl1.film_id AND fl1.user_id =
-            (
-              SELECT fl1.user_id
-              FROM film_likes AS fl1
-              LEFT JOIN film_likes AS fl2 ON fl1.film_id = fl2.film_id
-              WHERE fl1.user_id != :userId AND fl2.user_id = :userId
-              GROUP BY fl1.user_id
-              HAVING COUNT(fl2.user_id) > 0
-              ORDER BY COUNT(fl2.user_id) DESC, COUNT(*) DESC, fl1.user_id
-              LIMIT 1
-            )
-            LEFT JOIN film_likes AS fl2 ON f.id = fl2.film_id AND fl2.user_id = :userId
-            WHERE fl2.film_id IS NULL
-            ORDER BY f.likes DESC, f.id;
-            """;
-
-    private final RowMapper<Mpa> mpaMapper;
-    private final RowMapper<Genre> genreMapper;
-    private final RowMapper<Director> directorMapper;
+    private final ManyToOneRelation<Mpa> mpa;
+    private final ManyToManyRelation<Genre> genres;
+    private final ManyToManyRelation<Director> directors;
+    private final ManyToManyRelation<User> likes;
 
     @Autowired
     public FilmDbStorage(final NamedParameterJdbcTemplate jdbc) {
         super(Film.class, jdbc);
-        this.mpaMapper = new BeanPropertyRowMapper<>(Mpa.class);
-        this.genreMapper = new BeanPropertyRowMapper<>(Genre.class);
-        this.directorMapper = new BeanPropertyRowMapper<>(Director.class);
+        this.mpa = new ManyToOneRelation<Mpa>(Mpa.class);
+        this.genres = new ManyToManyRelation<Genre>(Genre.class);
+        this.directors = new ManyToManyRelation<Director>(Director.class);
+        this.likes = new ManyToManyRelation<>(User.class)
+                .withJoinTable("film_likes")
+                .withPayloadColumn("mark");
     }
 
     @Override
     public Film save(final Film film) {
         final Film savedFilm = save(List.of("name", "description", "releaseDate", "duration"), film);
-        saveFilmMpa(savedFilm.getId(), film.getMpa());
-        saveFilmGenres(savedFilm.getId(), film.getGenres());
-        saveFilmDirectors(savedFilm.getId(), film.getDirectors());
-        return fetchCollections(savedFilm);
+        Optional.ofNullable(film.getMpa()).ifPresent(m -> mpa.addRelation(savedFilm.getId(), m.getId()));
+        genres.saveRelations(savedFilm.getId(), getGenresIds(film.getGenres()));
+        directors.saveRelations(savedFilm.getId(), getDirectorIds(film.getDirectors()));
+        return fetchRelations(savedFilm);
     }
 
     @Override
     public Optional<Film> findById(final long id) {
-        return super.findById(id).map(this::fetchCollections);
-    }
-
-    @Override
-    public Collection<Film> findAll() {
-        return fetchCollections(super.findAll());
-    }
-
-    @Override
-    public Collection<Film> findAllByNameOrderByLikesDesc(String query) {
-        final String searchQuery = "%" + query + "%";
-        return fetchCollections(findAll(
-                and().like("name", searchQuery),
-                desc("likes").asc("id")
-        ));
-    }
-
-    @Override
-    public Collection<Film> findAllByDirectorNameOrderByLikesDesc(String query) {
-        final String searchQuery = "%" + query + "%";
-        return fetchCollections(findAll(
-                and().like("directors", "name", searchQuery),
-                desc("likes").asc("id")
-        ));
-    }
-
-    @Override
-    public Collection<Film> findAllByNameOrDirectorNameOrderByLikesDesc(String query) {
-        final String searchQuery = "%" + query + "%";
-        return fetchCollections(findAll(
-                or().like("name", searchQuery).like("directors", "name", searchQuery),
-                desc("likes").asc("id")
-        ));
-    }
-
-    @Override
-    public Collection<Film> findAllByDirectorId(final long directorId) {
-        return fetchCollections(findAll(
-                and().eq("directors", "id", directorId)
-        ));
-    }
-
-    @Override
-    public Collection<Film> findAllByDirectorIdOrderByLikesDesc(final long directorId) {
-        return fetchCollections(findAll(
-                and().eq("directors", "id", directorId),
-                desc("likes").asc("id")
-        ));
-    }
-
-    @Override
-    public Collection<Film> findAllByDirectorIdOrderByYearAsc(final long directorId) {
-        return fetchCollections(findAll(
-           and().eq("directors", "id", directorId),
-           asc("releaseYear").asc("id")
-        ));
+        return super.findById(id).map(this::fetchRelations);
     }
 
     @Override
     public Collection<Film> findAllOrderByLikesDesc(final long limit) {
-        return fetchCollections(findAll(
-                desc("likes").asc("id"),
+        return findAll(
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id"),
                 limit
-        ));
+        );
     }
 
     @Override
-    public Collection<Film> findAllByGenreIdOrderByLikesDesc(final long genreId, final long limit) {
-        return fetchCollections(findAll(
-                and().eq("genres", "id", genreId),
-                desc("likes").asc("id"),
+    public Collection<Film> findByGenreIdOrderByLikesDesc(final long genreId, final long limit) {
+        return find(
+                where(genres, "id", Operand.EQ, genreId),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id"),
                 limit
-        ));
+        );
     }
 
     @Override
-    public Collection<Film> findAllByReleaseYearOrderByLikesDesc(long releaseYear, long limit) {
-        return fetchCollections(findAll(
-                and().eq("releaseYear", releaseYear),
-                desc("likes").asc("id"),
-                limit
-        ));
+    public Collection<Film> findByDirectorId(final long directorId) {
+        return find(
+                where(directors, "id", Operand.EQ, directorId)
+        );
     }
 
     @Override
-    public Collection<Film> findAllByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit) {
-        return fetchCollections(findAll(
-                and().eq("genres", "id", genreId).eq("releaseYear", releaseYear),
-                desc("likes").asc("id"),
+    public Collection<Film> findByDirectorIdOrderByLikesDesc(final long directorId) {
+        return find(
+                where(directors, "id", Operand.EQ, directorId),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id")
+        );
+    }
+
+    @Override
+    public Collection<Film> findByDirectorIdOrderByYearAsc(final long directorId) {
+        return find(
+                where(directors, "id", Operand.EQ, directorId),
+                orderBy("releaseYear").andThenBy("id")
+        );
+    }
+
+    @Override
+    public Collection<Film> findByUserId(final long userId) {
+        return find(
+                where(likes, "id", Operand.EQ, userId)
+        );
+    }
+
+    @Override
+    public Collection<Film> findByNameOrderByLikesDesc(String query) {
+        final String searchQuery = "%" + query + "%";
+        return find(
+                where("name", Operand.LIKE, searchQuery),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id")
+        );
+    }
+
+    @Override
+    public Collection<Film> findByDirectorNameOrderByLikesDesc(String query) {
+        final String searchQuery = "%" + query + "%";
+        return find(
+                where(directors, "name", Operand.LIKE, searchQuery),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id")
+        );
+    }
+
+    @Override
+    public Collection<Film> findByNameOrDirectorNameOrderByLikesDesc(String query) {
+        final String searchQuery = "%" + query + "%";
+        return find(
+                where("name", Operand.LIKE, searchQuery).or(directors, "name", Operand.LIKE, searchQuery),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id")
+        );
+    }
+
+    @Override
+    public Collection<Film> findByReleaseYearOrderByLikesDesc(long releaseYear, long limit) {
+        return find(
+                where("releaseYear", Operand.EQ, releaseYear),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id"),
                 limit
-        ));
+        );
+    }
+
+    @Override
+    public Collection<Film> findByGenreIdAndReleaseYearOrderByLikesDesc(long genreId, long releaseYear, long limit) {
+        return find(
+                where(genres, "id", Operand.EQ, genreId).and("releaseYear", Operand.EQ, releaseYear),
+                orderBy("rating", Order.DESC).andThenBy("likes", Order.DESC).andThenBy("id"),
+                limit
+        );
     }
 
     @Override
     public Optional<Film> update(final Film film) {
         final Optional<Film> savedFilm = update(List.of("name", "description", "releaseDate", "duration"), film);
         savedFilm.ifPresent(f -> {
-            saveFilmMpa(film.getId(), film.getMpa());
-            updateFilmGenres(film.getId(), film.getGenres());
-            updateFilmDirectors(film.getId(), film.getDirectors());
+            Optional.ofNullable(film.getMpa()).ifPresentOrElse(
+                    m -> mpa.addRelation(film.getId(), m.getId()),
+                    () -> mpa.dropRelation(film.getId())
+            );
+            genres.saveRelations(film.getId(), getGenresIds(film.getGenres()));
+            directors.saveRelations(film.getId(), getDirectorIds(film.getDirectors()));
         });
-        return savedFilm.map(this::fetchCollections);
+        return savedFilm.map(this::fetchRelations);
     }
 
     @Override
-    public void addLike(final long id, final long userId) {
-        var params = new MapSqlParameterSource()
-                .addValue("id", id)
-                .addValue("userId", userId);
-        execute(ADD_LIKE_QUERY, params);
+    public void addLike(final long id, final long userId, final int mark) {
+        likes.addRelation(id, userId, mark);
     }
 
     @Override
     public boolean deleteLike(final long id, final long userId) {
-        var params = new MapSqlParameterSource()
-                .addValue("id", id)
-                .addValue("userId", userId);
-        return execute(DELETE_LIKE_QUERY, params) > 0;
+        return likes.dropRelation(id, userId);
     }
 
     @Override
-    public Collection<Film> getCommonFilms(long id, long friendId) {
-        var params = new MapSqlParameterSource()
-                .addValue("id", id)
-                .addValue("friendId", friendId);
-        return fetchCollections(findMany(FIND_COMMON_FILMS_QUERY, params));
+    protected List<Film> findMany(String query, SqlParameterSource params) {
+        final List<Film> films = super.findMany(query, params);
+        if (!CollectionUtils.isEmpty(films)) {
+            fetchMpa(films);
+            fetchGenres(films);
+            fetchDirectors(films);
+        }
+        return films;
     }
 
-    @Override
-    public Collection<Film> findRecommendedByUserId(final long userId) {
-        SqlParameterSource params = new MapSqlParameterSource("userId", userId);
-        return fetchCollections(findMany(FIND_RECOMMENDED_BY_USER_ID_QUERY, params));
-    }
-
-    private Film fetchCollections(final Film film) {
+    private Film fetchRelations(final Film film) {
         return Optional.of(film)
                 .map(this::fetchMpa)
                 .map(this::fetchGenres)
@@ -302,158 +188,54 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 .orElseThrow();
     }
 
-    private Collection<Film> fetchCollections(final Collection<Film> films) {
-        return Optional.of(films)
-                .map(this::fetchMpa)
-                .map(this::fetchGenres)
-                .map(this::fetchDirectors)
-                .orElseThrow();
-    }
-
     private Film fetchMpa(final Film film) {
-        final SqlParameterSource params = new MapSqlParameterSource("id", film.getId());
-        try {
-            Mpa mpa = jdbc.queryForObject(FIND_FILM_MPA_QUERY, params, mpaMapper);
-            film.setMpa(mpa);
-        } catch (EmptyResultDataAccessException ignored) {
-            film.setMpa(null);
-        }
+        film.setMpa(mpa.fetchRelation(film.getId()).orElse(null));
         return film;
     }
 
-    private Collection<Film> fetchMpa(final Collection<Film> films) {
-        final String filmIds = films.stream()
+    private void fetchMpa(final List<Film> films) {
+        final Set<Long> ids = films.stream()
                 .map(Film::getId)
-                .map(Object::toString)
-                .collect(Collectors.joining(", "));
-        final Map<Long, Mpa> mpas = new HashMap<>();
-        jdbc.getJdbcOperations().query(FIND_FILMS_MPA_QUERY.formatted(filmIds),
-                rs -> {
-                    Long filmId = rs.getLong("film_id");
-                    Mpa mpa = mpaMapper.mapRow(rs, 0);
-                    mpas.put(filmId, mpa);
-                }
-        );
-        return films.stream()
-                .peek(film -> film.setMpa(mpas.get(film.getId())))
-                .toList();
+                .collect(Collectors.toSet());
+        final Map<Long, Mpa> mpaByFilmId = mpa.fetchRelations(ids);
+        films.forEach(film -> film.setMpa(mpaByFilmId.get(film.getId())));
     }
 
     private Film fetchGenres(final Film film) {
-        var params = new MapSqlParameterSource("id", film.getId());
-        final Collection<Genre> genres = jdbc.query(FIND_FILM_GENRES_QUERY, params, genreMapper);
-        film.setGenres(genres);
+        film.setGenres(genres.fetchRelations(film.getId()));
         return film;
     }
 
-    private Collection<Film> fetchGenres(final Collection<Film> films) {
-        final String filmIds = films.stream()
-                .map(Film::getId)
-                .map(Object::toString)
-                .collect(Collectors.joining(", "));
-        final Map<Long, Collection<Genre>> genresByFilmId = new HashMap<>();
-        jdbc.getJdbcOperations().query(FIND_FILMS_GENRES_QUERY.formatted(filmIds),
-                rs -> {
-                    Long filmId = rs.getLong("film_id");
-                    Genre genre = genreMapper.mapRow(rs, 0);
-                    genresByFilmId.computeIfAbsent(filmId, key -> new ArrayList<>()).add(genre);
-                }
-        );
-        return films.stream()
-                .peek(film -> film.setGenres(genresByFilmId.getOrDefault(film.getId(), new HashSet<>())))
-                .toList();
+    private void fetchGenres(final List<Film> films) {
+        final Map<Long, Set<Genre>> genresByFilmId = genres.fetchRelations(getFilmIds(films));
+        films.forEach(film -> film.setGenres(genresByFilmId.getOrDefault(film.getId(), new LinkedHashSet<>())));
     }
 
     private Film fetchDirectors(final Film film) {
-        var params = new MapSqlParameterSource("id", film.getId());
-        Collection<Director> directors = jdbc.query(FIND_FILM_DIRECTORS_QUERY, params, directorMapper);
-        film.setDirectors(directors);
+        film.setDirectors(directors.fetchRelations(film.getId()));
         return film;
     }
 
-    private Collection<Film> fetchDirectors(final Collection<Film> films) {
-        final String filmIds = films.stream()
+    private void fetchDirectors(final List<Film> films) {
+        final Map<Long, Set<Director>> directorsByFilmId = directors.fetchRelations(getFilmIds(films));
+        films.forEach(film -> film.setDirectors(directorsByFilmId.getOrDefault(film.getId(), new LinkedHashSet<>())));
+    }
+
+    private Set<Long> getFilmIds(final Collection<Film> films) {
+        return films == null ? null : films.stream()
                 .map(Film::getId)
-                .map(Object::toString)
-                .collect(Collectors.joining(", "));
-        final Map<Long, Collection<Director>> directorsByFilmId = new HashMap<>();
-        jdbc.getJdbcOperations().query(FIND_FILMS_DIRECTORS_QUERY.formatted(filmIds),
-                rs -> {
-                    Long filmId = rs.getLong("film_id");
-                    Director director = directorMapper.mapRow(rs, 0);
-                    directorsByFilmId.computeIfAbsent(filmId, key -> new ArrayList<>()).add(director);
-                }
-        );
-        return films.stream()
-                .peek(film -> film.setDirectors(directorsByFilmId.getOrDefault(film.getId(), new ArrayList<>())))
-                .toList();
+                .collect(Collectors.toSet());
     }
 
-    private void saveFilmMpa(final long id, final Mpa mpa) {
-        final Long mpaId = mpa == null ? null : mpa.getId();
-        final SqlParameterSource params = new MapSqlParameterSource()
-                .addValue("id", id)
-                .addValue("mpaId", mpaId);
-        execute(SAVE_FILM_MPA_QUERY, params);
+    private Set<Long> getGenresIds(final Collection<Genre> genres) {
+        return genres == null ? null : genres.stream()
+                .map(Genre::getId)
+                .collect(Collectors.toSet());
     }
 
-    private void saveFilmGenres(final long id, final Collection<Genre> genres) {
-        if (genres != null && !genres.isEmpty()) {
-            final SqlParameterSource[] params = genres.stream()
-                    .map(genre -> new MapSqlParameterSource()
-                            .addValue("id", id)
-                            .addValue("genreId", genre.getId())
-                    )
-                    .toArray(SqlParameterSource[]::new);
-            jdbc.batchUpdate(SAVE_FILM_GENRE_QUERY, params);
-        }
-    }
-
-    private void updateFilmGenres(final long id, final Collection<Genre> genres) {
-        saveFilmGenres(id, genres);
-        deleteFilmGenresExcept(id, genres);
-    }
-
-    private void deleteFilmGenresExcept(final long id, final Collection<Genre> genres) {
-        var params = new MapSqlParameterSource("id", id);
-        if (genres == null || genres.isEmpty()) {
-            execute(DELETE_ALL_FILM_GENRES_QUERY, params);
-        } else {
-            final String genreIds = genres.stream()
-                    .map(Genre::getId)
-                    .map(Object::toString)
-                    .collect(Collectors.joining(", "));
-            execute(DELETE_FILM_GENRES_QUERY.formatted(genreIds), params);
-        }
-    }
-
-    private void saveFilmDirectors(final long id, final Collection<Director> directors) {
-        if (directors != null && !directors.isEmpty()) {
-            SqlParameterSource[] params = directors.stream()
-                    .map(director -> new MapSqlParameterSource()
-                            .addValue("id", id)
-                            .addValue("directorId", director.getId())
-                    )
-                    .toArray(SqlParameterSource[]::new);
-            jdbc.batchUpdate(SAVE_FILM_DIRECTOR_QUERY, params);
-        }
-    }
-
-    private void updateFilmDirectors(final long id, final Collection<Director> directors) {
-        saveFilmDirectors(id, directors);
-        deleteFilmDirectorsExcept(id, directors);
-    }
-
-    private void deleteFilmDirectorsExcept(final long id, final Collection<Director> directors) {
-        var params = new MapSqlParameterSource("id", id);
-        if (directors == null || directors.isEmpty()) {
-            execute(DELETE_ALL_FILM_DIRECTORS_QUERY, params);
-        } else {
-            final String directorIds = directors.stream()
-                    .map(Director::getId)
-                    .map(Objects::toString)
-                    .collect(Collectors.joining(", "));
-            execute(DELETE_FILM_DIRECTORS_QUERY.formatted(directorIds), params);
-        }
+    private Set<Long> getDirectorIds(final Collection<Director> directors) {
+        return directors == null ? null : directors.stream()
+                .map(Director::getId)
+                .collect(Collectors.toSet());
     }
 }

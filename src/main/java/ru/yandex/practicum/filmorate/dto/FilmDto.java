@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collection;
 
@@ -22,4 +23,5 @@ public class FilmDto {
     private MpaDto mpa;
     private Collection<GenreDto> genres;
     private Collection<DirectorDto> directors;
+    private BigDecimal rating;
 }

@@ -13,7 +13,7 @@ public interface ReviewStorage {
 
     Collection<Review> findAllOrderByUsefulDesc(long count);
 
-    Collection<Review> findAllByFilmIdOrderByUsefulDesc(long filmId, long count);
+    Collection<Review> findByFilmIdOrderByUsefulDesc(long filmId, long count);
 
     Optional<Review> update(Review review);
 

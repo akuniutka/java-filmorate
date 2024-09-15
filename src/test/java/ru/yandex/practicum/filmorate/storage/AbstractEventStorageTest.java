@@ -41,7 +41,7 @@ public abstract class AbstractEventStorageTest {
         final long id = userIds[0];
         expectedEvents.remove(1);
 
-        final List<Event> actualEvents = new ArrayList<>(eventStorage.findAllByUserId(id));
+        final List<Event> actualEvents = new ArrayList<>(eventStorage.findByUserId(id));
 
         assertEventListEquals(expectedEvents, actualEvents);
     }
@@ -51,7 +51,7 @@ public abstract class AbstractEventStorageTest {
         preloadData();
         final long wrongUserId = -1L;
 
-        final List<Event> actualEvents = new ArrayList<>(eventStorage.findAllByUserId(wrongUserId));
+        final List<Event> actualEvents = new ArrayList<>(eventStorage.findByUserId(wrongUserId));
 
         assertTrue(actualEvents.isEmpty(), "should find no events for user with id = " + wrongUserId);
     }

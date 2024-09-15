@@ -10,9 +10,9 @@ import java.util.Collection;
 @Mapper
 public interface MpaMapper {
 
+    Mpa mapToMpa(FilmMpaDto dto);
+
     MpaDto mapToDto(Mpa mpa);
 
     Collection<MpaDto> mapToDto(Collection<Mpa> mpas);
-
-    Mpa mapToMpa(final FilmMpaDto dto);
 }

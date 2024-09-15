@@ -1,6 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,33 +21,41 @@ import java.util.Collection;
 @RequestMapping("/films")
 @RequiredArgsConstructor
 @Slf4j
-public class FilmController {
+public class FilmController extends BaseController {
 
     private final FilmService filmService;
     private final FilmMapper mapper;
 
     @PostMapping
-    public FilmDto createFilm(@Valid @RequestBody final NewFilmDto newFilmDto) {
-        log.info("Received POST at /films: {}", newFilmDto);
+    public FilmDto createFilm(
+            @Valid @RequestBody final NewFilmDto newFilmDto,
+            final HttpServletRequest request
+    ) {
+        logRequest(request, newFilmDto);
         final Film film = mapper.mapToFilm(newFilmDto);
         final FilmDto filmDto = mapper.mapToDto(filmService.createFilm(film));
-        log.info("Responded to POST /films: {}", filmDto);
+        logResponse(request, filmDto);
         return filmDto;
     }
 
     @GetMapping("/{id}")
-    public FilmDto getFilm(@PathVariable final long id) {
-        log.info("Received GET at /films/{}", id);
+    public FilmDto getFilm(
+            @PathVariable final long id,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final FilmDto dto = mapper.mapToDto(filmService.getFilm(id));
-        log.info("Responded to GET /films/{}: {}", id, dto);
+        logResponse(request, dto);
         return dto;
     }
 
     @GetMapping
-    public Collection<FilmDto> getFilms() {
-        log.info("Received GET at /films");
+    public Collection<FilmDto> getFilms(
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getFilms());
-        log.info("Responded to GET /films: {}", dtos);
+        logResponse(request, dtos);
         return dtos;
     }
 
@@ -52,68 +63,93 @@ public class FilmController {
     public Collection<FilmDto> getTopLiked(
             @RequestParam(defaultValue = "10") @Valid @Positive final long count,
             @RequestParam(required = false) final Long genreId,
-            @RequestParam(required = false) final Integer year) {
-        log.info("Received GET at /films/popular?count={}&genreId={}&year{}", count, genreId, year);
+            @RequestParam(required = false) final Integer year,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getTopFilms(count, genreId, year));
-        log.info("Responded to GET /films/popular?count={}&genreId={}&year={}: {}", count, genreId, year, dtos);
+        logResponse(request, dtos);
         return dtos;
     }
 
     @GetMapping("/director/{directorId}")
     public Collection<FilmDto> getFilmsByDirector(
             @PathVariable final long directorId,
-            @RequestParam final String sortBy) {
-        log.info("Received GET at /films/director/{}?sortBy={}", directorId, sortBy);
+            @RequestParam final String sortBy,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final Collection<FilmDto> dtos =  mapper.mapToDto(filmService.getFilmsByDirectorId(directorId, sortBy));
-        log.info("Responded to GET /films/director/{}?sortBy={}: {}", directorId, sortBy, dtos);
+        logResponse(request, dtos);
         return dtos;
     }
 
     @GetMapping("/search")
     public Collection<FilmDto> searchFilms(
             @RequestParam final String query,
-            @RequestParam(required = false, defaultValue = "title") final String by) {
-        log.info("Received GET at /films/search?query={}&by={}", query, by);
+            @RequestParam(defaultValue = "title") final String by,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getFilmsByTitleAndDirectorName(query, by));
-        log.info("Responded to GET /films/search?query={}&by={}: {}", query, by, dtos);
+        logResponse(request, dtos);
+        return dtos;
+    }
+
+    @GetMapping("/common")
+    public Collection<FilmDto> getCommonFilms(
+            @RequestParam final long userId,
+            @RequestParam final long friendId,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
+        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getCommonFilms(userId, friendId));
+        logResponse(request, dtos);
         return dtos;
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable final long id, @PathVariable final long userId) {
-        log.info("Received PUT at /films/{}/like/{}", id, userId);
-        filmService.addLike(id, userId);
-        log.info("Responded to PUT /films/{}/like/{} with no body", id, userId);
+    public void addLike(
+            @PathVariable final long id,
+            @PathVariable final long userId,
+            @Valid @RequestParam(defaultValue = "10") @Min(1) @Max(10) final int mark,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
+        filmService.addLike(id, userId, mark);
+        logResponse(request);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void deleteLike(@PathVariable final long id, @PathVariable final long userId) {
-        log.info("Received DELETE at /films/{}/like/{}", id, userId);
+    public void deleteLike(
+            @PathVariable final long id,
+            @PathVariable final long userId,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         filmService.deleteLike(id, userId);
-        log.info("Responded to DELETE /films/{}/like/{} with no body", id, userId);
+        logResponse(request);
     }
 
     @PutMapping
-    public FilmDto updateFilm(@Valid @RequestBody final UpdateFilmDto updateFilmDto) {
-        log.info("Received PUT at /films: {}", updateFilmDto);
+    public FilmDto updateFilm(
+            @Valid @RequestBody final UpdateFilmDto updateFilmDto,
+            final HttpServletRequest request
+    ) {
+        logRequest(request, updateFilmDto);
         final Film film = mapper.mapToFilm(updateFilmDto);
         final FilmDto filmDto = mapper.mapToDto(filmService.updateFilm(film));
-        log.info("Responded to PUT /films: {}", filmDto);
+        logResponse(request, filmDto);
         return filmDto;
     }
 
     @DeleteMapping("/{filmId}")
-    public void deleteFilm(@PathVariable long filmId) {
-        log.info("Received DELETE at /films/{}", filmId);
+    public void deleteFilm(
+            @PathVariable long filmId,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         filmService.deleteFilm(filmId);
-        log.info("Responded to DELETE /films/{} with no body", filmId);
-    }
-
-    @GetMapping("/common")
-    public Collection<FilmDto> getCommonFilms(@RequestParam final long userId, @RequestParam final long friendId) {
-        log.info("Received GET at /films/common?userId={}&friendId={}", userId, friendId);
-        final Collection<FilmDto> dtos = mapper.mapToDto(filmService.getCommonFilms(userId, friendId));
-        log.info("Responded to GET /films/common?userId={}&friendId={}: {}", userId, friendId, dtos);
-        return dtos;
+        logResponse(request);
     }
 }

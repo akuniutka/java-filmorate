@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,49 +25,63 @@ import java.util.Collection;
 @RequestMapping("/directors")
 @RequiredArgsConstructor
 @Slf4j
-public class DirectorController {
+public class DirectorController extends BaseController {
 
     private final DirectorService directorService;
     private final DirectorMapper mapper;
 
+    @PostMapping
+    public DirectorDto createDirector(
+            @Valid @RequestBody final NewDirectorDto newDirectorDto,
+            final HttpServletRequest request
+    ) {
+        logRequest(request, newDirectorDto);
+        final Director director = mapper.mapToDirector(newDirectorDto);
+        final DirectorDto directorDto = mapper.mapToDto(directorService.createDirector(director));
+        logResponse(request, directorDto);
+        return directorDto;
+    }
+
     @GetMapping("/{id}")
-    public DirectorDto getDirector(@PathVariable final long id) {
-        log.info("Received GET at /directors/{}", id);
+    public DirectorDto getDirector(
+            @PathVariable final long id,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final DirectorDto dto = mapper.mapToDto(directorService.getDirector(id));
-        log.info("Responded to GET /directors/{}: {}", id, dto);
+        logResponse(request, dto);
         return dto;
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteDirector(@PathVariable final long id) {
-        log.info("Received DELETE at /directors/{}", id);
-        directorService.deleteDirector(id);
-        log.info("Responded to DELETE /directors/{} with no body", id);
-    }
-
-    @PostMapping
-    public DirectorDto createDirector(@Valid @RequestBody final NewDirectorDto newDirectorDto) {
-        log.info("Received POST at /directors: {}", newDirectorDto);
-        final Director director = mapper.mapToDirector(newDirectorDto);
-        final DirectorDto directorDto = mapper.mapToDto(directorService.createDirector(director));
-        log.info("Responded to POST /directors: {}", directorDto);
-        return directorDto;
+    @GetMapping
+    public Collection<DirectorDto> getDirectors(
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
+        final Collection<DirectorDto> dtos = mapper.mapToDto(directorService.getDirectors());
+        logResponse(request, dtos);
+        return dtos;
     }
 
     @PutMapping
-    public DirectorDto updateDirector(@Valid @RequestBody final UpdateDirectorDto updateDirectorDto) {
-        log.info("Received PUT at /directors: {}", updateDirectorDto);
+    public DirectorDto updateDirector(
+            @Valid @RequestBody final UpdateDirectorDto updateDirectorDto,
+            final HttpServletRequest request
+    ) {
+        logRequest(request, updateDirectorDto);
         final Director director = mapper.mapToDirector(updateDirectorDto);
         final DirectorDto directorDto = mapper.mapToDto(directorService.updateDirector(director));
-        log.info("Responded to PUT /directors: {}", directorDto);
+        logResponse(request, directorDto);
         return directorDto;
     }
 
-    @GetMapping
-    public Collection<DirectorDto> getDirectors() {
-        log.info("Received GET at /directors");
-        final Collection<DirectorDto> dtos = mapper.mapToDto(directorService.getDirectors());
-        log.info("Responded to GET /directors: {}", dtos);
-        return dtos;
+    @DeleteMapping("/{id}")
+    public void deleteDirector(
+            @PathVariable final long id,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
+        directorService.deleteDirector(id);
+        logResponse(request);
     }
 }

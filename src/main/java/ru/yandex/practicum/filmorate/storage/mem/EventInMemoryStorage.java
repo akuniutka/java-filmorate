@@ -24,7 +24,7 @@ public class EventInMemoryStorage extends BaseInMemoryStorage<Event> implements 
     }
 
     @Override
-    public Collection<Event> findAllByUserId(long userId) {
+    public Collection<Event> findByUserId(long userId) {
         return findAll().stream()
                 .filter(event -> Objects.equals(event.getUserId(), userId))
                 .toList();

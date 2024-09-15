@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,25 +19,31 @@ import java.util.Collection;
 @RequestMapping("/reviews")
 @RequiredArgsConstructor
 @Slf4j
-public class ReviewController {
+public class ReviewController extends BaseController {
 
     private final ReviewService reviewService;
     private final ReviewMapper mapper;
 
     @PostMapping
-    public ReviewDto createReview(@Valid @RequestBody final NewReviewDto newReviewDto) {
-        log.info("Received POST at /reviews: {}", newReviewDto);
+    public ReviewDto createReview(
+            @Valid @RequestBody final NewReviewDto newReviewDto,
+            final HttpServletRequest request
+    ) {
+        logRequest(request, newReviewDto);
         final Review review = mapper.mapToReview(newReviewDto);
         final ReviewDto reviewDto = mapper.mapToDto(reviewService.createReview(review));
-        log.info("Responded to POST /reviews: {}", reviewDto);
+        logResponse(request, reviewDto);
         return reviewDto;
     }
 
     @GetMapping("/{id}")
-    public ReviewDto getReview(@PathVariable final long id) {
-        log.info("Received GET at /reviews/{}", id);
+    public ReviewDto getReview(
+            @PathVariable final long id,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final ReviewDto dto = mapper.mapToDto(reviewService.getReview(id));
-        log.info("Responded to GET /reviews/{}: {}", id, dto);
+        logResponse(request, dto);
         return dto;
     }
 
@@ -44,58 +51,82 @@ public class ReviewController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<ReviewDto> getReviews(
             @RequestParam(name = "filmId", required = false) Long filmId,
-            @RequestParam(name = "count", defaultValue = "10") long count) {
-        log.info("Received GET at /reviews?filmId={}&count={}", filmId, count);
+            @RequestParam(name = "count", defaultValue = "10") long count,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         Collection<ReviewDto> dtos = mapper.mapToDto(reviewService.getReviews(filmId, count));
-        log.info("Responded to GET /reviews?filmId={}&count={}: {}", filmId, count, dtos);
+        logResponse(request, dtos);
         return dtos;
     }
 
     @PutMapping
-    public ReviewDto updateReview(@Valid @RequestBody final UpdateReviewDto updateReviewDto) {
-        log.info("Received PUT at /reviews: {}", updateReviewDto);
+    public ReviewDto updateReview(
+            @Valid @RequestBody final UpdateReviewDto updateReviewDto,
+            final HttpServletRequest request
+    ) {
+        logRequest(request, updateReviewDto);
         final Review review = mapper.mapToReview(updateReviewDto);
         final ReviewDto reviewDto = mapper.mapToDto(reviewService.updateReview(review));
-        log.info("Responded to PUT /reviews: {}", reviewDto);
+        logResponse(request, reviewDto);
         return reviewDto;
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public ReviewDto addLike(@PathVariable final long id, @PathVariable final long userId) {
-        log.info("Received PUT at /reviews/{}/like/{}", id, userId);
+    public ReviewDto addLike(
+            @PathVariable final long id,
+            @PathVariable final long userId,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final ReviewDto dto = mapper.mapToDto(reviewService.addLike(id, userId));
-        log.info("Responded to PUT /reviews/{}/like/{}: {}", id, userId, dto);
+        logResponse(request, dto);
         return dto;
     }
 
     @PutMapping("/{id}/dislike/{userId}")
-    public ReviewDto addDislike(@PathVariable final long id, @PathVariable final long userId) {
-        log.info("Received PUT at /reviews/{}/dislike/{}", id, userId);
+    public ReviewDto addDislike(
+            @PathVariable final long id,
+            @PathVariable final long userId,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final ReviewDto dto = mapper.mapToDto(reviewService.addDislike(id, userId));
-        log.info("Responded to PUT /reviews/{}/dislike/{}: {}", id, userId, dto);
+        logResponse(request, dto);
         return dto;
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public ReviewDto deleteLike(@PathVariable final long id, @PathVariable final long userId) {
-        log.info("Received DELETE at /reviews/{}/like/{}", id, userId);
+    public ReviewDto deleteLike(
+            @PathVariable final long id,
+            @PathVariable final long userId,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final ReviewDto dto = mapper.mapToDto(reviewService.deleteLike(id, userId));
-        log.info("Responded to DELETE /reviews/{}/like/{}: {}", id, userId, dto);
+        logResponse(request, dto);
         return dto;
     }
 
     @DeleteMapping("/{id}/dislike/{userId}")
-    public ReviewDto deleteDislike(@PathVariable final long id, @PathVariable final long userId) {
-        log.info("Received DELETE at /reviews/{}/dislike/{}", id, userId);
+    public ReviewDto deleteDislike(
+            @PathVariable final long id,
+            @PathVariable final long userId,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         final ReviewDto dto = mapper.mapToDto(reviewService.deleteDislike(id, userId));
-        log.info("Responded to DELETE /reviews/{}/dislike/{}: {}", id, userId, dto);
+        logResponse(request, dto);
         return dto;
     }
 
     @DeleteMapping("/{id}")
-    public void deleteReview(@PathVariable final long id) {
-        log.info("Received DELETE at /reviews/{}", id);
+    public void deleteReview(
+            @PathVariable final long id,
+            final HttpServletRequest request
+    ) {
+        logRequest(request);
         reviewService.deleteReview(id);
-        log.info("Responded to DELETE /reviews/{} with no body", id);
+        logResponse(request);
     }
 }
